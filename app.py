@@ -148,7 +148,7 @@ elif choice == "Tool 4: แบบบันทึกการสังเกต�
 
 # --- TOOL 5: THE CORE (SEVERITY-LED RULE) ---
 elif choice == "Tool 5: การประเมินนัยสำคัญ (Salient Risk)":
-    st.header("เครื่องมือที่ 5: Salient Human Rights Risks Scoring Matrix")
+    st.header("⚖️ เครื่องมือที่ 5: Salient Human Rights Risks Scoring Matrix")
     st.info("หลักการคำนวณ: Severity-led Rule (ใช้ค่าสูงสุดของ Scale/Scope/Remediability) x Likelihood")
     
     col_in, col_res = st.columns([1, 1.5])
@@ -156,48 +156,73 @@ elif choice == "Tool 5: การประเมินนัยสำคัญ (
     with col_in:
         issue_name = st.text_input("ระบุประเด็นความเสี่ยง:", "สิทธิแรงงานในห่วงโซ่อุปทาน")
         
+        st.write("---")
         st.subheader("1. การประเมินความรุนแรง (Severity)")
         sc_scale = st.slider("ขนาดของผลกระทบ (Scale)", 1, 5, 3)
         sc_scope = st.slider("ขอบเขตของผลกระทบ (Scope)", 1, 5, 3)
         sc_remedy = st.slider("การเยียวยา (Remediability)", 1, 5, 3)
         
-        # คำนวณ Severity ตามหลัก "ความร้ายแรงนำ" (Severity-led Rule)
         severity_max = max(sc_scale, sc_scope, sc_remedy)
-        st.warning(f"ค่าความรุนแรงสุทธิ (Max Severity) = {severity_max}")
         
+        st.write("---")
         st.subheader("2. การประเมินโอกาสเกิด (Likelihood)")
         likelihood = st.slider("โอกาสที่จะเกิดขึ้น (Likelihood)", 1, 5, 2)
         
         final_score = severity_max * likelihood
-        st.metric("Salience Score", final_score)
+        st.metric("Salience Score (Max S x L)", final_score)
 
     with col_res:
-        st.subheader("Strategic Risk Heat Map")
+        st.subheader("Strategic Risk Heat Map (Interactive)")
         
-        # ฟังก์ชันกำหนดสี (แดง-ส้ม-เขียว) ตามรูปภาพที่พี่ส่งมา
-        def apply_heat_color(val):
-            if val >= 16: return 'background-color: #EF4444; color: white; font-weight: bold;' # Red
-            if val >= 8: return 'background-color: #F9A818; color: white;'  # Orange/Yellow
-            return 'background-color: #265F36; color: white;'               # Green
-
-        # สร้างตาราง 5x5
-        matrix_data = [[r*c for c in range(1, 6)] for r in range(5, 0, -1)]
-        df_matrix = pd.DataFrame(matrix_data, 
-                                 index=["5 (Regularly)", "4 (Often)", "3 (Occasionally)", "2 (Rarely)", "1 (Unlikely)"], 
-                                 columns=[1,2,3,4,5])
+        # สร้างข้อมูลสำหรับ Heat Map 5x5
+        # แกนนอน (x) = Severity, แกนตั้ง (y) = Likelihood
+        z_data = [
+            [1, 2, 3, 4, 5],
+            [2, 4, 6, 8, 10],
+            [3, 6, 9, 12, 15],
+            [4, 8, 12, 16, 20],
+            [5, 10, 15, 20, 25]
+        ]
         
-        st.table(df_matrix.style.applymap(apply_heat_color))
-        st.caption("แกนนอน: Severity (1-5) | แกนตั้ง: Likelihood (1-5)")
+        # สร้างกราฟ Heatmap โดยใช้ Plotly
+        fig = px.imshow(
+            z_data,
+            labels=dict(x="Severity", y="Likelihood", color="Score"),
+            x=[1, 2, 3, 4, 5],
+            y=[1, 2, 3, 4, 5],
+            color_continuous_scale=[[0, "#265F36"], [0.35, "#F9A818"], [1, "#EF4444"]], # เขียว -> ส้ม -> แดง
+            origin='lower'
+        )
+        
+        # เพิ่มจุด (Marker) แสดงตำแหน่งความเสี่ยงปัจจุบัน
+        fig.add_scatter(
+            x=[severity_max], 
+            y=[likelihood], 
+            mode='markers+text',
+            marker=dict(color='white', size=20, symbol='x', line=dict(width=2, color='black')),
+            text=["จุดความเสี่ยง"],
+            textposition="top center",
+            name="Current Risk"
+        )
 
-    # สรุปผลนัยสำคัญ
+        fig.update_layout(
+            margin=dict(l=10, r=10, t=10, b=10),
+            height=400,
+            coloraxis_showscale=False # ปิดแถบสีข้างๆ เพื่อความสะอาดตา
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("พิกัดปัจจุบัน: Severity = {} | Likelihood = {}".format(severity_max, likelihood))
+
+    # ส่วนสรุปผลด้านล่างกราฟ
     st.write("---")
     if final_score >= 16:
-        st.error(f"🚩 ประเด็น '{issue_name}' จัดเป็น **Salient Risk (วิกฤต)**: ต้องมีมาตรการจัดการทันทีและรายงานในระดับสูงสุด")
+        st.error(f"🚩 ประเด็น '{issue_name}': ระดับ **วิกฤต (Salient Risk)**")
     elif final_score >= 8:
-        st.warning(f"⚠️ ประเด็น '{issue_name}' จัดเป็น **Significant Risk (นัยสำคัญ)**: ต้องมีการเฝ้าระวังและแผนบริหารจัดการ")
+        st.warning(f"⚠️ ประเด็น '{issue_name}': ระดับ **นัยสำคัญ (Significant Risk)**")
     else:
-        st.success(f"✅ ประเด็น '{issue_name}' จัดเป็น **Manageable Risk (ปกติ)**: บริหารจัดการผ่านระบบปกติขององค์กร")
+        st.success(f"✅ ประเด็น '{issue_name}': ระดับ **ปกติ (Manageable Risk)**")
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("<p style='text-align: center;'>© 2024 Betagro Group | Sustainability Development Department (HRDD Division)</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>© 2026 Betagro Group | Sustainability Development Department (HRDD Division)</p>", unsafe_allow_html=True)
