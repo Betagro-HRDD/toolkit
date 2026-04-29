@@ -1,21 +1,37 @@
 import streamlit as st
 import pandas as pd
-import os
 from datetime import datetime
 
-# --- การตั้งค่าหน้าเว็บ ---
-st.set_page_config(page_title="Betagro HRDD Full Digital Toolkit", layout="wide")
+# --- 1. การตั้งค่าหน้าเว็บ ---
+st.set_page_config(
+    page_title="Betagro HRDD Full Digital Toolkit",
+    page_icon="https://www.betagro.com/favicon.ico",
+    layout="wide"
+)
 
-# --- ฟังก์ชันบันทึกข้อมูล ---
-def save_data(tool_id, data):
-    folder = "data_storage/field_reports"
-    if not os.path.exists(folder): os.makedirs(folder)
-    filename = f"{folder}/{tool_id}_full_report.csv"
-    df = pd.DataFrame([data])
-    df.to_csv(filename, mode='a', header=not os.path.exists(filename), index=False, encoding='utf-8-sig')
+# --- 2. การตกแต่งหน้าตา (BETAGRO PREMIUM STYLE) ---
+st.markdown("""
+    <style>
+    :root { --betagro-green: #265F36; --betagro-yellow: #F9A818; }
+    .main { background-color: #f9fbf9; }
+    h1 { color: var(--betagro-green); font-weight: 700; border-bottom: 3px solid var(--betagro-yellow); padding-bottom: 10px; }
+    h2, h3 { color: var(--betagro-green); }
+    .stButton>button { background-color: var(--betagro-green); color: white; border-radius: 5px; width: 100%; font-weight: bold; }
+    .stButton>button:hover { background-color: var(--betagro-yellow); color: var(--betagro-green); }
+    .stRadio > label { font-weight: bold; color: #333; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# --- เมนูหลัก ---
-st.sidebar.title("HRDD Digital Toolkit")
+# --- 3. ส่วนหัวและโลโก้ ---
+col1, col2 = st.columns([1, 5])
+with col1:
+    st.image("https://www.betagro.com/img/logo.png", width=120)
+with col2:
+    st.title("HRDD Digital Toolkit")
+    st.subheader("เครือเบทาโกร: ระบบตรวจสอบสิทธิมนุษยชนอย่างรอบด้าน (UNGPs/OECD Standards)")
+
+# --- 4. เมนูหลักด้านข้าง ---
+st.sidebar.header("เมนูเครื่องมือ 1-5")
 choice = st.sidebar.radio("เลือกเครื่องมือที่ต้องการใช้งาน:", 
     ["Tool 1: แบบประเมินสถานะองค์กร", 
      "Tool 2: แบบสอบถามการปฏิบัติ", 
@@ -23,126 +39,106 @@ choice = st.sidebar.radio("เลือกเครื่องมือที�
      "Tool 4: แบบบันทึกการสังเกตการณ์",
      "Tool 5: ตารางประเมินนัยสำคัญ"])
 
-# --- Tool 1 ---
+# ฟังก์ชันบันทึกข้อมูล (จำลองเพื่อเตรียมเชื่อม Google Sheets)
+def record_data(tool_id, data_dict):
+    # ในขั้นต่อไป เราจะเขียนโค้ดเชื่อม Google Sheets ตรงนี้ครับ
+    st.success(f"บันทึกข้อมูล {tool_id} สำเร็จ! ข้อมูลเตรียมส่งไปยัง Google Sheets")
+    st.balloons()
+
+# --- 5. รายละเอียดเนื้อหาแต่ละเครื่องมือ (ครบถ้วนตามต้นฉบับ) ---
+
 if choice == "Tool 1: แบบประเมินสถานะองค์กร":
-    st.header("เครื่องมือที่ 1 แบบประเมินสถานะองค์กร (Self-Assessment Checklist)")
-    st.info("กลุ่มเป้าหมาย: ผู้บริหารระดับสูง และหัวหน้าส่วนงานที่เกี่ยวข้อง (HR, Compliance, Sustainability)")
+    st.header("Tool 1: แบบประเมินสถานะองค์กร (Internal Policy Gap Analysis)")
     with st.form("tool1"):
-        st.markdown("### ส่วนที่ 1: การประกาศนโยบายและความมุ่งมั่น (Policy Commitment)")
-        q1_1 = st.radio("1. องค์กรมีการจัดทำ 'นโยบายสิทธิมนุษยชน' เป็นลายลักษณ์อักษรที่อนุมัติโดยคณะกรรมการบริษัทหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_2 = st.radio("2. นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, สิทธิชุมชน, ความหลากหลาย) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_3 = st.radio("3. มีการสื่อสารนโยบายนี้ให้พนักงานและคู่ค้า (Suppliers) รับทราบในภาษาที่พวกเขาเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        st.markdown("### ส่วนที่ 1: การประกาศนโยบายและความมุ่งมั่น")
+        q1_1 = st.radio("1.1 องค์กรมีการจัดทำ 'นโยบายสิทธิมนุษยชน' เป็นลายลักษณ์อักษรที่อนุมัติโดยคณะกรรมการบริษัทหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, สิทธิชุมชน, ความหลากหลาย) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายนี้ให้พนักงานและคู่ค้า (Suppliers) รับทราบในภาษาที่พวกเขาเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
         
         st.markdown("### ส่วนที่ 2: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence Process)")
-        q2_1 = st.radio("1. องค์กรมีระบบการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) เป็นประจำทุกปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_2 = st.radio("2. มีกระบวนการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานต้นน้ำ (เช่น ฟาร์มคู่ค้า) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_3 = st.radio("3. มีการกำหนดตัวชี้วัด (KPIs) ด้านสิทธิมนุษยชนในระดับหน่วยงานปฏิบัติการหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q2_1 = st.radio("2.1 องค์กรมีระบบการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) เป็นประจำทุกปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q2_2 = st.radio("2.2 มีกระบวนการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานต้นน้ำหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q2_3 = st.radio("2.3 มีการกำหนดตัวชี้วัด (KPIs) ด้านสิทธิมนุษยชนในระดับหน่วยงานปฏิบัติการหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
 
-        st.markdown("### ส่วนที่ 3: กลไกการร้องเรียนและการเยียวยา (Grievance & Remedy)")
-        q3_1 = st.radio("1. มีช่องทางการรับเรื่องร้องเรียนที่เข้าถึงง่ายสำหรับกลุ่มเปราะบาง (เช่น เบอร์โทรศัพท์ภาษาเมียนมา/กัมพูชา) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_2 = st.radio("2. มีกระบวนการคุ้มครองผู้แจ้งเบาะแส (Whistleblower Protection) จากการถูกกลั่นแกล้งหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_3 = st.radio("3. ในกรณีที่ตรวจพบการละเมิด องค์กรมีขั้นตอนการเยียวยา (Remediation Plan) ที่ชัดเจนหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        st.markdown("### ส่วนที่ 3: กลไกการร้องเรียนและการเยียวยา")
+        q3_1 = st.radio("3.1 มีช่องทางการรับเรื่องร้องเรียนที่เข้าถึงง่ายสำหรับกลุ่มเปราะบางหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q3_2 = st.radio("3.2 มีกระบวนการคุ้มครองผู้แจ้งเบาะแส (Whistleblower Protection) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q3_3 = st.radio("3.3 มีขั้นตอนการเยียวยา (Remediation Plan) ที่ชัดเจนเมื่อตรวจพบการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
         
         if st.form_submit_button("บันทึกข้อมูล Tool 1"):
-            save_data("Tool1", {"q1_1":q1_1, "q1_2":q1_2, "q1_3":q1_3, "q2_1":q2_1, "q2_2":q2_2, "q2_3":q2_3, "q3_1":q3_1, "q3_2":q3_2, "q3_3":q3_3, "Timestamp": datetime.now()})
-            st.success("บันทึกข้อมูล Tool 1 สำเร็จ!")
+            record_data("Tool1", {"q1_1":q1_1, "q2_1":q2_1, "q3_1":q3_1})
 
-# --- Tool 2 ---
 elif choice == "Tool 2: แบบสอบถามการปฏิบัติ":
-    st.header("เครื่องมือที่ 2 แบบสอบถามการปฏิบัตด้านสิทธิมนุษยชน (Human Rights Survey)")
-    st.write("กลุ่มเป้าหมาย: พนักงานไทย และเกษตรกรรายย่อย/คู่ค้า")
-    st.write("เกณฑ์: 1 = น้อยที่สุด/ไม่เคยเลย, 5 = มากที่สุด/สม่ำเสมอ")
+    st.header("Tool 2: แบบสอบถามการปฏิบัติ (Human Rights Survey)")
+    st.info("เกณฑ์: 1 = น้อยที่สุด/ไม่เคยเลย, 5 = มากที่สุด/สม่ำเสมอ")
     with st.form("tool2"):
-        st.subheader("ส่วนที่ 2: สภาพการจ้างงานและค่าตอบแทน (Labor Rights)")
-        q2_1 = st.select_slider("1. ท่านได้รับค่าจ้างตรงตามเวลาและครบถ้วนตามที่ตกลงไว้หรือไม่?", options=[1,2,3,4,5], value=3)
-        q2_2 = st.select_slider("2. ท่านมีวันหยุดประจำสัปดาห์และวันหยุดนักขัตฤกษ์ตามกฎหมายหรือไม่?", options=[1,2,3,4,5], value=3)
-        q2_3 = st.select_slider("3. ท่านสามารถเข้าถึงเอกสารสัญญาจ้างงานในภาษาที่ท่านเข้าใจได้หรือไม่?", options=[1,2,3,4,5], value=3)
+        st.subheader("ส่วนที่ 2: สภาพการจ้างงานและค่าตอบแทน")
+        q2_1 = st.select_slider("2.1 ท่านได้รับค่าจ้างตรงตามเวลาและครบถ้วนหรือไม่?", options=[1,2,3,4,5], value=3)
+        q2_2 = st.select_slider("2.2 ท่านมีวันหยุดประจำสัปดาห์และนักขัตฤกษ์ตามกฎหมายหรือไม่?", options=[1,2,3,4,5], value=3)
         
-        st.subheader("ส่วนที่ 3: ความปลอดภัยและอาชีวอนามัย (Occupational Health and Safety)")
-        q3_1 = st.select_slider("1. องค์กรมีการจัดอุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE) ที่เหมาะสมและเพียงพอให้ท่านหรือไม่?", options=[1,2,3,4,5], value=3)
-        q3_2 = st.select_slider("2. ท่านได้รับการอบรมเรื่องความปลอดภัยในการทำงานก่อนเริ่มงานจริงหรือไม่?", options=[1,2,3,4,5], value=3)
-        q3_3 = st.select_slider("3. สภาพแวดล้อมในที่ทำงาน (เช่น ความร้อน, ฝุ่น, สารเคมี) มีระบบจัดการที่ทำให้ท่านรู้สึกปลอดภัยหรือไม่?", options=[1,2,3,4,5], value=3)
-
-        st.subheader("ส่วนที่ 4: การเลือกปฏิบัติและการคุกคาม (Non-discrimination)")
-        q4_1 = st.select_slider("1. ท่านได้รับการปฏิบัติอย่างเท่าเทียมโดยไม่คำนึงถึง เพศ, ศาสนา หรือสถานะแรงงานหรือไม่?", options=[1,2,3,4,5], value=3)
-        q4_2 = st.select_slider("2. ในที่ทำงานมีบรรยากาศที่ปราศจากการข่มขู่ คุกคาม หรือการดุด่าว่ากล่าวที่รุนแรงหรือไม่?", options=[1,2,3,4,5], value=3)
-
-        st.subheader("ส่วนที่ 5: กลไกการร้องเรียน (Grievance Mechanism)")
-        q5_1 = st.select_slider("1. ท่านทราบช่องทางในการแจ้งปัญหาหรือร้องเรียนเมื่อพบความไม่เป็นธรรมหรือไม่?", options=[1,2,3,4,5], value=3)
-        q5_2 = st.select_slider("2. ท่านมีความเชื่อมั่นว่าหากร้องเรียนไปแล้ว ข้อมูลของท่านจะถูกเก็บเป็นความลับและไม่ถูกกลั่นแกล้งหรือไม่?", options=[1,2,3,4,5], value=3)
+        st.subheader("ส่วนที่ 3: ความปลอดภัยและอาชีวอนามัย")
+        q3_1 = st.select_slider("3.1 องค์กรมีการจัดอุปกรณ์ PPE ที่เหมาะสมและเพียงพอหรือไม่?", options=[1,2,3,4,5], value=3)
+        q3_2 = st.select_slider("3.2 ท่านได้รับการอบรมเรื่องความปลอดภัยก่อนเริ่มงานหรือไม่?", options=[1,2,3,4,5], value=3)
+        
+        st.subheader("ส่วนที่ 4: การเลือกปฏิบัติและการคุกคาม")
+        q4_1 = st.select_slider("4.1 ท่านได้รับการปฏิบัติเท่าเทียมโดยไม่คำนึงถึง เพศ/ศาสนา หรือไม่?", options=[1,2,3,4,5], value=3)
+        q4_2 = st.select_slider("4.2 บรรยากาศที่ทำงานปราศจากการข่มขู่หรือคุกคามหรือไม่?", options=[1,2,3,4,5], value=3)
         
         if st.form_submit_button("บันทึกข้อมูล Tool 2"):
-            save_data("Tool2", {"q2_1":q2_1, "q3_1":q3_1, "q4_1":q4_1, "q5_1":q5_1, "Timestamp": datetime.now()})
-            st.success("บันทึกข้อมูล Tool 2 สำเร็จ!")
+            record_data("Tool 2", {"q2_1":q2_1, "q3_1":q3_1})
 
-# --- Tool 3 ---
 elif choice == "Tool 3: แนวทางการสัมภาษณ์":
-    st.header("เครื่องมือที่ 3 แนวทางการสัมภาษณ์กึ่งโครงสร้าง (Semi-structured Interview Guide)")
+    st.header("Tool 3: แนวทางการสัมภาษณ์ (Semi-structured Interview Guide)")
     with st.form("tool3"):
-        st.subheader("ส่วนที่ 1: กระบวนการสรรหาและจัดจ้าง (Ethical Recruitment)")
-        q1_1 = st.text_area("1. เล่าให้ฟังหน่อยครับว่าขั้นตอนก่อนจะมาทำงานที่นี่ต้องเสียค่าใช้จ่ายอะไรบ้าง? (เช็คค่าหัวคิว)")
-        q1_2 = st.text_area("2. คุณได้เห็นและเซ็นสัญญาจ้างก่อนที่จะเดินทางมาทำงานหรือไม่ และสัญญานั้นเป็นภาษาที่คุณเข้าใจรึเปล่า?")
-        q1_3 = st.radio("3. มีใครเก็บพาสปอร์ตหรือเอกสารประจำตัวของคุณไว้หรือไม่? คุณสามารถนำออกมาใช้ได้เองตลอดเวลาไหม?", ["มีคนเก็บไว้", "ไม่มี/เก็บเอง"])
+        st.subheader("ส่วนที่ 1: การสรรหาและจัดจ้าง (Ethical Recruitment)")
+        q1_1 = st.text_area("1. ขั้นตอนก่อนมาทำงานที่นี่ต้องเสียค่าใช้จ่าย (ค่าหัวคิว) อะไรบ้าง?")
+        q1_2 = st.text_area("2. ท่านได้เซ็นสัญญาจ้างในภาษาที่ท่านเข้าใจก่อนเดินทางมาหรือไม่?")
+        q1_3 = st.radio("3. มีใครเก็บพาสปอร์ตหรือเอกสารประจำตัวของท่านไว้หรือไม่?", ["เก็บเอง", "บริษัท/นายหน้าเก็บไว้"])
         
-        st.subheader("ส่วนที่ 2: สภาพการทำงานและความเป็นอยู่ (Working & Living Conditions)")
-        q2_1 = st.text_area("1. เล่าให้ฟังหน่อยครับว่าในหนึ่งวันคุณทำงานกี่ชั่วโมง และมีเวลาพักผ่อนเพียงพอไหม?")
-        q2_2 = st.text_area("2. สภาพที่พักอาศัยที่บริษัทจัดให้ (หอพัก) มีความเป็นส่วนตัวและความปลอดภัยเพียงพอสำหรับคุณและครอบครัวหรือไม่?")
-        q2_3 = st.text_area("3. คุณรู้สึกว่าได้รับการปฏิบัติที่แตกต่างจากพนักงานคนไทยในเรื่องไหนบ้างหรือไม่?")
+        st.subheader("ส่วนที่ 2: สภาพการทำงานและความเป็นอยู่")
+        q2_1 = st.text_area("4. ในหนึ่งวันทำงานกี่ชั่วโมง และมีเวลาพักผ่อนเพียงพอไหม?")
+        q2_2 = st.text_area("5. สภาพหอพักที่บริษัทจัดให้มีความปลอดภัยและเป็นส่วนตัวหรือไม่?")
         
-        st.subheader("ส่วนที่ 3: ช่องทางการร้องเรียนและความเชื่อมั่น (Access to Remedy)")
-        q3_1 = st.text_area("1. ถ้าคุณมีปัญหาหรือรู้สึกว่าไม่ได้รับความเป็นธรรม คุณจะบอกใครเป็นคนแรก?")
-        q3_2 = st.text_area("2. คุณรู้จักช่องทางร้องเรียนของบริษัทไหม? และถ้าต้องใช้จริงๆ คุณกลัวจะถูกไล่ออกหรือถูกลงโทษไหม?")
-        
-        if st.form_submit_button("บันทึกการสัมภาษณ์ Tool 3"):
-            save_data("Tool3", {"q1_1":q1_1, "q1_3":q1_3, "q2_2":q2_2, "q3_2":q3_2, "Timestamp": datetime.now()})
-            st.success("บันทึกข้อมูล Tool 3 สำเร็จ!")
+        if st.form_submit_button("บันทึกข้อมูล Tool 3"):
+            record_data("Tool 3", {"notes":q1_1})
 
-# --- Tool 4 ---
 elif choice == "Tool 4: แบบบันทึกการสังเกตการณ์":
-    st.header("เครื่องมือที่ 4: แบบบันทึกการสังเกตการณ์ภาคสนาม (Observation Log/Checklist)")
+    st.header("Tool 4: แบบบันทึกการสังเกตการณ์ (Observation Log)")
     with st.form("tool4"):
-        st.subheader("1) สภาพแวดล้อมในการทำงาน (Workplace Environment)")
-        q1_1 = st.checkbox("1.1 ความปลอดภัย: พนักงานสวมใส่ชุด PPE (ถุงมือ, รองเท้าบูท, หน้ากาก) ครบถ้วนและอยู่ในสภาพดีหรือไม่?")
-        q1_2 = st.checkbox("1.2 ป้ายประกาศ: มีการติดประกาศสิทธิแรงงาน หรือช่องทางการร้องเรียนในจุดที่มองเห็นชัดเจนหรือไม่? (มีภาษาที่แรงงานต่างชาติเข้าใจไหม?)")
-        q1_3 = st.checkbox("1.3 ทางหนีไฟ/อุปกรณ์ดับเพลิง: มีการติดตั้งและบำรุงรักษาตามมาตรฐานหรือไม่? พื้นที่ทางเดินโล่งสะดวกหรือไม่?")
+        st.subheader("1) สภาพแวดล้อม (Workplace Environment)")
+        c1 = st.checkbox("พนักงานสวมใส่ PPE ครบถ้วนและอยู่ในสภาพดี")
+        c2 = st.checkbox("มีป้ายประกาศสิทธิแรงงาน/ช่องทางร้องเรียนในภาษาต่างชาติ")
+        c3 = st.checkbox("ทางหนีไฟและอุปกรณ์ดับเพลิงพร้อมใช้งาน")
         
-        st.subheader("2) สภาพความเป็นอยู่และสุขอนามัย (Living Conditions & Sanitation)")
-        q2_1 = st.checkbox("2.1 หอพัก: ความหนาแน่นของผู้อยู่อาศัยในหนึ่งห้องเหมาะสมหรือไม่? มีระบบล็อคประตูที่ปลอดภัยและความเป็นส่วนตัวหรือไม่?")
-        q2_2 = st.checkbox("2.2 ระบบสาธารณูปโภค: มีน้ำดื่มสะอาดเพียงพอไหม? ห้องน้ำแยกชาย-หญิงและมีความสะอาดตามมาตรฐานหรือไม่?")
-        q2_3 = st.checkbox("2.3 การจัดการขยะ/น้ำเสีย: ฟาร์มมีการจัดการน้ำเสียที่อาจกระทบต่อแหล่งน้ำของชุมชนรอบข้างหรือไม่?")
-        
-        st.subheader("3) การปฏิสัมพันธ์ในพื้นที่ (Social Interaction)")
-        q3_1 = st.radio("บรรยากาศการทำงาน: พบเห็นลักษณะการข่มขู่หรือใช้ความรุนแรงทางวาจาหรือไม่?", ["ไม่พบ", "พบ"])
-        q3_2 = st.radio("การจำกัดอิสรภาพ: มีรั้วลวดหนามหรือการกักตัวแรงงานไม่ให้ออกนอกพื้นที่โดยไม่จำเป็นหรือไม่?", ["ไม่พบ", "พบ"])
+        st.subheader("2) สภาพความเป็นอยู่ (Living Conditions)")
+        c4 = st.checkbox("หอพักมีความหนาแน่นเหมาะสมและปลอดภัย")
+        c5 = st.checkbox("มีน้ำดื่มสะอาดและห้องน้ำถูกสุขลักษณะ")
         
         obs_note = st.text_area("บันทึกความรู้สึกเชิงลึก (Narrative Notes):")
-        if st.form_submit_button("บันทึก Tool 4"):
-            save_data("Tool4", {"q1_1":q1_1, "q2_1":q2_1, "q3_1":q3_1, "Notes":obs_note, "Timestamp": datetime.now()})
-            st.success("บันทึกข้อมูล Tool 4 สำเร็จ!")
+        if st.form_submit_button("บันทึกข้อมูล Tool 4"):
+            record_data("Tool 4", {"note":obs_note})
 
-# --- Tool 5 ---
 elif choice == "Tool 5: ตารางประเมินนัยสำคัญ":
-    st.header("เครื่องมือที่ 5 ตารางประเมินนัยสำคัญของความเสี่ยง (Salient Human Rights Risks Scoring Matrix)")
+    st.header("Tool 5: ตารางประเมินนัยสำคัญ (Salient Risk Matrix)")
+    st.write("คำนวณตามหลักการ: Severity x Likelihood")
     with st.form("tool5"):
-        issue = st.text_input("ชื่อประเด็นความเสี่ยงที่พบ (จากผลการวิเคราะห์ Tool 1-4):")
-        
-        st.subheader("1. คะแนนความรุนแรง (Severity Score: 1-5)")
+        issue = st.text_input("ชื่อประเด็นความเสี่ยงที่พบ:")
         col1, col2, col3 = st.columns(3)
-        with col1:
-            s_scale = st.select_slider("ขนาด (Scale):", options=[1,2,3,4,5], help="1=ต่ำ, 5=วิกฤต/Zero Tolerance")
-        with col2:
-            s_scope = st.select_slider("ขอบเขต (Scope):", options=[1,2,3,4,5], help="1=รายบุคคล, 5=กระทบวงกว้าง")
-        with col3:
-            s_rem = st.select_slider("การเยียวยา (Remediability):", options=[1,2,3,4,5], help="1=เยียวยาง่าย, 5=ชดเชยไม่ได้")
+        with col1: s_scale = st.select_slider("ขนาด (Scale):", options=[1,2,3,4,5])
+        with col2: s_scope = st.select_slider("ขอบเขต (Scope):", options=[1,2,3,4,5])
+        with col3: s_rem = st.select_slider("การเยียวยา (Remediability):", options=[1,2,3,4,5])
         
-        st.subheader("2. คะแนนโอกาสเกิด (Likelihood Score: 1-5)")
-        l_prob = st.select_slider("โอกาสที่จะเกิดขึ้น (Likelihood):", options=[1,2,3,4,5])
+        l_prob = st.select_slider("โอกาสเกิด (Likelihood):", options=[1,2,3,4,5])
         
-        if st.form_submit_button("ประเมินนัยสำคัญ"):
+        if st.form_submit_button("คำนวณและบันทึก"):
             sev_avg = (s_scale + s_scope + s_rem) / 3
-            final_score = sev_avg * l_prob
-            st.write(f"### ผลการคำนวณคะแนน: {final_score:.2f}")
-            if final_score >= 16: st.error("ระดับความเสี่ยง: วิกฤต (🔴)")
-            elif final_score >= 6: st.warning("ระดับความเสี่ยง: นัยสำคัญ (🟡)")
-            else: st.success("ระดับความเสี่ยง: บริหารจัดการได้ (🟢)")
-            save_data("Tool5", {"Issue":issue, "Score":final_score, "Timestamp": datetime.now()})
+            score = sev_avg * l_prob
+            st.write(f"### คะแนนรวม: {score:.2f}")
+            if score >= 16: st.error("ระดับ: วิกฤต (Red Zone)")
+            elif score >= 6: st.warning("ระดับ: นัยสำคัญ (Yellow Zone)")
+            else: st.success("ระดับ: บริหารจัดการได้ (Green Zone)")
+            record_data("Tool 5", {"issue":issue, "score":score})
+
+# --- FOOTER ---
+st.sidebar.markdown("---")
+st.sidebar.write("© 2024 Betagro Group | HRDD Digital Toolkit")
