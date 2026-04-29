@@ -120,19 +120,55 @@ elif choice == "Tool 4: แบบบันทึกการสังเกต�
         if st.form_submit_button("บันทึกการสังเกตการณ์"):
             st.success("บันทึกแล้ว")
 
-elif choice == "Tool 5: ตารางประเมินนัยสำคัญ":
-    st.header("⚖️ Tool 5: Risk Matrix Score")
-    with st.form("tool5_full"):
-        st.write("สูตรการคำนวณ: Severity x Likelihood")
-        s = st.slider("ระดับความรุนแรง (Severity)", 1, 5, 3)
-        l = st.slider("โอกาสเกิด (Likelihood)", 1, 5, 2)
-        if st.form_submit_button("คำนวณความเสี่ยง"):
+eelif choice == "Tool 5: ตารางประเมินนัยสำคัญ":
+    st.header("⚖️ Tool 5: Salient Risk Matrix & Heat Map")
+    
+    with st.container():
+        col_input, col_map = st.columns([1, 1])
+        
+        with col_input:
+            st.subheader("กรอกข้อมูลการประเมิน")
+            issue = st.text_input("ชื่อประเด็นความเสี่ยง:")
+            s = st.slider("ระดับความรุนแรง (Severity)", 1, 5, 3)
+            l = st.slider("โอกาสเกิด (Likelihood)", 1, 5, 2)
             score = s * l
-            st.metric("คะแนนความเสี่ยง", score)
-            if score >= 16: st.error("วิกฤต (Red Zone)")
-            elif score >= 6: st.warning("นัยสำคัญ (Yellow Zone)")
-            else: st.success("ปกติ (Green Zone)")
+            
+            st.metric("Risk Score", score)
+            
+            if st.form_submit_button if 'form' in locals() else st.button("บันทึกและวิเคราะห์"):
+                st.success(f"บันทึกประเด็น {issue} เรียบร้อย")
+
+        with col_map:
+            st.subheader("Strategic Risk Heat Map")
+            # สร้างตาราง Heat Map แบบ Visualize ง่ายๆ
+            def get_color(val):
+                if val >= 16: return "background-color: #ff4b4b; color: white;" # Red
+                if val >= 8: return "background-color: #ffa500; color: white;"  # Yellow/Orange
+                return "background-color: #265f36; color: white;"               # Green
+
+            # สร้าง DataFrame สำหรับ Heat Map 5x5
+            data = []
+            for row in range(5, 0, -1):
+                current_row = []
+                for col in range(1, 6):
+                    current_row.append(row * col)
+                data.append(current_row)
+            
+            df_map = pd.DataFrame(data, 
+                                 index=["5 (Regularly)", "4 (Often)", "3 (Occasionally)", "2 (Rarely)", "1 (Unlikely)"],
+                                 columns=["1", "2", "3", "4", "5"])
+            
+            # แสดงตารางพร้อมใส่สี
+            st.table(df_map.style.applymap(get_color))
+            st.caption("แกนตั้ง: Likelihood | แกนนอน: Severity")
+
+    if score >= 16:
+        st.error(f"⚠️ ผลลัพธ์: ประเด็น '{issue}' เป็นความเสี่ยงที่ต้องจัดการทันที (Salient Risk)")
+    elif score >= 8:
+        st.warning(f"💡 ผลลัพธ์: ประเด็น '{issue}' อยู่ในระดับเฝ้าระวัง")
+    else:
+        st.success(f"✅ ผลลัพธ์: ประเด็น '{issue}' อยู่ในระดับที่บริหารจัดการได้")
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("<p style='text-align: center;'>© 2024 Betagro Group | Sustainability Development Department</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>© 2026 Betagro Group | Sustainability Development Department</p>", unsafe_allow_html=True)
