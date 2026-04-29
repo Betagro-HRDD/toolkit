@@ -1,191 +1,133 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(
-    page_title="Betagro HRDD Digital Toolkit Full Version",
-    page_icon="https://www.betagro.com/favicon.ico",
-    layout="wide"
-)
+st.set_page_config(page_title="Betagro HRDD Premium Toolkit", layout="wide")
 
-# --- 2. PREMIUM CSS (บังคับธีมและสีเบทาโกรให้ครบทุกจุด) ---
+# --- 2. THE PREMIUM STYLING (BETAGRO LUXURY THEME) ---
 st.markdown("""
     <style>
-    /* บังคับสีพื้นหลัง */
-    .stApp { background-color: #F8FAF9 !important; }
+    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
+    html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     
-    /* Sidebar: สีเขียวเบทาโกร */
-    [data-testid="stSidebar"] {
-        background-color: #1E3F26 !important;
-        min-width: 300px !important;
-    }
+    .stApp { background: linear-gradient(to bottom, #F0F4F2, #FFFFFF); }
+    
+    /* Sidebar */
+    [data-testid="stSidebar"] { background-color: #1E3F26 !important; border-right: 5px solid #F9A818; }
     [data-testid="stSidebar"] * { color: white !important; }
-
-    /* หัวข้อ Header */
-    h1 {
-        color: #1E3F26 !important;
-        border-bottom: 5px solid #F9A818 !important;
-        padding-bottom: 15px;
-        font-weight: 800 !important;
-    }
     
-    h2, h3 { color: #1E3F26 !important; font-weight: 700 !important; margin-top: 25px; }
-
-    /* ปุ่มกด */
-    .stButton>button {
-        background-color: #1E3F26 !important;
-        color: #FFFFFF !important;
-        border: 2px solid #F9A818 !important;
-        border-radius: 10px !important;
-        padding: 15px !important;
-        font-weight: bold !important;
-        width: 100% !important;
-        transition: 0.3s;
+    /* Header & Cards */
+    .header-box { 
+        background-color: white; padding: 30px; border-radius: 15px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 8px solid #F9A818;
+        margin-bottom: 25px; text-align: center;
     }
-    .stButton>button:hover { background-color: #F9A818 !important; color: #1E3F26 !important; }
-
-    /* ตกแต่ง Radio Buttons และ Sliders */
-    .stRadio > label { font-weight: bold !important; color: #1E3F26 !important; }
+    h1 { color: #1E3F26; font-weight: 800; font-size: 2.5rem; margin-bottom: 0; }
+    h2 { color: #265F36; border-left: 10px solid #F9A818; padding-left: 15px; }
+    
+    /* Heat Map Table Styling */
+    .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+    .heat-cell { height: 60px; width: 60px; text-align: center; font-weight: bold; color: white; border-radius: 5px; font-size: 1.2rem; }
+    .label-cell { color: #666; font-size: 0.9rem; font-weight: bold; }
+    
+    /* Buttons */
+    .stButton>button {
+        background: linear-gradient(135deg, #1E3F26 0%, #2D5A3A 100%);
+        color: white; border-radius: 50px; border: none; padding: 10px 40px;
+        font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. HEADER & LOGO ---
-col1, col2 = st.columns([1, 4])
-with col1:
-    st.image("https://www.betagro.com/assets/img/logo/logo.png", width=150)
-with col2:
-    st.title("HRDD DIGITAL TOOLKIT")
-    st.subheader("เครือเบทาโกร: ระบบตรวจสอบสิทธิมนุษยชนอย่างรอบด้าน (UNGPs/OECD Standards)")
+# --- 3. HEADER ---
+st.markdown("""
+    <div class="header-box">
+        <h1>BETAGRO HRDD DIGITAL TOOLKIT</h1>
+        <p style='color: #666; font-size: 1.1rem;'>Smart Human Rights Due Diligence Framework</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-st.write("---")
+# --- 4. SIDEBAR ---
+with st.sidebar:
+    st.image("https://www.betagro.com/assets/img/logo/logo.png", width=160)
+    st.markdown("---")
+    choice = st.radio("MAIN NAVIGATION", [
+        "Dashboard & Framework",
+        "Tool 1: Policy Assessment",
+        "Tool 2: Worker Survey",
+        "Tool 3: In-depth Interview",
+        "Tool 4: Field Observation",
+        "Tool 5: Salient Risk Matrix",
+        "Tool 6: AI Data Triangulation"
+    ])
 
-# --- 4. SIDEBAR NAVIGATION ---
-choice = st.sidebar.radio("📋 เลือกเครื่องมือที่ต้องการใช้งาน:", [
-    "Tool 1: แบบประเมินสถานะองค์กร", 
-    "Tool 2: แบบสอบถามการปฏิบัติหน้างาน", 
-    "Tool 3: แนวทางการสัมภาษณ์เชิงลึก", 
-    "Tool 4: แบบบันทึกการสังเกตการณ์ภาคสนาม",
-    "Tool 5: ตารางประเมินนัยสำคัญ (Salient Risk)",
-    "Tool 6: ระบบวิเคราะห์ AI (NotebookLM)"
-])
+# --- 5. LOGIC & CONTENT ---
 
-# --- 5. CONTENT SECTIONS (ใส่เนื้อหาละเอียดตามต้นฉบับ) ---
+if choice == "Tool 1: Policy Assessment":
+    st.header("เครื่องมือที่ 1: การประเมินนโยบาย (Gap Analysis)")
+    with st.form("t1"):
+        st.subheader("หมวด A: การกำกับดูแล (Governance)")
+        q1 = st.radio("A.1 มีนโยบายสิทธิมนุษยชนที่ลงนามโดย CEO/บอร์ด หรือไม่?", ["ใช่ (3)", "กำลังทำ (1)", "ไม่มี (0)"])
+        q2 = st.radio("A.2 มีการแต่งตั้งคณะทำงานด้านสิทธิมนุษยชนโดยเฉพาะ?", ["ใช่ (3)", "ไม่มี (0)"])
+        st.subheader("หมวด B: กระบวนการ (Due Diligence)")
+        q3 = st.radio("B.1 มีการระบุประเด็นความเสี่ยง (HRA) ประจำปี?", ["ใช่ (3)", "ไม่เคย (0)"])
+        if st.form_submit_button("บันทึกข้อมูลนโยบาย"): st.success("บันทึกแล้ว")
 
-if choice == "Tool 1: แบบประเมินสถานะองค์กร":
-    st.header("📋 Tool 1: แบบประเมินสถานะองค์กร (Internal Policy Gap Analysis)")
-    with st.form("full_tool1"):
-        st.subheader("หมวด A: การประกาศนโยบายและความมุ่งมั่น")
-        q1_1 = st.radio("A1. องค์กรมีการจัดทำ 'นโยบายสิทธิมนุษยชน' เป็นลายลักษณ์อักษรที่อนุมัติโดยบอร์ดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_2 = st.radio("A2. นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, สิทธิชุมชน, ความหลากหลาย) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_3 = st.radio("A3. มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_4 = st.radio("A4. มีการระบุความรับผิดชอบด้านสิทธิมนุษยชนในระดับผู้บริหารระดับสูงหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        
-        st.subheader("หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)")
-        q2_1 = st.radio("B1. มีการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) เป็นประจำทุกปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_2 = st.radio("B2. มีกระบวนการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_3 = st.radio("B3. มีการกำหนดตัวชี้วัด (KPIs) ด้านสิทธิมนุษยชนในระดับหน่วยปฏิบัติการหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        
-        st.subheader("หมวด C: กลไกการร้องเรียนและการเยียวยา")
-        q3_1 = st.radio("C1. มีช่องทางร้องเรียนที่เข้าถึงง่ายสำหรับกลุ่มเปราะบางหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_2 = st.radio("C2. มีมาตรการคุ้มครองผู้แจ้งเบาะแส (Whistleblower Protection) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_3 = st.radio("C3. มีขั้นตอนการเยียวยา (Remediation Plan) ที่ชัดเจนเมื่อพบการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        
-        if st.form_submit_button("บันทึกข้อมูล Tool 1"):
-            st.success("บันทึกข้อมูลสำเร็จ")
-
-elif choice == "Tool 2: แบบสอบถามการปฏิบัติหน้างาน":
-    st.header("📊 Tool 2: แบบสอบถามการปฏิบัติ (Human Rights Survey)")
-    with st.form("full_tool2"):
-        st.subheader("Section 1: สภาพการจ้างและค่าตอบแทน")
-        q2_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วน?", options=[1,2,3,4,5], value=3)
-        q2_2 = st.select_slider("1.2 ท่านมีวันหยุดตามกฎหมายกำหนด?", options=[1,2,3,4,5], value=3)
-        q2_3 = st.select_slider("1.3 ท่านเก็บเอกสารสัญญาจ้างไว้กับตัวหรือไม่?", options=[1,2,3,4,5], value=3)
-        
-        st.subheader("Section 2: ความปลอดภัยและอาชีวอนามัย (OHS)")
-        q3_1 = st.select_slider("2.1 อุปกรณ์ PPE เพียงพอและเหมาะสมกับงาน?", options=[1,2,3,4,5], value=3)
-        q3_2 = st.select_slider("2.2 ท่านได้รับการฝึกอบรมเรื่องความปลอดภัย?", options=[1,2,3,4,5], value=3)
-        
-        st.subheader("Section 3: การไม่เลือกปฏิบัติและการคุกคาม")
-        q4_1 = st.select_slider("3.1 ท่านได้รับการปฏิบัติเท่าเทียมโดยไม่คำนึงถึงเพศ/สัญชาติ?", options=[1,2,3,4,5], value=3)
-        q4_2 = st.select_slider("3.2 บรรยากาศการทำงานปราศจากการข่มขู่/คุกคาม?", options=[1,2,3,4,5], value=3)
-        
-        if st.form_submit_button("ส่งแบบสอบถาม"):
-            st.balloons()
-
-elif choice == "Tool 3: แนวทางการสัมภาษณ์เชิงลึก":
-    st.header("🎙️ Tool 3: แนวทางการสัมภาษณ์ (Interview Guide)")
-    with st.form("full_tool3"):
-        st.subheader("ส่วนที่ 1: การสรรหาและจัดจ้าง (Ethical Recruitment)")
-        i1 = st.text_area("1. เล่าขั้นตอนก่อนมาทำงานที่นี่ (มีค่าหัวคิวหรือค่าใช้จ่ายแอบแฝงไหม?):")
-        i2 = st.text_area("2. ท่านได้เห็นและเซ็นสัญญาในภาษาที่เข้าใจก่อนมาหรือไม่?")
-        st.subheader("ส่วนที่ 2: สภาพความเป็นอยู่และความเชื่อมั่น")
-        i3 = st.text_area("3. สภาพหอพักมีความปลอดภัยและเป็นส่วนตัวเพียงพอไหม?")
-        i4 = st.text_area("4. หากมีปัญหา ท่านกล้าร้องเรียนผ่านช่องทางของบริษัทไหม เพราะอะไร?")
-        if st.form_submit_button("บันทึกบทสัมภาษณ์"):
-            st.success("บันทึกเรียบร้อย")
-
-elif choice == "Tool 4: แบบบันทึกการสังเกตการณ์ภาคสนาม":
-    st.header("🔎 Tool 4: แบบบันทึกการสังเกตการณ์ (Observation Log)")
-    with st.form("full_tool4"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.write("**ด้านความปลอดภัยและป้ายประกาศ**")
-            o1 = st.checkbox("ป้ายประกาศสิทธิแรงงาน/เบอร์ร้องเรียนมีภาษา Native")
-            o2 = st.checkbox("พนักงานสวม PPE ครบถ้วนตามความเสี่ยง")
-            o3 = st.checkbox("ทางหนีไฟไม่มีสิ่งกีดขวางและถังดับเพลิงพร้อมใช้")
-        with col2:
-            st.write("**ด้านสวัสดิการและหอพัก**")
-            o4 = st.checkbox("หอพักมีน้ำดื่มสะอาดและเข้าถึงได้ตลอด")
-            o5 = st.checkbox("ห้องน้ำสะอาดและแยกชาย-หญิงชัดเจน")
-            o6 = st.checkbox("หอพักไม่หนาแน่นจนเกินไป")
-        obs_note = st.text_area("บันทึกเพิ่มเติมจากหน้างาน:")
-        if st.form_submit_button("บันทึกการสังเกตการณ์"):
-            st.success("บันทึกแล้ว")
-
-elif choice == "Tool 5: ตารางประเมินนัยสำคัญ (Salient Risk)":
-    st.header("⚖️ Tool 5: Salient Human Rights Risks Scoring Matrix")
+elif choice == "Tool 5: Salient Risk Matrix":
+    st.header("เครื่องมือที่ 5: การประเมินความเสี่ยงที่มีนัยสำคัญ")
     
-    col_in, col_res = st.columns([1, 1.2])
-    with col_in:
-        st.subheader("วิเคราะห์ประเด็นความเสี่ยง")
-        issue_name = st.text_input("ชื่อประเด็น:", "ความปลอดภัยแรงงานข้ามชาติ")
-        
-        st.write("**1. การประเมินความรุนแรง (Severity)**")
-        s1 = st.slider("ขนาด (Scale)", 1, 5, 3)
-        s2 = st.slider("ขอบเขต (Scope)", 1, 5, 3)
-        s3 = st.slider("การเยียวยา (Remediability)", 1, 5, 3)
-        severity_max = max(s1, s2, s3)
-        
-        st.write("**2. การประเมินโอกาสเกิด (Likelihood)**")
-        likelihood = st.slider("โอกาสที่จะเกิดขึ้น", 1, 5, 2)
-        final_score = severity_max * likelihood
-        st.metric("Salience Score (Max S x L)", final_score)
+    c1, c2 = st.columns([1, 1.2])
+    with c1:
+        st.markdown("### 📝 ระบุค่าประเมิน")
+        issue = st.text_input("ประเด็นความเสี่ยง:", "แรงงานข้ามชาติ")
+        s_scale = st.slider("ขนาดความรุนแรง (Scale)", 1, 5, 3)
+        s_scope = st.slider("ขอบเขต (Scope)", 1, 5, 2)
+        s_rem = st.slider("การเยียวยา (Remediability)", 1, 5, 3)
+        sev_max = max(s_scale, s_scope, s_rem)
+        likelihood = st.slider("โอกาสเกิด (Likelihood)", 1, 5, 2)
+        score = sev_max * likelihood
+        st.metric("SALIENCE SCORE", score)
 
-    with col_res:
-        st.subheader("Strategic Heat Map (5x5)")
-        # สร้าง Matrix สี แดง-ส้ม-เขียว
-        z_data = [[r*c for c in range(1, 6)] for r in range(1, 6)]
-        fig = px.imshow(
-            z_data,
-            x=[1, 2, 3, 4, 5], y=[1, 2, 3, 4, 5],
-            labels=dict(x="Severity", y="Likelihood", color="Score"),
-            color_continuous_scale=[[0, 'green'], [0.4, 'orange'], [1, 'red']],
-            origin='lower'
-        )
-        fig.add_scatter(x=[severity_max], y=[likelihood], mode='markers+text', 
-                        marker=dict(color='white', size=15, symbol='x'),
-                        text=["Current Risk"], textposition="top center")
-        st.plotly_chart(fig, use_container_width=True)
+    with c2:
+        st.markdown("### 🗺️ Salient Risk Heat Map")
+        # สร้าง HTML Heat Map แบบพรีเมียม
+        def draw_heat_map(cur_s, cur_l):
+            rows = ""
+            for l in range(5, 0, -1):
+                rows += "<tr>"
+                rows += f"<td class='label-cell'>{l}</td>"
+                for s in range(1, 6):
+                    val = s * l
+                    color = "#EF4444" if val >= 16 else ("#F9A818" if val >= 8 else "#265F36")
+                    mark = "★" if s == cur_s and l == cur_l else ""
+                    rows += f"<td class='heat-cell' style='background-color:{color}; border: 2px solid white;'>{mark}</td>"
+                rows += "</tr>"
+            
+            return f"""
+            <table class='heat-table'>
+                {rows}
+                <tr class='label-cell'><td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+            </table>
+            """
+        st.markdown(draw_heat_map(sev_max, likelihood), unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center; color:#888;'>แกนนอน: Severity | แกนตั้ง: Likelihood</p>", unsafe_allow_html=True)
 
-elif choice == "Tool 6: ระบบวิเคราะห์ AI (NotebookLM)":
-    st.header("🤖 Tool 6: AI-Driven Data Synthesis & Analysis")
-    st.info("ใช้สำหรับการ Triangulation ข้อมูลจาก Tool 1-4 เพื่อหาข้อขัดแย้ง")
-    input_text = st.text_area("ใส่ข้อมูลสรุปจากภาคสนาม:")
-    if st.button("ประมวลผลด้วย NotebookLM Logic"):
-        st.write("ระบบกำลังประมวลผลความสอดคล้อง...")
+    if score >= 16: st.error("🚨 ผลลัพธ์: ความเสี่ยงระดับวิกฤต (Salient Risk)")
+    elif score >= 8: st.warning("⚠️ ผลลัพธ์: ความเสี่ยงระดับนัยสำคัญ")
+    else: st.success("✅ ผลลัพธ์: ความเสี่ยงในระดับจัดการได้")
 
-# --- 6. FOOTER ---
-st.markdown("---")
-st.markdown("<p style='text-align: center;'>© 2024 Betagro Group | HRDD Toolkit Version 2.0 (Full Script)</p>", unsafe_allow_html=True)
+elif choice == "Tool 6: AI Data Triangulation":
+    st.header("เครื่องมือที่ 6: ระบบวิเคราะห์ความสอดคล้องด้วย AI")
+    st.markdown("""
+    ระบบนี้ใช้ **NotebookLM Logic** เพื่อเปรียบเทียบข้อมูลจาก 3 แหล่ง (Triangulation):
+    1. **Policy (Tool 1):** นโยบายที่ผู้บริหารแจ้ง
+    2. **Field Data (Tool 2-4):** เสียงพนักงานและการสังเกตการณ์
+    3. **Standards:** มาตรฐานสากล UNGPs/OECD
+    """)
+    st.text_area("กรอกข้อมูลดิบจากหน้างาน (Raw Data):", placeholder="เช่น แรงงานแจ้งว่าไม่เคยเห็นป้ายนโยบายสิทธิมนุษยชน...")
+    if st.button("เริ่มการวิเคราะห์ด้วย AI"):
+        st.info("AI กำลังตรวจสอบความสอดคล้อง... (ในเวอร์ชันเต็มจะดึงข้อมูลจาก Database มาเปรียบเทียบอัตโนมัติ)")
+
+# --- FOOTER ---
+st.write("---")
+st.markdown("<div style='text-align:center; color:#999;'>© 2024 Betagro Group | Human Rights Due Diligence Digital Ecosystem</div>", unsafe_allow_html=True)
