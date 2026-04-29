@@ -190,3 +190,19 @@ elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation
 
 # --- 6. FOOTER ---
 st.markdown("<br><hr><p style='text-align: center; color: #888;'>© 2024 Betagro Group | Sustainability Department (HRDD Division)</p>", unsafe_allow_html=True)
+import streamlit as st
+import pandas as pd
+from google.oauth2 import service_account
+from gspread_datastore.google_sheet_backend import GoogleSheetBackend # หรือใช้ gspread ปกติ
+
+# --- ส่วนเชื่อมต่อเครื่องยนต์ (หัวใจสำคัญ) ---
+def get_gspread_client():
+    # ดึงรหัสจาก Secrets ที่พี่เพิ่งวางจนสำเร็จตะกี้มาใช้
+    creds_dict = st.secrets["gcp_service_account"]
+    credentials = service_account.Credentials.from_service_account_info(
+        creds_dict,
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    )
+    # ตรงนี้พี่ต้องใส่ URL ของ Google Sheet ของพี่นะครับ
+    sheet_url = "ใส่ลิงก์_GOOGLE_SHEET_ของพี่ตรงนี้" 
+    return credentials, sheet_url
