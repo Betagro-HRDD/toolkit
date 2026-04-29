@@ -120,7 +120,7 @@ elif choice == "Tool 4: แบบบันทึกการสังเกต�
         if st.form_submit_button("บันทึกการสังเกตการณ์"):
             st.success("บันทึกแล้ว")
 
-eelif choice == "Tool 5: ตารางประเมินนัยสำคัญ":
+elif choice == "Tool 5: ตารางประเมินนัยสำคัญ":
     st.header("⚖️ Tool 5: Salient Risk Matrix & Heat Map")
     
     with st.container():
