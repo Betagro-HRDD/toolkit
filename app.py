@@ -62,151 +62,103 @@ now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # --- 5. TOOL CONTENT ---
 
-if choice == "Tool 1: แบบประเมินสถานะองค์กร":
-    st.markdown('<div class="main-header"><h1>Tool 1: แบบประเมินสถานะองค์กร</h1><p>Internal Policy Gap Analysis</p></div>', unsafe_allow_html=True)
+# --- TOOL 1 ---
+if choice == "Tool 1: ประเมินสถานะองค์กร":
+    st.markdown('<div class="main-header"><h1>Tool 1: แบบประเมินสถานะองค์กร</h1></div>', unsafe_allow_html=True)
     with st.form("form_t1"):
-        st.subheader("หมวด A: นโยบายและการกำกับดูแล")
-        q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, ชุมชน, สิ่งแวดล้อม) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_4 = st.radio("1.4 มีการแต่งตั้งผู้รับผิดชอบระดับบริหาร (Board Level) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        
-        st.subheader("หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)")
-        q2_1 = st.radio("2.1 มีการประเมินความเสี่ยง (HRA) เป็นประจำทุกปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_2 = st.radio("2.2 มีระบบการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        
-        st.subheader("หมวด C: กลไกการร้องเรียนและการเยียวยา")
-        q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัยและเป็นอิสระหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_2 = st.radio("3.2 มีมาตรการคุ้มครองผู้แจ้งเบาะแส (Non-Retaliation) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-
+        q1 = st.radio("มีนโยบายด้านสิทธิมนุษยชนที่ลงนามโดยผู้บริหารสูงสุดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        q2 = st.radio("นโยบายครอบคลุมห่วงโซ่อุปทาน (Supply Chain) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 1", q1_1, q1_2, q1_3, q1_4, q2_1, q2_2, q3_1, q3_2])
-                st.success("✅ บันทึกข้อมูลลง Google Sheet เรียบร้อยแล้ว")
+                # บันทึกลง 10 คอลัมน์มาตรฐาน
+                detail = f"Policy Signed: {q1}, Supply Chain Cover: {q2}"
+                sheet.append_row([now, "Tool 1", resp_id, resp_group, "Gap Analysis", detail, "", "", "", ""])
+                st.success("✅ บันทึกสำเร็จ")
 
-elif choice == "Tool 2: แบบสอบถามการปฏิบัติหน้างาน":
-    st.markdown('<div class="main-header"><h1>Tool 2: แบบสอบถามหน้างาน</h1><p>Worker & Contractor Survey</p></div>', unsafe_allow_html=True)
+# --- TOOL 2 ---
+elif choice == "Tool 2: แบบสอบถามหน้างาน":
+    st.markdown('<div class="main-header"><h1>Tool 2: แบบสอบถามการปฏิบัติหน้างาน</h1></div>', unsafe_allow_html=True)
     with st.form("form_t2"):
-        st.subheader("ส่วนที่ 1: สภาพการจ้างและค่าจ้าง")
-        q2_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนหรือไม่?", options=[1,2,3,4,5], value=3)
-        q2_2 = st.select_slider("1.2 ท่านได้รับวันหยุดอย่างน้อย 1 วันต่อสัปดาห์หรือไม่?", options=[1,2,3,4,5], value=3)
-        q2_3 = st.select_slider("1.3 ท่านเป็นผู้เก็บเอกสารประจำตัว (พาสปอร์ต) ไว้เองใช่หรือไม่?", options=[1,2,3,4,5], value=3)
-        
-        st.subheader("ส่วนที่ 2: ความปลอดภัยและสุขอนามัย")
-        q3_1 = st.select_slider("2.1 อุปกรณ์ป้องกันอันตราย (PPE) มีเพียงพอและสภาพดีหรือไม่?", options=[1,2,3,4,5], value=3)
-        q3_2 = st.select_slider("2.2 ท่านได้รับการฝึกอบรมความปลอดภัยก่อนเริ่มงานหรือไม่?", options=[1,2,3,4,5], value=3)
-        
-        if st.form_submit_button("🚀 ส่งข้อมูล Tool 2"):
+        q2_1 = st.slider("ความพึงพอใจต่อสภาพแวดล้อมในการทำงาน (1-5)", 1, 5, 3)
+        q2_2 = st.radio("ท่านได้รับค่าจ้างตรงเวลาทุกเดือนหรือไม่?", ["ใช่", "ไม่ใช่"])
+        if st.form_submit_button("💾 บันทึกข้อมูล Tool 2"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 2", q2_1, q2_2, q2_3, q3_1, q3_2])
-                st.success("✅ ส่งข้อมูลสำเร็จ")
+                detail = f"Satisfaction: {q2_1}, On-time Payment: {q2_2}"
+                sheet.append_row([now, "Tool 2", resp_id, resp_group, "Worker Survey", detail, "", "", "", ""])
+                st.success("✅ บันทึกสำเร็จ")
 
-# --- 5. TOOL 3: IN-DEPTH INTERVIEW (Evidence-based) ---
-if choice == "Tool 3: แนวทางการสัมภาษณ์เชิงลึก":
-    st.markdown('<div class="main-header"><h1>Tool 3: แบบสัมภาษณ์เชิงลึก (Worker & Community Voice)</h1></div>', unsafe_allow_html=True)
+# --- TOOL 3 ---
+elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)":
+    st.markdown('<div class="main-header"><h1>Tool 3: แนวทางการสัมภาษณ์เชิงลึก</h1></div>', unsafe_allow_html=True)
     with st.form("form_t3"):
-        st.write("### 🔍 หัวข้อการตรวจสอบ (ติ๊กข้อที่พบประเด็น)")
-        topics = st.multiselect("ประเด็นที่พูดคุย:", 
-            ["การสรรหาและค่าธรรมเนียม", "สัญญาจ้าง", "ค่าจ้างและสวัสดิการ", "เสรีภาพในการเดินทาง", "สภาพที่พักอาศัย", "กลไกการร้องเรียน"])
-        
-        st.write("### ✍️ บันทึกคำให้การ (Evidence/Testimony)")
-        testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ (ระบุประโยคสำคัญเพื่อใช้ใน Tool 6):", 
-                                 placeholder="ตัวอย่าง: 'พนักงานแจ้งว่าต้องจ่ายค่านายหน้า 5,000 บาทก่อนมาทำงาน'...")
-        
-        if st.form_submit_button("บันทึกบทสัมภาษณ์"):
-            if not resp_id: st.warning("กรุณาระบุรหัสผู้ให้ข้อมูล"); st.stop()
+        topics = st.multiselect("หัวข้อที่พบประเด็น:", ["ค่าธรรมเนียมสรรหา", "สัญญาจ้าง", "ค่าจ้าง/โอที", "การเลือกปฏิบัติ"])
+        testimony = st.text_area("✍️ บันทึกคำพูด/หลักฐาน (Evidence-based):", placeholder="เช่น 'พนักงานแจ้งว่า...'")
+        if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony])
-                st.success(f"✅ บันทึกข้อมูลของ {resp_id} สำเร็จ")
+                sheet.append_row([now, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony, "", "", "", ""])
+                st.success("✅ บันทึกสำเร็จ")
 
-elif choice == "Tool 4: แบบบันทึกการสังเกตการณ์":
-    st.markdown('<div class="main-header"><h1>Tool 4: แบบบันทึกการสังเกตการณ์</h1><p>Site Observation Log</p></div>', unsafe_allow_html=True)
+# --- TOOL 4 ---
+elif choice == "Tool 4: บันทึกการสังเกตการณ์":
+    st.markdown('<div class="main-header"><h1>Tool 4: แบบบันทึกการสังเกตการณ์</h1></div>', unsafe_allow_html=True)
     with st.form("form_t4"):
-        st.subheader("เช็คลิสต์การตรวจประเมินหน้างาน")
-        o1 = st.checkbox("มีการติดประกาศนโยบายและสิทธิแรงงานในพื้นที่")
-        o2 = st.checkbox("ทางหนีไฟและอุปกรณ์ดับเพลิงไม่มีสิ่งกีดขวาง")
-        o3 = st.checkbox("พนักงานสวมใส่ PPE ถูกต้องตามลักษณะงาน")
-        o4 = st.checkbox("ตู้ยาสามัญมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ")
-        note = st.text_area("บันทึกสิ่งที่พบเพิ่มเติมจากการเดินตรวจ:")
-        
+        obs = st.multiselect("สิ่งที่ตรวจพบ:", ["ป้ายประกาศนโยบาย", "อุปกรณ์ PPE", "จุดล้างมือ/สุขอนามย", "ทางหนีไฟ"])
+        obs_detail = st.text_input("รายละเอียดที่สังเกตเห็น:")
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 4", str(o1), str(o2), str(o3), str(o4), note])
-                st.success("✅ บันทึก Log สำเร็จ")
+                sheet.append_row([now, "Tool 4", resp_id, resp_group, ", ".join(obs), obs_detail, "", "", "", ""])
+                st.success("✅ บันทึกสำเร็จ")
 
-# --- TOOL 5: SALIENT-LED HEAT MAP (The Rule of 3 Components) ---
-elif choice == "Tool 5: การประเมินนัยสำคัญ (Heat Map)":
-    st.markdown('<div class="main-header"><h1>Tool 5: Salient Issues Assessment</h1><p>ใช้หลักการ "ความร้ายแรงนำ" (Severity-led Rule)</p></div>', unsafe_allow_html=True)
-    
-    col1, col2 = st.columns([1, 1.5])
+# --- TOOL 5 ---
+elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient Rule)":
+    st.markdown('<div class="main-header"><h1>Tool 5: Salient Issues Assessment</h1></div>', unsafe_allow_html=True)
+    col1, col2 = st.columns([1, 1.2])
     with col1:
-        issue = st.text_input("ประเด็นความเสี่ยง:", "แรงงานบังคับ / ค่าธรรมเนียมสรรหา")
-        
-        st.write("---")
-        st.write("**คำนวณ Severity (ความร้ายแรง)**")
-        scale = st.slider("1. Scale (ความรุนแรงของผลกระทบ)", 1, 5, 1)
-        scope = st.slider("2. Scope (ความกว้างขวาง/จำนวนผู้ได้รับผลกระทบ)", 1, 5, 1)
-        remedy = st.slider("3. Remediability (ความยากในการเยียวยา)", 1, 5, 1)
-        
-        # --- กฎ Salient-led Rule: เอาค่าที่สูงที่สุด ---
-        severity_max = max(scale, scope, remedy)
-        
-        st.write("---")
-        likelihood = st.slider("Likelihood (โอกาสเกิด)", 1, 5, 1)
-        
-        final_score = severity_max * likelihood
-        
-        st.subheader(f"Severity Result: {severity_max}")
-        if severity_max == 5:
-            st.markdown('<span class="salient-badge">🚨 SALIENT ISSUE (ระดับสูงสุด)</span>', unsafe_allow_html=True)
-            st.error("ต้องเฝ้าระวังและมีแผนจัดการทันที!")
-
+        issue = st.text_input("ชื่อประเด็นความเสี่ยง:", "แรงงานบังคับ")
+        st.write("**คำนวณ Severity (Max Rule)**")
+        scale = st.slider("Scale", 1, 5, 1)
+        scope = st.slider("Scope", 1, 5, 1)
+        remedy = st.slider("Remediability", 1, 5, 1)
+        sev_max = max(scale, scope, remedy)
+        likelihood = st.slider("Likelihood", 1, 5, 1)
+        score = sev_max * likelihood
+        is_salient = "YES" if sev_max == 5 else "NO"
+        if is_salient == "YES": st.markdown('<div class="salient-badge">🚨 SALIENT ISSUE</div>', unsafe_allow_html=True)
     with col2:
-        # วาด Heat Map
         rows = ""
         for l in range(5, 0, -1):
             rows += "<tr>"
-            rows += f"<td style='text-align:right; font-weight:bold;'>{l}</td>"
             for s in range(1, 6):
                 val = s * l
                 color = "#EF4444" if val >= 16 or s == 5 else ("#F9A818" if val >= 8 else "#265F36")
-                mark = "★" if s == severity_max and l == likelihood else ""
-                rows += f"<td style='background-color:{color}; height:50px; width:50px; text-align:center; color:white; font-weight:bold; border-radius:5px;'>{mark}</td>"
+                mark = "★" if s == sev_max and l == likelihood else ""
+                rows += f"<td class='heat-cell' style='background-color:{color};'>{mark}</td>"
             rows += "</tr>"
-        st.markdown(f"<table>{rows}<tr style='text-align:center; font-weight:bold;'><td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr></table>", unsafe_allow_html=True)
-        st.caption("แนวนอน: Severity (Max) | แนวตั้ง: Likelihood")
-
-    if st.button("💾 บันทึกการวิเคราะห์นัยสำคัญ"):
+        st.markdown(f"<table class='heat-table'>{rows}</table>", unsafe_allow_html=True)
+    if st.button("💾 บันทึกค่า Salient Rule"):
         sheet = connect_to_sheet()
         if sheet:
-            is_salient = "YES" if severity_max == 5 else "NO"
-            sheet.append_row([now, "Tool 5", issue, severity_max, likelihood, final_score, is_salient])
-            st.success("✅ บันทึกเข้า Statement of Salient Issues เรียบร้อย")
+            detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy}"
+            sheet.append_row([now, "Tool 5", resp_id, resp_group, issue, detail, sev_max, likelihood, score, is_salient])
+            st.success("✅ บันทึกเข้า Sheet เรียบร้อย")
 
-# --- TOOL 6: AI TRIANGULATION & CITATION ---
-elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation":
-    st.markdown('<div class="main-header"><h1>Tool 6: AI-Augmented Triangulation</h1></div>', unsafe_allow_html=True)
-    st.info("ระบบจะดึง 'ประโยคอ้างอิง' (Citations) เพื่อยืนยันความโปร่งใสของข้อมูล")
-    
-    st.write("### 📑 ผลการวิเคราะห์เชิงลึก (Evidence-based)")
-    st.write("จากการเปรียบเทียบข้อมูล Tool 1 (นโยบาย) และ Tool 3 (คำสัมภาษณ์) พบจุดขัดแย้งดังนี้:")
-    
+# --- TOOL 6 ---
+elif choice == "Tool 6: AI Triangulation":
+    st.markdown('<div class="main-header"><h1>Tool 6: AI Triangulation</h1></div>', unsafe_allow_html=True)
     st.markdown("""
     <div class="citation-box">
-        <b>🚩 ข้อพบพื้นฐาน:</b> มีความเสี่ยงเรื่องค่าธรรมเนียมสรรหา (Recruitment Fees)<br>
-        <small><i>อ้างอิงจากบทสัมภาษณ์ (ID: EMP-042):</i> "ผมต้องกู้เงินมาจ่ายค่านายหน้า 12,000 บาทให้เอเจนซี่ฝั่งโน้น"</small>
-    </div>
-    <div class="citation-box">
-        <b>🚩 ข้อพบพื้นฐาน:</b> สภาพความเป็นอยู่ไม่สอดคล้องกับมาตรฐาน<br>
-        <small><i>อ้างอิงจากการสังเกตการณ์ (Tool 4):</i> พบว่าจำนวนพนักงานในหอพักหนาแน่นเกินกว่านโยบายที่ระบุใน Tool 1</small>
+        <b>🚩 ข้อพบเชิงประจักษ์:</b> สัญญาจ้างไม่เป็นภาษาที่พนักงานเข้าใจ<br>
+        <small>อ้างอิงคำสัมภาษณ์ (ID: EMP-001): "ผมอ่านไม่ออกเลยตอนเซ็น..."</small>
     </div>
     """, unsafe_allow_html=True)
-    
-    if st.button("บันทึกสรุป AI Analysis"):
-        st.success("บันทึกผลการวิเคราะห์และ Citation ลงระบบฐานข้อมูลแล้ว")
+    if st.button("💾 บันทึกสรุป AI Analysis"):
+        sheet = connect_to_sheet()
+        if sheet:
+            sheet.append_row([now, "Tool 6", resp_id, resp_group, "AI Analysis", "พบความขัดแย้งเชิงนโยบาย", "", "", "", ""])
+            st.success("✅ บันทึกสำเร็จ")
 
 st.markdown("<br><hr><p style='text-align: center; color: #888;'>© 2024 Betagro Group | HRDD Digital Toolkit</p>", unsafe_allow_html=True)
