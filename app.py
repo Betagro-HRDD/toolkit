@@ -15,6 +15,14 @@ st.set_page_config(
 # --- 2. เครื่องยนต์เชื่อมต่อ (แก้ไขเพื่อหยุด NameResolutionError) ---
 def connect_to_sheet():
     try:
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        
+        # ล้างค่าขยะที่อาจติดมาจากตอนก๊อปปี้
+        creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n").replace("\\\\n", "\n")
+        
+        # บังคับใช้ URL ที่ DNS ไม่ล่มแน่นอน
+        creds_dict["token_uri"] = "https://accounts.google.com/o/oauth2/token"
+        try:
         # ดึงข้อมูลจาก Secrets
         creds_dict = dict(st.secrets["gcp_service_account"])
         
