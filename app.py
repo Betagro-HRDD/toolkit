@@ -11,7 +11,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- 2. CONNECT ENGINE ---
+# --- 2. CONNECT ENGINE (เชื่อมต่อ Google Sheets) ---
 def connect_to_sheet():
     try:
         if "gcp_service_account" not in st.secrets:
@@ -45,21 +45,23 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {str(e)}")
         return None
 
-# --- 3. PREMIUM STYLING ---
+# --- 3. PREMIUM STYLING (แก้ไขปัญหาตัวอักษร keyboard_double) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F4F7F5; }
+    
+    /* แก้ไขปัญหา CSS ที่ไปทับไอคอนระบบ */
     .main-header {
         background-color: white; padding: 40px; border-radius: 20px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-top: 10px solid #F9A818;
         text-align: center; margin-bottom: 30px;
     }
     h1 { color: #1E3F26; font-weight: 800; font-size: 2.5rem; }
-    h2 { color: #265F36; border-left: 12px solid #F9A818; padding-left: 20px; margin-top: 30px; }
-    h3 { color: #1E3F26; background: #E8EEE8; padding: 10px 20px; border-radius: 8px; margin-top: 20px;}
     .stForm { background-color: white !important; padding: 30px !important; border-radius: 15px !important; }
+    
+    /* Heat Map Styling */
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
     .heat-cell { height: 60px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 1.2rem; }
     .label-cell { color: #555; font-size: 1rem; font-weight: bold; text-align: center; }
@@ -154,17 +156,16 @@ elif choice == "Tool 4: แบบบันทึกการสังเกต�
                 sheet.append_row([now, "Tool 4", str(o1), str(o2), str(o3), str(o4), note])
                 st.success("✅ บันทึก Log สำเร็จ")
 
+# --- TOOL 5 (Heat Map) ---
 elif choice == "Tool 5: การประเมินนัยสำคัญ (Heat Map)":
-    st.markdown('<div class="main-header"><h1>Tool 5: Human Rights Risk Heat Map</h1></div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header"><h1>Human Rights Risk Heat Map</h1></div>', unsafe_allow_html=True)
     col1, col2 = st.columns([1, 1.5])
     with col1:
-        st.subheader("การประเมินความเสี่ยง")
-        issue = st.text_input("ระบุประเด็นความเสี่ยง:", "แรงงานบังคับ")
-        s = st.slider("Severity (ความรุนแรงของผลกระทบ)", 1, 5, 3)
-        l = st.slider("Likelihood (โอกาสที่จะเกิดขึ้น)", 1, 5, 2)
+        issue = st.text_input("ประเด็นความเสี่ยง:", "ความปลอดภัย")
+        s = st.slider("Severity", 1, 5, 3)
+        l = st.slider("Likelihood", 1, 5, 2)
         score = s * l
         st.metric("Risk Score", score)
-        
     with col2:
         rows = ""
         for row_l in range(5, 0, -1):
@@ -177,20 +178,32 @@ elif choice == "Tool 5: การประเมินนัยสำคัญ (
                 rows += f"<td class='heat-cell' style='background-color:{color};'>{mark}</td>"
             rows += "</tr>"
         st.markdown(f"<table class='heat-table'>{rows}<tr><td></td><td class='label-cell'>1</td><td class='label-cell'>2</td><td class='label-cell'>3</td><td class='label-cell'>4</td><td class='label-cell'>5</td></tr></table>", unsafe_allow_html=True)
-        st.caption("แนวนอน: Severity | แนวตั้ง: Likelihood")
-
-    if st.button("💾 บันทึกค่า Heat Map"):
+    
+    if st.button("บันทึกค่า Heat Map"):
         sheet = connect_to_sheet()
         if sheet:
-            sheet.append_row([now, "Tool 5", issue, s, l, score])
-            st.success(f"บันทึกข้อมูล '{issue}' เรียบร้อย")
+            sheet.append_row([now, "Tool 5", issue, score])
+            st.success("✅ บันทึกสำเร็จ")
 
+# --- TOOL 6 (AI Analysis + บันทึกลงชีต) ---
 elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation":
-    st.markdown('<div class="main-header"><h1>Tool 6: AI-Driven Data Triangulation</h1></div>', unsafe_allow_html=True)
-    st.info("ระบบจะวิเคราะห์เปรียบเทียบข้อมูลจาก Tool 1-4 เพื่อหาความขัดแย้งของข้อมูล")
-    raw_data = st.text_area("ใส่สรุปข้อมูลจากการลงพื้นที่เพื่อประมวลผล:", height=250)
-    if st.button("เริ่มการวิเคราะห์เชิงลึก"):
-        with st.spinner("AI กำลังวิเคราะห์จุดขัดแย้งของข้อมูล..."):
-            st.warning("⚠️ ผลการวิเคราะห์เบื้องต้น: พบความขัดแย้งระหว่างนโยบาย (Tool 1) และการปฏิบัติจริง (Tool 2) ในเรื่องค่าจ้าง")
+    st.markdown('<div class="main-header"><h1>Tool 6: AI Data Triangulation</h1></div>', unsafe_allow_html=True)
+    st.info("💡 ระบบจะวิเคราะห์เปรียบเทียบข้อมูล (Policy vs Practice)")
+    
+    with st.form("ai_form"):
+        raw_data = st.text_area("วางสรุปข้อมูลจากการลงพื้นที่เพื่อวิเคราะห์:", height=200)
+        submitted = st.form_submit_button("เริ่มการวิเคราะห์และบันทึกผล")
+        
+        if submitted and raw_data:
+            with st.spinner("AI กำลังประมวลผล..."):
+                # นี่คือตรรกะจำลองการวิเคราะห์
+                result = f"วิเคราะห์พบความเสี่ยงในหัวข้อ: {raw_data[:30]}..."
+                
+                sheet = connect_to_sheet()
+                if sheet:
+                    # บันทึกข้อมูล Tool 6 ลงชีต
+                    sheet.append_row([now, "Tool 6 AI Analysis", raw_data, result])
+                    st.success("✅ วิเคราะห์และบันทึกข้อมูลเข้า Google Sheet แล้ว!")
+                    st.warning(f"สรุปผล: {result}")
 
 st.markdown("<br><hr><p style='text-align: center; color: #888;'>© 2024 Betagro Group | HRDD Digital Toolkit</p>", unsafe_allow_html=True)
