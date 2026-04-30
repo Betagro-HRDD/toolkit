@@ -34,12 +34,12 @@ st.markdown("""
     header[data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
     a.header-anchor { display: none !important; }
 
-    /* 👑 แบนเนอร์ด้านบน (Hero Banner) - เรียบ หรู แพง */
+    /* 👑 แบนเนอร์ด้านบน (Hero Banner) - ปรับย่อขนาด Padding ให้พอดีไม่ตกขอบ */
     .premium-banner {
-        background: #FFFFFF; border-radius: 24px; padding: 40px 50px;
+        background: #FFFFFF; border-radius: 24px; padding: 30px 40px;
         box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
         border: 1px solid rgba(0, 91, 49, 0.08); border-left: 12px solid #005B31; 
-        display: flex; align-items: center; gap: 40px; margin-bottom: 40px;
+        display: flex; align-items: center; gap: 30px; margin-bottom: 40px;
         position: relative; overflow: hidden;
     }
     .premium-banner::after { content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 8px; background: #F9A818; }
@@ -50,11 +50,11 @@ st.markdown("""
         flex-direction: column;
         align-items: center;
         border-right: 2px solid #EAEAEA;
-        padding-right: 40px;
+        padding-right: 30px;
     }
     .typography-logo {
         font-family: 'Poppins', sans-serif;
-        font-size: 32px;
+        font-size: 26px; /* ย่อจาก 32px เพื่อให้สมดุล */
         font-weight: 800;
         color: #D3A129; 
         letter-spacing: 2px;
@@ -62,7 +62,7 @@ st.markdown("""
         margin-top: 10px;
     }
 
-    /* 💡 การจัดวาง Typography แบบหรูหรา (Strategic Level) */
+    /* 💡 การจัดวาง Typography แบบหรูหรา (ปรับขนาดฟอนต์ไม่ให้ตกขอบหน้าจอ) */
     .banner-text {
         display: flex;
         flex-direction: column;
@@ -71,7 +71,7 @@ st.markdown("""
     .hero-title-eng {
         color: #005B31 !important; 
         font-family: 'Poppins', sans-serif !important;
-        font-size: 26px !important; 
+        font-size: 21px !important; /* ปรับลดจาก 26px เพื่อให้พอดีขอบ */
         font-weight: 800 !important; 
         margin: 0 !important; 
         line-height: 1.1 !important; 
@@ -81,7 +81,7 @@ st.markdown("""
     .hero-title-thai {
         color: #265F36 !important; 
         font-family: 'Sarabun', sans-serif !important;
-        font-size: 20px !important;
+        font-size: 16px !important; /* ปรับลดจาก 20px */
         font-weight: 600 !important;
         margin: 5px 0 0 0 !important;
         line-height: 1.3 !important;
@@ -90,7 +90,7 @@ st.markdown("""
     .hero-subtitle {
         color: #D3A129 !important; 
         font-family: 'Poppins', sans-serif !important;
-        font-size: 13px !important; 
+        font-size: 11px !important; /* ปรับลดจาก 13px */
         font-weight: 700 !important; 
         letter-spacing: 3px !important; 
         text-transform: uppercase !important; 
@@ -105,9 +105,9 @@ st.markdown("""
     @media (max-width: 768px) {
         .premium-banner { flex-direction: column; text-align: center; padding: 35px 20px; gap: 20px; border-left: none; border-top: 12px solid #005B31; }
         .logo-wrapper { border-right: none; padding-right: 0; border-bottom: 2px solid #EAEAEA; padding-bottom: 25px; }
-        .hero-title-eng { font-size: 20px !important; white-space: normal !important; letter-spacing: 0.5px !important;}
-        .hero-title-thai { font-size: 17px !important; white-space: normal !important;}
-        .hero-subtitle { font-size: 11px !important; letter-spacing: 1.5px !important; margin: 15px auto 0 auto !important;}
+        .hero-title-eng { font-size: 18px !important; white-space: normal !important; letter-spacing: 0.5px !important;}
+        .hero-title-thai { font-size: 15px !important; white-space: normal !important;}
+        .hero-subtitle { font-size: 10px !important; letter-spacing: 1.5px !important; margin: 15px auto 0 auto !important;}
     }
 
     .control-panel {
@@ -140,7 +140,7 @@ st.markdown("""
     <div class="premium-banner">
         <div class="logo-wrapper">
             <!-- 🎨 SVG โลโก้เบทาโกร (3 แฉก) -->
-            <svg width="75" height="75" viewBox="0 0 100 100" style="margin-bottom: 5px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
+            <svg width="65" height="65" viewBox="0 0 100 100" style="margin-bottom: 5px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
                 <circle cx="36" cy="38" r="23" fill="#005B31"/>
                 <circle cx="64" cy="38" r="23" fill="#005B31"/>
                 <circle cx="50" cy="62" r="23" fill="#005B31"/>
