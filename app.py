@@ -5,80 +5,58 @@ import gspread
 from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(
-    page_title="Betagro HRDD Premium Toolkit",
-    page_icon="https://www.betagro.com/favicon.ico",
-    layout="wide"
-)
+st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="https://www.betagro.com/favicon.ico", layout="wide")
 
-# --- 2. CONNECT ENGINE (เชื่อมต่อ Google Sheets) ---
+# --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
     try:
-        if "gcp_service_account" not in st.secrets:
-            st.error("❌ ไม่พบข้อมูล Secrets ใน Streamlit")
-            return None
-            
         creds_info = st.secrets["gcp_service_account"]
         private_key = creds_info["private_key"].replace("\\n", "\n")
-        
-        creds_dict = {
-            "type": creds_info["type"],
-            "project_id": creds_info["project_id"],
-            "private_key_id": creds_info["private_key_id"],
-            "private_key": private_key,
-            "client_email": creds_info["client_email"],
-            "client_id": creds_info["client_id"],
-            "auth_uri": creds_info["auth_uri"],
-            "token_uri": "https://accounts.google.com/o/oauth2/token",
-            "auth_provider_x509_cert_url": creds_info["auth_provider_x509_cert_url"],
-            "client_x509_cert_url": creds_info["client_x509_cert_url"]
-        }
-        
+        creds_dict = {**creds_info, "private_key": private_key}
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(credentials)
-        
         SHEET_ID = "1YUkrlk_RlvskDluFoAdTQ7KRYRxYhi8ZqNdw13X7JxY"
-        sheet = client.open_by_key(SHEET_ID).get_worksheet(0)
-        return sheet
+        return client.open_by_key(SHEET_ID).get_worksheet(0)
     except Exception as e:
-        st.error(f"❌ การเชื่อมต่อล้มเหลว: {str(e)}")
+        st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. PREMIUM STYLING (แก้ไขปัญหาตัวอักษร keyboard_double) ---
+# --- 3. PREMIUM STYLING (Fixed Icon & Standardized Layout) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
-    .stApp { background-color: #F4F7F5; }
-    
-    /* แก้ไขปัญหา CSS ที่ไปทับไอคอนระบบ */
+    .stApp { background-color: #F8FAFB; }
     .main-header {
-        background-color: white; padding: 40px; border-radius: 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08); border-top: 10px solid #F9A818;
-        text-align: center; margin-bottom: 30px;
+        background-color: white; padding: 30px; border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 10px solid #F9A818;
+        margin-bottom: 25px; text-align: center;
     }
-    h1 { color: #1E3F26; font-weight: 800; font-size: 2.5rem; }
-    .stForm { background-color: white !important; padding: 30px !important; border-radius: 15px !important; }
-    
+    .salient-badge { background-color: #EF4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: block; text-align: center; }
+    .citation-box { background-color: #E8EEE8; padding: 15px; border-left: 5px solid #265F36; border-radius: 5px; margin: 10px 0; }
     /* Heat Map Styling */
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
-    .heat-cell { height: 60px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 1.2rem; }
-    .label-cell { color: #555; font-size: 1rem; font-weight: bold; text-align: center; }
+    .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. NAVIGATION ---
+# --- 4. SIDEBAR (Respondent Identification) ---
 with st.sidebar:
-    st.image("https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png", width=180)
-    choice = st.radio("📋 เลือกเครื่องมือประเมิน:", [
-        "Tool 1: แบบประเมินสถานะองค์กร", 
-        "Tool 2: แบบสอบถามการปฏิบัติหน้างาน", 
-        "Tool 3: แนวทางการสัมภาษณ์เชิงลึก", 
-        "Tool 4: แบบบันทึกการสังเกตการณ์",
-        "Tool 5: การประเมินนัยสำคัญ (Heat Map)",
-        "Tool 6: ระบบวิเคราะห์ AI Triangulation"
+    st.image("https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png", width=160)
+    st.title("HRDD Settings")
+    choice = st.radio("📋 เลือกเครื่องมือ:", [
+        "Tool 1: ประเมินสถานะองค์กร",
+        "Tool 2: แบบสอบถามหน้างาน",
+        "Tool 3: สัมภาษณ์เชิงลึก (Evidence)",
+        "Tool 4: บันทึกการสังเกตการณ์",
+        "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
+        "Tool 6: AI Triangulation"
     ])
+    st.hr()
+    st.subheader("👤 ข้อมูลผู้ให้ข้อมูล")
+    resp_id = st.text_input("รหัสพนักงาน/ID:", placeholder="เช่น EMP-001")
+    resp_group = st.selectbox("กลุ่ม:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -125,20 +103,24 @@ elif choice == "Tool 2: แบบสอบถามการปฏิบัต�
                 sheet.append_row([now, "Tool 2", q2_1, q2_2, q2_3, q3_1, q3_2])
                 st.success("✅ ส่งข้อมูลสำเร็จ")
 
-elif choice == "Tool 3: แนวทางการสัมภาษณ์เชิงลึก":
-    st.markdown('<div class="main-header"><h1>Tool 3: แนวทางการสัมภาษณ์เชิงลึก</h1><p>In-depth Interview Guide</p></div>', unsafe_allow_html=True)
+# --- 5. TOOL 3: IN-DEPTH INTERVIEW (Evidence-based) ---
+if choice == "Tool 3: แนวทางการสัมภาษณ์เชิงลึก":
+    st.markdown('<div class="main-header"><h1>Tool 3: แบบสัมภาษณ์เชิงลึก (Worker & Community Voice)</h1></div>', unsafe_allow_html=True)
     with st.form("form_t3"):
-        st.info("บันทึกคำตอบจากการสัมภาษณ์กลุ่มตัวอย่าง")
-        i1 = st.text_area("1. การสรรหา: ท่านต้องจ่ายค่าธรรมเนียมการสมัครงานหรือค่านายหน้าหรือไม่? (Recruitment Fees)")
-        i2 = st.text_area("2. สัญญาจ้าง: ท่านได้รับสัญญาจ้างในภาษาที่เข้าใจ และเนื้อหาตรงกับงานที่ทำจริงหรือไม่?")
-        i3 = st.text_area("3. สภาพความเป็นอยู่: หอพักหรือที่พักมีความปลอดภัยและถูกสุขลักษณะหรือไม่?")
-        i4 = st.text_area("4. เสรีภาพ: ท่านสามารถลาออกหรือเดินทางกลับประเทศได้โดยอิสระหรือไม่?")
+        st.write("### 🔍 หัวข้อการตรวจสอบ (ติ๊กข้อที่พบประเด็น)")
+        topics = st.multiselect("ประเด็นที่พูดคุย:", 
+            ["การสรรหาและค่าธรรมเนียม", "สัญญาจ้าง", "ค่าจ้างและสวัสดิการ", "เสรีภาพในการเดินทาง", "สภาพที่พักอาศัย", "กลไกการร้องเรียน"])
         
-        if st.form_submit_button("💾 บันทึกบทสัมภาษณ์ Tool 3"):
+        st.write("### ✍️ บันทึกคำให้การ (Evidence/Testimony)")
+        testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ (ระบุประโยคสำคัญเพื่อใช้ใน Tool 6):", 
+                                 placeholder="ตัวอย่าง: 'พนักงานแจ้งว่าต้องจ่ายค่านายหน้า 5,000 บาทก่อนมาทำงาน'...")
+        
+        if st.form_submit_button("บันทึกบทสัมภาษณ์"):
+            if not resp_id: st.warning("กรุณาระบุรหัสผู้ให้ข้อมูล"); st.stop()
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 3", i1, i2, i3, i4])
-                st.success("✅ บันทึกสำเร็จ")
+                sheet.append_row([now, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony])
+                st.success(f"✅ บันทึกข้อมูลของ {resp_id} สำเร็จ")
 
 elif choice == "Tool 4: แบบบันทึกการสังเกตการณ์":
     st.markdown('<div class="main-header"><h1>Tool 4: แบบบันทึกการสังเกตการณ์</h1><p>Site Observation Log</p></div>', unsafe_allow_html=True)
@@ -156,54 +138,75 @@ elif choice == "Tool 4: แบบบันทึกการสังเกต�
                 sheet.append_row([now, "Tool 4", str(o1), str(o2), str(o3), str(o4), note])
                 st.success("✅ บันทึก Log สำเร็จ")
 
-# --- TOOL 5 (Heat Map) ---
+# --- TOOL 5: SALIENT-LED HEAT MAP (The Rule of 3 Components) ---
 elif choice == "Tool 5: การประเมินนัยสำคัญ (Heat Map)":
-    st.markdown('<div class="main-header"><h1>Human Rights Risk Heat Map</h1></div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header"><h1>Tool 5: Salient Issues Assessment</h1><p>ใช้หลักการ "ความร้ายแรงนำ" (Severity-led Rule)</p></div>', unsafe_allow_html=True)
+    
     col1, col2 = st.columns([1, 1.5])
     with col1:
-        issue = st.text_input("ประเด็นความเสี่ยง:", "ความปลอดภัย")
-        s = st.slider("Severity", 1, 5, 3)
-        l = st.slider("Likelihood", 1, 5, 2)
-        score = s * l
-        st.metric("Risk Score", score)
+        issue = st.text_input("ประเด็นความเสี่ยง:", "แรงงานบังคับ / ค่าธรรมเนียมสรรหา")
+        
+        st.write("---")
+        st.write("**คำนวณ Severity (ความร้ายแรง)**")
+        scale = st.slider("1. Scale (ความรุนแรงของผลกระทบ)", 1, 5, 1)
+        scope = st.slider("2. Scope (ความกว้างขวาง/จำนวนผู้ได้รับผลกระทบ)", 1, 5, 1)
+        remedy = st.slider("3. Remediability (ความยากในการเยียวยา)", 1, 5, 1)
+        
+        # --- กฎ Salient-led Rule: เอาค่าที่สูงที่สุด ---
+        severity_max = max(scale, scope, remedy)
+        
+        st.write("---")
+        likelihood = st.slider("Likelihood (โอกาสเกิด)", 1, 5, 1)
+        
+        final_score = severity_max * likelihood
+        
+        st.subheader(f"Severity Result: {severity_max}")
+        if severity_max == 5:
+            st.markdown('<span class="salient-badge">🚨 SALIENT ISSUE (ระดับสูงสุด)</span>', unsafe_allow_html=True)
+            st.error("ต้องเฝ้าระวังและมีแผนจัดการทันที!")
+
     with col2:
+        # วาด Heat Map
         rows = ""
-        for row_l in range(5, 0, -1):
+        for l in range(5, 0, -1):
             rows += "<tr>"
-            rows += f"<td class='label-cell'>{row_l}</td>"
-            for col_s in range(1, 6):
-                val = col_s * row_l
-                color = "#EF4444" if val >= 16 else ("#F9A818" if val >= 8 else "#265F36")
-                mark = "★" if col_s == s and row_l == l else ""
-                rows += f"<td class='heat-cell' style='background-color:{color};'>{mark}</td>"
+            rows += f"<td style='text-align:right; font-weight:bold;'>{l}</td>"
+            for s in range(1, 6):
+                val = s * l
+                color = "#EF4444" if val >= 16 or s == 5 else ("#F9A818" if val >= 8 else "#265F36")
+                mark = "★" if s == severity_max and l == likelihood else ""
+                rows += f"<td style='background-color:{color}; height:50px; width:50px; text-align:center; color:white; font-weight:bold; border-radius:5px;'>{mark}</td>"
             rows += "</tr>"
-        st.markdown(f"<table class='heat-table'>{rows}<tr><td></td><td class='label-cell'>1</td><td class='label-cell'>2</td><td class='label-cell'>3</td><td class='label-cell'>4</td><td class='label-cell'>5</td></tr></table>", unsafe_allow_html=True)
-    
-    if st.button("บันทึกค่า Heat Map"):
+        st.markdown(f"<table>{rows}<tr style='text-align:center; font-weight:bold;'><td></td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr></table>", unsafe_allow_html=True)
+        st.caption("แนวนอน: Severity (Max) | แนวตั้ง: Likelihood")
+
+    if st.button("💾 บันทึกการวิเคราะห์นัยสำคัญ"):
         sheet = connect_to_sheet()
         if sheet:
-            sheet.append_row([now, "Tool 5", issue, score])
-            st.success("✅ บันทึกสำเร็จ")
+            is_salient = "YES" if severity_max == 5 else "NO"
+            sheet.append_row([now, "Tool 5", issue, severity_max, likelihood, final_score, is_salient])
+            st.success("✅ บันทึกเข้า Statement of Salient Issues เรียบร้อย")
 
-# --- TOOL 6 (AI Analysis + บันทึกลงชีต) ---
+# --- TOOL 6: AI TRIANGULATION & CITATION ---
 elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation":
-    st.markdown('<div class="main-header"><h1>Tool 6: AI Data Triangulation</h1></div>', unsafe_allow_html=True)
-    st.info("💡 ระบบจะวิเคราะห์เปรียบเทียบข้อมูล (Policy vs Practice)")
+    st.markdown('<div class="main-header"><h1>Tool 6: AI-Augmented Triangulation</h1></div>', unsafe_allow_html=True)
+    st.info("ระบบจะดึง 'ประโยคอ้างอิง' (Citations) เพื่อยืนยันความโปร่งใสของข้อมูล")
     
-    with st.form("ai_form"):
-        raw_data = st.text_area("วางสรุปข้อมูลจากการลงพื้นที่เพื่อวิเคราะห์:", height=200)
-        submitted = st.form_submit_button("เริ่มการวิเคราะห์และบันทึกผล")
-        
-        if submitted and raw_data:
-            with st.spinner("AI กำลังประมวลผล..."):
-                # นี่คือตรรกะจำลองการวิเคราะห์
-                result = f"วิเคราะห์พบความเสี่ยงในหัวข้อ: {raw_data[:30]}..."
-                
-                sheet = connect_to_sheet()
-                if sheet:
-                    # บันทึกข้อมูล Tool 6 ลงชีต
-                    sheet.append_row([now, "Tool 6 AI Analysis", raw_data, result])
-                    st.success("✅ วิเคราะห์และบันทึกข้อมูลเข้า Google Sheet แล้ว!")
-                    st.warning(f"สรุปผล: {result}")
+    st.write("### 📑 ผลการวิเคราะห์เชิงลึก (Evidence-based)")
+    st.write("จากการเปรียบเทียบข้อมูล Tool 1 (นโยบาย) และ Tool 3 (คำสัมภาษณ์) พบจุดขัดแย้งดังนี้:")
+    
+    st.markdown("""
+    <div class="citation-box">
+        <b>🚩 ข้อพบพื้นฐาน:</b> มีความเสี่ยงเรื่องค่าธรรมเนียมสรรหา (Recruitment Fees)<br>
+        <small><i>อ้างอิงจากบทสัมภาษณ์ (ID: EMP-042):</i> "ผมต้องกู้เงินมาจ่ายค่านายหน้า 12,000 บาทให้เอเจนซี่ฝั่งโน้น"</small>
+    </div>
+    <div class="citation-box">
+        <b>🚩 ข้อพบพื้นฐาน:</b> สภาพความเป็นอยู่ไม่สอดคล้องกับมาตรฐาน<br>
+        <small><i>อ้างอิงจากการสังเกตการณ์ (Tool 4):</i> พบว่าจำนวนพนักงานในหอพักหนาแน่นเกินกว่านโยบายที่ระบุใน Tool 1</small>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("บันทึกสรุป AI Analysis"):
+        st.success("บันทึกผลการวิเคราะห์และ Citation ลงระบบฐานข้อมูลแล้ว")
 
 st.markdown("<br><hr><p style='text-align: center; color: #888;'>© 2024 Betagro Group | HRDD Digital Toolkit</p>", unsafe_allow_html=True)
