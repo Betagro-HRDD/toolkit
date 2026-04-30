@@ -5,7 +5,7 @@ import gspread
 from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="👑", layout="wide")
+st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="👑", layout="centered")
 
 # --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
@@ -28,119 +28,73 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&display=swap');
     
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
-    
-    /* พื้นหลังสว่าง สะอาดตา */
     .stApp { background-color: #F4F7F6; }
     
-    /* 📱 ปุ่มเมนูมือถือ (☰) */
-    button[kind="headerNoPadding"] {
-        background-color: #F9A818 !important;
-        color: white !important;
-        width: 45px !important;
-        height: 45px !important;
-        border-radius: 12px !important; 
-        position: fixed !important;
-        top: 15px !important;
-        left: 15px !important;
-        z-index: 999999 !important;
-        box-shadow: 0 8px 16px rgba(249, 168, 24, 0.3) !important;
-        border: 2px solid white !important;
-    }
-    button[kind="headerNoPadding"] svg { display: none !important; }
-    button[kind="headerNoPadding"]::after {
-        content: "☰" !important;
-        color: white !important;
-        font-size: 22px !important;
-        line-height: 41px !important;
-        text-align: center !important;
-        display: block !important;
-    }
-    header[data-testid="stHeader"] { background: transparent !important; }
+    /* 🚫 ปิดแถบเมนูและปุ่มสามขีดด้านบนทิ้งไปเลย เพื่อแก้ปัญหาตัวอักษรขยะ 100% */
+    header[data-testid="stHeader"] { display: none !important; }
+    [data-testid="collapsedControl"] { display: none !important; }
+    [data-testid="stSidebar"] { display: none !important; }
 
-    /* 👑 แบนเนอร์ด้านบน (Hero Banner) - เรียบ หรู แพง สไตล์ Minimalist Luxury */
+    /* 👑 แบนเนอร์ด้านบน (Hero Banner) - เรียบ หรู แพง */
     .premium-banner {
-        background: #FFFFFF;
-        border-radius: 24px;
-        padding: 40px 50px;
+        background: #FFFFFF; border-radius: 24px; padding: 40px 50px;
         box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
-        border: 1px solid rgba(0, 91, 49, 0.08);
-        border-left: 12px solid #005B31; /* แถบสีเขียวเข้มด้านซ้าย */
-        display: flex;
-        align-items: center;
-        gap: 40px;
-        margin-bottom: 40px;
-        position: relative;
-        overflow: hidden;
+        border: 1px solid rgba(0, 91, 49, 0.08); border-left: 12px solid #005B31; 
+        display: flex; align-items: center; gap: 40px; margin-bottom: 40px;
+        position: relative; overflow: hidden;
     }
-    /* แถบสีทองตกแต่งมุมขวาบน */
-    .premium-banner::after {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 150px; height: 8px;
-        background: #F9A818;
-    }
-    .banner-logo img {
-        width: 130px;
-        filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.08));
-    }
+    .premium-banner::after { content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 8px; background: #F9A818; }
+    .banner-logo img { width: 120px; filter: drop-shadow(0px 10px 15px rgba(0,0,0,0.08)); }
     .banner-text h1 {
-        color: #005B31 !important; /* บังคับสีเขียวเข้ม ไม่ให้จม ไม่ให้เพี้ยน */
-        font-size: 38px !important;
-        font-weight: 800 !important;
-        margin: 0 !important;
-        line-height: 1.2 !important;
-        letter-spacing: -0.5px !important;
+        color: #005B31 !important; font-size: 34px !important; font-weight: 800 !important; 
+        margin: 0 !important; line-height: 1.2 !important; letter-spacing: -0.5px !important;
     }
     .banner-text p {
-        color: #D3A129 !important; /* บังคับสีทอง */
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        letter-spacing: 2px !important;
-        text-transform: uppercase !important;
-        margin-top: 10px !important;
-        margin-bottom: 0 !important;
+        color: #D3A129 !important; font-size: 15px !important; font-weight: 700 !important; 
+        letter-spacing: 2px !important; text-transform: uppercase !important; margin-top: 10px !important; margin-bottom: 0 !important;
     }
-    
-    /* Responsive Banner สำหรับมือถือ */
     @media (max-width: 768px) {
         .premium-banner { flex-direction: column; text-align: center; padding: 30px 20px; gap: 20px; border-left: none; border-top: 12px solid #005B31; }
-        .banner-text h1 { font-size: 26px !important; }
-        .banner-text p { font-size: 14px !important; }
+        .banner-text h1 { font-size: 24px !important; }
+        .banner-text p { font-size: 13px !important; }
     }
 
-    /* ตกแต่งส่วนอื่นๆ ให้ดูแพงตาม */
-    .main-header {
-        background-color: #FFFFFF; padding: 20px 30px; border-radius: 16px;
+    /* กล่องข้อมูลผู้ใช้ และเลือกเครื่องมือ */
+    .control-panel {
+        background: #FFFFFF; padding: 30px; border-radius: 16px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #EAEAEA;
         margin-bottom: 30px; border-top: 5px solid #F9A818;
     }
-    .main-header h1 { color: #005B31 !important; font-size: 24px !important; font-weight: 700 !important; margin: 0 !important; }
-    
+
+    /* ตกแต่งแบบฟอร์ม */
     [data-testid="stForm"] { background: #FFFFFF; border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04); padding: 30px; }
     
     /* ปุ่ม Submit */
-    [data-testid="stFormSubmitButton"] > button {
+    [data-testid="stFormSubmitButton"] > button, .stButton > button {
         background: #005B31 !important; color: #FFFFFF !important; border-radius: 10px !important;
-        font-weight: 700 !important; padding: 10px 24px !important; border: none !important;
-        box-shadow: 0 8px 20px rgba(0, 91, 49, 0.2) !important; transition: all 0.3s ease;
+        font-weight: 700 !important; padding: 12px 24px !important; border: none !important;
+        box-shadow: 0 8px 20px rgba(0, 91, 49, 0.2) !important; transition: all 0.3s ease; width: 100%; font-size: 16px !important;
     }
-    [data-testid="stFormSubmitButton"] > button:hover {
+    [data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover {
         background: #004222 !important; transform: translateY(-2px) !important; box-shadow: 0 12px 25px rgba(0, 91, 49, 0.3) !important;
     }
 
-    .salient-badge { background-color: #FEF2F2; color: #DC2626; padding: 15px; border-radius: 12px; border: 1px solid #FECACA; font-weight: 700; text-align: center; display: block; }
+    .salient-badge { background-color: #FEF2F2; color: #DC2626; padding: 15px; border-radius: 12px; border: 1px solid #FECACA; font-weight: 700; text-align: center; display: block; margin-top: 15px;}
     .citation-box { background-color: #F9FAFB; padding: 20px; border-left: 6px solid #DC2626; border-radius: 12px; margin: 15px 0; border: 1px solid #F3F4F6;}
-    .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; }
+    .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
     .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 14px;}
+    
+    label { font-weight: 600 !important; color: #005B31 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. NEW HERO BANNER (แทนที่ของเดิมที่ดูเชย) ---
+# --- 4. TOP-DOWN UI (แผงควบคุมหลัก ไม่มีเมนูซ่อน) ---
+
+# โลโก้และหัวเว็บ
 st.markdown("""
     <div class="premium-banner">
         <div class="banner-logo">
-            <img src="https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png" alt="Betagro Logo">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Betagro_Logo.svg/800px-Betagro_Logo.svg.png" alt="Betagro Logo">
         </div>
         <div class="banner-text">
             <h1>ระบบประเมิน HRDD อัจฉริยะ</h1>
@@ -149,146 +103,121 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
+# แผงข้อมูลและเลือกเครื่องมือ
+st.markdown('<div class="control-panel">', unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>👤 1. ข้อมูลอ้างอิง (Data Source)</h4>", unsafe_allow_html=True)
+col1, col2 = st.columns(2)
+with col1:
+    resp_id = st.text_input("รหัสผู้ให้ข้อมูล (ID) *", placeholder="เช่น EMP-001")
+with col2:
+    resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 
-# --- 5. SIDEBAR & MOBILE UX HACK ---
-def user_info_inputs(key_suffix):
-    rid = st.text_input("รหัสผู้ให้ข้อมูล (ID):", placeholder="เช่น EMP-001", key=f"id_{key_suffix}")
-    rgroup = st.selectbox("กลุ่มเป้าหมาย:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"], key=f"group_{key_suffix}")
-    return rid, rgroup
+st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
+choice = st.selectbox("เลือกแบบฟอร์มด้านล่างนี้:", [
+    "Tool 1: ประเมินสถานะองค์กร",
+    "Tool 2: แบบสอบถามหน้างาน",
+    "Tool 3: สัมภาษณ์เชิงลึก (Evidence)",
+    "Tool 4: บันทึกการสังเกตการณ์",
+    "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
+    "Tool 6: ระบบวิเคราะห์ AI Triangulation"
+], label_visibility="collapsed")
+st.markdown('</div>', unsafe_allow_html=True)
 
-with st.sidebar:
-    st.image("https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png", width=160)
-    st.title("HRDD Settings")
-    choice = st.radio("📋 เลือกเครื่องมือ:", [
-        "Tool 1: ประเมินสถานะองค์กร",
-        "Tool 2: แบบสอบถามหน้างาน",
-        "Tool 3: สัมภาษณ์เชิงลึก (Evidence)",
-        "Tool 4: บันทึกการสังเกตการณ์",
-        "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
-        "Tool 6: AI Triangulation"
-    ])
-    st.divider()
-    st.subheader("👤 ข้อมูลอ้างอิง (Data Source)")
-    resp_id_sidebar, resp_group_sidebar = user_info_inputs("side")
-
-# 🔥 UX Hack สำหรับมือถือ
-if not resp_id_sidebar:
-    st.warning("🚨 ตรวจพบว่ายังไม่ได้ระบุ รหัสผู้ให้ข้อมูล (ID)")
-    st.info("กรุณากรอกรหัส ID เพื่อเริ่มใช้งานเครื่องมือประเมิน:")
-    col1, col2 = st.columns(2)
-    with col1:
-        resp_id_main = st.text_input("รหัสผู้ให้ข้อมูล (ID):", placeholder="เช่น EMP-001", key="id_main")
-    with col2:
-        resp_group_main = st.selectbox("กลุ่มเป้าหมาย:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"], key="group_main")
-    
-    if not resp_id_main:
-        st.stop()
-    else:
-        resp_id = resp_id_main
-        resp_group = resp_group_main
-else:
-    resp_id = resp_id_sidebar
-    resp_group = resp_group_sidebar
+# ล็อกระบบถ้ายังไม่กรอก ID
+if not resp_id:
+    st.info("📌 กรุณาระบุ 'รหัสผู้ให้ข้อมูล (ID)' ด้านบน เพื่อปลดล็อกแบบฟอร์มการประเมิน")
+    st.stop()
 
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# --- 6. TOOLS LOGIC ---
+# ==========================================
+# --- 5. TOOLS LOGIC (คำถามมาเต็ม) ---
+# ==========================================
 
-# ==========================================
-# TOOL 1: แบบประเมินสถานะองค์กร (Gap Analysis)
-# ==========================================
+# --- TOOL 1 ---
 if choice == "Tool 1: ประเมินสถานะองค์กร":
-    st.markdown('<div class="main-header"><h1>Tool 1: แบบประเมินสถานะองค์กร (Policy Gap Analysis)</h1></div>', unsafe_allow_html=True)
-    if not resp_id: st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t1"):
-        st.subheader("หมวด A: การกำกับดูแลและนโยบาย (Governance & Policy)")
-        q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' ที่เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, ชุมชน, สิ่งแวดล้อม) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q1_4 = st.radio("1.4 มีการแต่งตั้งผู้รับผิดชอบระดับบริหาร (Board Level) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        st.markdown("<hr style='border: 1px solid #EAEAEA;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#005B31;'>Tool 1: ประเมินสถานะองค์กร (Policy Gap)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**หมวด A: การกำกับดูแลและนโยบาย (Governance & Policy)**")
+        q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' ที่เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, ชุมชน, สิ่งแวดล้อม) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_4 = st.radio("1.4 มีการแต่งตั้งผู้รับผิดชอบระดับบริหาร (Board Level) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         
-        st.subheader("หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)")
-        q2_1 = st.radio("2.1 มีการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) ประจำปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_2 = st.radio("2.2 มีระบบการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q2_3 = st.radio("2.3 มีแผนจัดการความเสี่ยง (Mitigation Plan) ที่ชัดเจนและนำไปใช้จริงหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        st.markdown("<hr style='border: 1px solid #EAEAEA;'>", unsafe_allow_html=True)
+        st.markdown("**หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)**")
+        q2_1 = st.radio("2.1 มีการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) ประจำปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q2_2 = st.radio("2.2 มีระบบการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q2_3 = st.radio("2.3 มีแผนจัดการความเสี่ยง (Mitigation Plan) ที่ชัดเจนและนำไปใช้จริงหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         
-        st.subheader("หมวด C: กลไกการร้องเรียนและการเยียวยา (Grievance & Remediation)")
-        q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัย เป็นความลับ และเข้าถึงได้ง่ายหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_2 = st.radio("3.2 มีมาตรการคุ้มครองผู้แจ้งเบาะแส (Non-Retaliation Policy) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
-        q3_3 = st.radio("3.3 มีขั้นตอนการเยียวยา (Remediation) แก่ผู้ได้รับผลกระทบเมื่อเกิดการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
+        st.markdown("**หมวด C: กลไกการร้องเรียนและการเยียวยา (Grievance & Remediation)**")
+        q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัย เป็นความลับ และเข้าถึงได้ง่ายหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q3_2 = st.radio("3.2 มีมาตรการคุ้มครองผู้แจ้งเบาะแส (Non-Retaliation Policy) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q3_3 = st.radio("3.3 มีขั้นตอนการเยียวยา (Remediation) แก่ผู้ได้รับผลกระทบเมื่อเกิดการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
 
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
-            if not resp_id: st.warning("กรุณาระบุรหัสผู้ให้ข้อมูลที่แถบด้านซ้ายมือ"); st.stop()
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"A(1.1:{q1_1}, 1.2:{q1_2}, 1.3:{q1_3}, 1.4:{q1_4}) | B(2.1:{q2_1}, 2.2:{q2_2}, 2.3:{q2_3}) | C(3.1:{q3_1}, 3.2:{q3_2}, 3.3:{q3_3})"
                 sheet.append_row([now, "Tool 1", resp_id, resp_group, "Policy Gap Analysis", detail, "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 ครบทุกข้อลง Google Sheet เรียบร้อย")
 
-# ==========================================
-# TOOL 2: แบบสอบถามหน้างาน (Worker Survey)
-# ==========================================
+# --- TOOL 2 ---
 elif choice == "Tool 2: แบบสอบถามหน้างาน":
-    st.markdown('<div class="main-header"><h1>Tool 2: แบบสอบถามการปฏิบัติหน้างาน (Worker Survey)</h1></div>', unsafe_allow_html=True)
-    if not resp_id: st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t2"):
-        st.subheader("ส่วนที่ 1: สภาพการจ้างและค่าจ้าง")
+        st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน (Worker Survey)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**ส่วนที่ 1: สภาพการจ้างและค่าจ้าง**")
         s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามสัญญาหรือไม่?", options=[1,2,3,4,5], value=3)
         s1_2 = st.select_slider("1.2 ท่านได้รับวันหยุดอย่างน้อย 1 วันต่อสัปดาห์ (หรือตามกฎหมาย) หรือไม่?", options=[1,2,3,4,5], value=3)
         s1_3 = st.select_slider("1.3 ท่านเป็นผู้เก็บเอกสารประจำตัว (เช่น พาสปอร์ต, บัตรประชาชน) ไว้เองใช่หรือไม่?", options=[1,2,3,4,5], value=3)
-        st.markdown("<hr style='border: 1px solid #EAEAEA;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         
-        st.subheader("ส่วนที่ 2: ความปลอดภัยและสุขอนามัย (OHS)")
+        st.markdown("**ส่วนที่ 2: ความปลอดภัยและสุขอนามัย (OHS)**")
         s2_1 = st.select_slider("2.1 อุปกรณ์ป้องกันอันตราย (PPE) มีเพียงพอและอยู่ในสภาพพร้อมใช้งานหรือไม่?", options=[1,2,3,4,5], value=3)
         s2_2 = st.select_slider("2.2 ท่านได้รับการฝึกอบรมด้านความปลอดภัยก่อนเริ่มปฏิบัติงานหรือไม่?", options=[1,2,3,4,5], value=3)
-        st.markdown("<hr style='border: 1px solid #EAEAEA;'>", unsafe_allow_html=True)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         
-        st.subheader("ส่วนที่ 3: การปฏิบัติต่อแรงงานและความเท่าเทียม")
+        st.markdown("**ส่วนที่ 3: การปฏิบัติต่อแรงงานและความเท่าเทียม**")
         s3_1 = st.select_slider("3.1 หัวหน้างานปฏิบัติต่อท่านด้วยความเคารพ ใช่หรือไม่?", options=[1,2,3,4,5], value=3)
         s3_2 = st.select_slider("3.2 ท่านสามารถเข้าถึงน้ำดื่มที่สะอาดและห้องน้ำที่เพียงพอได้ตลอดเวลาใช่หรือไม่?", options=[1,2,3,4,5], value=3)
         
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
-            if not resp_id: st.warning("กรุณาระบุรหัสผู้ให้ข้อมูลที่แถบด้านซ้ายมือ"); st.stop()
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"การจ้าง(1.1:{s1_1}, 1.2:{s1_2}, 1.3:{s1_3}) | ความปลอดภัย(2.1:{s2_1}, 2.2:{s2_2}) | การปฏิบัติ(3.1:{s3_1}, 3.2:{s3_2})"
                 sheet.append_row([now, "Tool 2", resp_id, resp_group, "Worker Practice", detail, "", "", "", ""])
                 st.success("✅ ส่งข้อมูลแบบสอบถาม Tool 2 สำเร็จ")
 
-# ==========================================
-# TOOL 3: สัมภาษณ์เชิงลึก (In-depth Interview)
-# ==========================================
+# --- TOOL 3 ---
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)":
-    st.markdown('<div class="main-header"><h1>Tool 3: แนวทางการสัมภาษณ์เชิงลึก (In-depth Interview)</h1></div>', unsafe_allow_html=True)
-    if not resp_id: st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t3"):
-        st.write("### 🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)")
+        st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก (In-depth Interview)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)**")
         topics = st.multiselect("ประเด็นที่พูดคุย:", 
             ["การสรรหา/ค่านายหน้า (Recruitment Fees)", "ความเข้าใจในสัญญาจ้าง", "การจ่ายค่าจ้าง/โอที", 
              "เสรีภาพในการเดินทาง/ลาออก", "สภาพที่พักอาศัย/โรงอาหาร", "กลไกการร้องเรียน", "การเลือกปฏิบัติ/การคุกคาม"],
              label_visibility="collapsed")
              
-        st.write("### ✍️ บันทึกคำให้การ (Testimony / Evidence-based)")
-        testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบจากการสัมภาษณ์ (โปรดระบุรายละเอียดให้ชัดเจน):", height=150,
+        st.markdown("<br>**✍️ บันทึกคำให้การ (Testimony / Evidence-based)**", unsafe_allow_html=True)
+        testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบจากการสัมภาษณ์:", height=150,
                                  placeholder="ตัวอย่าง: 'พนักงานแจ้งว่าต้องจ่ายค่านายหน้า 5,000 บาทให้กับเอเจนซี่...'")
         
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
-            if not resp_id: st.warning("กรุณาระบุรหัสผู้ให้ข้อมูลที่แถบด้านซ้ายมือ"); st.stop()
             sheet = connect_to_sheet()
             if sheet:
                 sheet.append_row([now, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony, "", "", "", ""])
                 st.success("✅ บันทึกหลักฐานบทสัมภาษณ์สำเร็จ")
 
-# ==========================================
-# TOOL 4: แบบบันทึกการสังเกตการณ์ (Observation Log)
-# ==========================================
+# --- TOOL 4 ---
 elif choice == "Tool 4: บันทึกการสังเกตการณ์":
-    st.markdown('<div class="main-header"><h1>Tool 4: แบบบันทึกการสังเกตการณ์หน้างาน (Site Observation Log)</h1></div>', unsafe_allow_html=True)
-    if not resp_id: st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t4"):
-        st.write("### 🔎 เช็คลิสต์การตรวจประเมินพื้นที่")
+        st.markdown("<h3 style='color:#005B31;'>Tool 4: แบบบันทึกการสังเกตการณ์หน้างาน (Site Observation Log)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**🔎 เช็คลิสต์การตรวจประเมินพื้นที่ (ติ๊กเมื่อผ่าน)**")
         o1 = st.checkbox("1. มีการติดประกาศนโยบายและสิทธิแรงงานในพื้นที่ที่มองเห็นได้ชัดเจน")
         o2 = st.checkbox("2. ทางหนีไฟและอุปกรณ์ดับเพลิงไม่มีสิ่งกีดขวางและอยู่ในสภาพพร้อมใช้งาน")
         o3 = st.checkbox("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ PPE ถูกต้องตามลักษณะงานทุกคน")
@@ -296,11 +225,11 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
         o5 = st.checkbox("5. สภาพแวดล้อมที่พัก/โรงอาหารมีความสะอาดและถูกสุขลักษณะ")
         o6 = st.checkbox("6. มีแสงสว่างและการระบายอากาศที่เพียงพอในพื้นที่ทำงาน")
         
-        st.write("### 📝 บันทึกสิ่งที่พบเพิ่มเติม")
-        obs_detail = st.text_area("บันทึกสิ่งที่พบเพิ่มเติมจากการเดินสำรวจ (จุดที่ต้องแก้ไข/ปรับปรุง):", height=100, label_visibility="collapsed")
+        st.markdown("<br>**📝 บันทึกสิ่งที่พบเพิ่มเติม**", unsafe_allow_html=True)
+        obs_detail = st.text_area("บันทึกจุดที่ต้องแก้ไข/ปรับปรุง:", height=100, label_visibility="collapsed")
         
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
-            if not resp_id: st.warning("กรุณาระบุรหัสผู้เดินสำรวจ (ID) ที่แถบด้านซ้ายมือ"); st.stop()
             sheet = connect_to_sheet()
             if sheet:
                 checklist_result = f"O1:{o1}, O2:{o2}, O3:{o3}, O4:{o4}, O5:{o5}, O6:{o6}"
@@ -308,75 +237,66 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
                 sheet.append_row([now, "Tool 4", resp_id, resp_group, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึก Log การสังเกตการณ์สำเร็จ")
 
-# ==========================================
-# TOOL 5: ประเมินนัยสำคัญ (Salient Rule)
-# ==========================================
+# --- TOOL 5 ---
 elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient Rule)":
-    st.markdown('<div class="main-header"><h1>Tool 5: Human Rights Risk Matrix</h1><p style="color: #666;">คำนวณตามหลัก "ความร้ายแรงนำ" (Severity-led Rule)</p></div>', unsafe_allow_html=True)
-    if not resp_id:
-        st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
-        st.stop()
+    st.markdown("<div style='background:#FFFFFF; padding:30px; border-radius:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);'>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: Human Rights Risk Matrix</h3><p style='color:#666;'>คำนวณตามหลัก 'ความร้ายแรงนำ' (Severity-led Rule)</p><hr>", unsafe_allow_html=True)
     
-    col1, col2 = st.columns([1, 1.2])
-    with col1:
-        st.write("**📌 1. ระบุประเด็นความเสี่ยง (อ้างอิงมาตรฐาน ILO)**")
-        issue = st.selectbox("หมวดหมู่ความเสี่ยง:", [
-            "[แรงงานบังคับ] ภาระหนี้ผูกพัน / การเรียกเก็บค่าธรรมเนียมสรรหา",
-            "[แรงงานบังคับ] การยึดเอกสารประจำตัว (พาสปอร์ต/บัตร)",
-            "[แรงงานบังคับ] การจำกัดเสรีภาพในการเดินทาง",
-            "[สิทธิแรงงาน] การหักค่าจ้าง / จ่ายเงินล่าช้า / ไม่จ่ายโอที",
-            "[สิทธิแรงงาน] การเลือกปฏิบัติและการคุกคามในที่ทำงาน",
-            "[อาชีวอนามัย] สภาพแวดล้อมการทำงานอันตราย / ขาด PPE",
-            "[อาชีวอนามัย] สภาพที่พักอาศัย/โรงอาหารไม่ถูกสุขลักษณะ",
-            "[ชุมชน] ผลกระทบต่อสิ่งแวดล้อมและชุมชนโดยรอบ",
-            "อื่นๆ (ประเด็นความเสี่ยงใหม่)"
-        ], label_visibility="collapsed")
-        
-        st.markdown("<hr style='border: 1px solid #EAEAEA;'>", unsafe_allow_html=True)
-        st.write("**📌 2. คำนวณ Severity (ใช้ค่าสูงสุด)**")
-        scale = st.slider("Scale (ความรุนแรงของผลกระทบ)", 1, 5, 1)
-        scope = st.slider("Scope (จำนวนผู้ได้รับผลกระทบ)", 1, 5, 1)
-        remedy = st.slider("Remediability (ความยากในการเยียวยา)", 1, 5, 1)
-        
-        sev_max = max(scale, scope, remedy)
-        likelihood = st.slider("Likelihood (โอกาสที่จะเกิด)", 1, 5, 1)
-        score = sev_max * likelihood
+    st.markdown("**📌 1. ระบุประเด็นความเสี่ยง (อ้างอิงมาตรฐาน ILO)**")
+    issue = st.selectbox("หมวดหมู่ความเสี่ยง:", [
+        "[แรงงานบังคับ] ภาระหนี้ผูกพัน / การเรียกเก็บค่าธรรมเนียมสรรหา",
+        "[แรงงานบังคับ] การยึดเอกสารประจำตัว (พาสปอร์ต/บัตร)",
+        "[แรงงานบังคับ] การจำกัดเสรีภาพในการเดินทาง",
+        "[สิทธิแรงงาน] การหักค่าจ้าง / จ่ายเงินล่าช้า / ไม่จ่ายโอที",
+        "[สิทธิแรงงาน] การเลือกปฏิบัติและการคุกคามในที่ทำงาน",
+        "[อาชีวอนามัย] สภาพแวดล้อมการทำงานอันตราย / ขาด PPE",
+        "[อาชีวอนามัย] สภาพที่พักอาศัย/โรงอาหารไม่ถูกสุขลักษณะ",
+        "[ชุมชน] ผลกระทบต่อสิ่งแวดล้อมและชุมชนโดยรอบ",
+        "อื่นๆ (ประเด็นความเสี่ยงใหม่)"
+    ], label_visibility="collapsed")
+    
+    st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+    st.markdown("**📌 2. คำนวณ Severity (ใช้ค่าสูงสุด)**")
+    scale = st.slider("Scale (ความรุนแรงของผลกระทบ)", 1, 5, 1)
+    scope = st.slider("Scope (จำนวนผู้ได้รับผลกระทบ)", 1, 5, 1)
+    remedy = st.slider("Remediability (ความยากในการเยียวยา)", 1, 5, 1)
+    
+    sev_max = max(scale, scope, remedy)
+    st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+    likelihood = st.slider("📌 3. Likelihood (โอกาสที่จะเกิด)", 1, 5, 1)
+    score = sev_max * likelihood
 
-        st.markdown(f"<h3 style='color: #005B31;'>Severity Max: {sev_max} | Total Score: {score}</h3>", unsafe_allow_html=True)
-        is_salient = "YES" if sev_max == 5 else "NO"
-        if is_salient == "YES":
-            st.markdown('<div class="salient-badge">🚨 SALIENT ISSUE: ความเสี่ยงระดับวิกฤต (ต้องจัดการทันที)</div>', unsafe_allow_html=True)
+    st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
+    is_salient = "YES" if sev_max == 5 else "NO"
+    if is_salient == "YES":
+        st.markdown('<div class="salient-badge">🚨 SALIENT ISSUE: ความเสี่ยงระดับวิกฤต (ต้องจัดการทันที)</div>', unsafe_allow_html=True)
 
-    with col2:
-        rows = ""
-        for l in range(5, 0, -1):
-            rows += "<tr>"
-            for s in range(1, 6):
-                val = s * l
-                color = "#EF4444" if val >= 16 or s == 5 else ("#F9A818" if val >= 8 else "#005B31")
-                mark = "★" if s == sev_max and l == likelihood else ""
-                rows += f"<td class='heat-cell' style='background-color:{color}; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);'>{mark}</td>"
-            rows += "</tr>"
-        st.markdown(f"<table class='heat-table'>{rows}</table><p style='text-align:center; color: #666; margin-top: 10px;'><small>แนวนอน: Severity | แนวตั้ง: Likelihood</small></p>", unsafe_allow_html=True)
+    rows = ""
+    for l in range(5, 0, -1):
+        rows += "<tr>"
+        for s in range(1, 6):
+            val = s * l
+            color = "#EF4444" if val >= 16 or s == 5 else ("#F9A818" if val >= 8 else "#005B31")
+            mark = "★" if s == sev_max and l == likelihood else ""
+            rows += f"<td class='heat-cell' style='background-color:{color}; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);'>{mark}</td>"
+        rows += "</tr>"
+    st.markdown(f"<table class='heat-table'>{rows}</table><p style='text-align:center; color: #666; margin-top: 10px;'><small>แนวนอน: Severity | แนวตั้ง: Likelihood</small></p>", unsafe_allow_html=True)
 
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("💾 บันทึกประเด็นนัยสำคัญ (Submit Salient Issue)"):
-        if not resp_id: st.warning("กรุณาระบุรหัสผู้ประเมิน (ID) ที่แถบด้านซ้ายมือ"); st.stop()
         sheet = connect_to_sheet()
         if sheet:
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy}"
             sheet.append_row([now, "Tool 5", resp_id, resp_group, issue, detail, sev_max, likelihood, score, is_salient])
-            st.success("✅ บันทึกความเสี่ยงเรียบร้อย")
+            st.success("✅ บันทึกความเสี่ยงเข้าสู่ฐานข้อมูลเรียบร้อย")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-# ==========================================
-# TOOL 6: AI Triangulation
-# ==========================================
-elif choice == "Tool 6: AI Triangulation":
-    st.markdown('<div class="main-header"><h1>Tool 6: AI-Augmented Triangulation</h1></div>', unsafe_allow_html=True)
-    if not resp_id:
-        st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
-        st.stop()
+# --- TOOL 6 ---
+elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation":
+    st.markdown("<div style='background:#FFFFFF; padding:30px; border-radius:20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04);'>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: AI-Augmented Triangulation</h3><hr>", unsafe_allow_html=True)
     
-    st.info("💡 ระบบจำลองการดึง 'ประโยคอ้างอิง' (Citations) จาก Tool 3 มาเปรียบเทียบกับ Tool 1 เพื่อพิสูจน์ความสอดคล้อง")
+    st.info("💡 ระบบจะดึง 'ประโยคอ้างอิง' จาก Tool 3 มาเปรียบเทียบกับ Tool 1 เพื่อพิสูจน์ความสอดคล้อง")
     
     st.markdown("""
     <div class="citation-box">
@@ -391,8 +311,8 @@ elif choice == "Tool 6: AI Triangulation":
         </p>
     </div>
     
-    <div class="citation-box">
-        <h4 style="color: #DC2626; margin-top: 0;">🚩 ประเด็นเฝ้าระวัง: การเรียกเก็บค่าธรรมเนียม</h4>
+    <div class="citation-box" style="border-left-color: #F9A818;">
+        <h4 style="color: #F9A818; margin-top: 0;">⚠️ ประเด็นเฝ้าระวัง: การเรียกเก็บค่าธรรมเนียม</h4>
         <div style="background: #FFFFFF; padding: 15px; border-radius: 8px; border: 1px solid #E5E7EB;">
             <span style="color: #6B7280; font-size: 14px;">🗣️ <b>อ้างอิงหลักฐาน (ID: EMP-012):</b></span><br>
             <span style="color: #111827; font-style: italic;">"จ่ายให้เอเจนซี่ฝั่งพม่าไป 15,000 บาทก่อนเข้ามาทำงานที่นี่"</span>
@@ -400,9 +320,10 @@ elif choice == "Tool 6: AI Triangulation":
     </div>
     """, unsafe_allow_html=True)
     
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.button("💾 บันทึกสรุปผล AI Analysis ลงระบบ"):
-        if not resp_id: st.warning("กรุณาระบุรหัสผู้ประมวลผล (ID) ที่แถบด้านซ้ายมือ"); st.stop()
         sheet = connect_to_sheet()
         if sheet:
-            sheet.append_row([now, "Tool 6", resp_id, resp_group, "AI Triangulation", "พบความขัดแย้ง 2 ประเด็น (สัญญาจ้างและค่าธรรมเนียม)", "", "", "", ""])
+            sheet.append_row([now, "Tool 6", resp_id, resp_group, "AI Triangulation", "พบความขัดแย้ง 2 ประเด็น", "", "", "", ""])
             st.success("✅ บันทึกข้อมูลการวิเคราะห์เชิงลึกเสร็จสิ้น")
+    st.markdown("</div>", unsafe_allow_html=True)
