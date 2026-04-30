@@ -170,7 +170,7 @@ st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
 choice = st.selectbox("เลือกแบบฟอร์มด้านล่างนี้:", [
     "Tool 1: ประเมินสถานะองค์กร",
-    "Tool 2: แบบสอบถามหน้างาน",
+    "Tool 2: แบบสำรวจภาคสนาม",
     "Tool 3: สัมภาษณ์เชิงลึก (Evidence)",
     "Tool 4: บันทึกการสังเกตการณ์",
     "Tool 5: ประเมินนัยสำคัญ (Salient Rule & Strategic Plan)",
@@ -214,9 +214,9 @@ if choice == "Tool 1: ประเมินสถานะองค์กร":
                 sheet.append_row([now, "Tool 1", resp_id, resp_group, "Policy Gap Analysis", detail, "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
-elif choice == "Tool 2: แบบสอบถามหน้างาน":
+elif choice == "Tool 2: แบบสำรวจภาคสนาม":
     with st.form("form_t2"):
-        st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน (Worker Survey)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสำรวจภาคสนาม (Worker Survey)</h3><hr>", unsafe_allow_html=True)
         st.markdown("**ส่วนที่ 1: สภาพการจ้างและค่าจ้าง**")
         s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามสัญญาหรือไม่?", options=[1,2,3,4,5], value=3)
         s1_3 = st.select_slider("1.2 ท่านเป็นผู้เก็บเอกสารประจำตัวไว้เองใช่หรือไม่?", options=[1,2,3,4,5], value=3)
