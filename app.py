@@ -5,7 +5,7 @@ import gspread
 from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(page_title="Betagro Strategic HRDD Toolkit", page_icon="👑", layout="centered")
+st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="👑", layout="centered")
 
 # --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
@@ -25,63 +25,89 @@ def connect_to_sheet():
 # --- 3. ULTRA-PREMIUM STYLING (MODERN LUXURY) ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
     
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F4F7F6; }
     
     /* 🚫 ซ่อนเมนูระบบและไอคอนลิงก์กวนใจทั้งหมด */
     header[data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
-    a.header-anchor { display: none !important; } /* ซ่อนไอคอนลิงก์ 🔗 สำรองไว้ */
+    a.header-anchor { display: none !important; }
 
     /* 👑 แบนเนอร์ด้านบน (Hero Banner) - เรียบ หรู แพง */
     .premium-banner {
-        background: #FFFFFF; border-radius: 24px; padding: 35px 45px;
+        background: #FFFFFF; border-radius: 24px; padding: 40px 50px;
         box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
         border: 1px solid rgba(0, 91, 49, 0.08); border-left: 12px solid #005B31; 
-        display: flex; align-items: center; gap: 35px; margin-bottom: 40px;
+        display: flex; align-items: center; gap: 40px; margin-bottom: 40px;
         position: relative; overflow: hidden;
     }
     .premium-banner::after { content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 8px; background: #F9A818; }
     
-    /* 🎨 โลโก้และ Typography (จัดเรียงบน-ล่าง) */
+    /* 🎨 โลโก้และ Typography */
     .logo-wrapper {
         display: flex;
         flex-direction: column;
         align-items: center;
         border-right: 2px solid #EAEAEA;
-        padding-right: 35px;
+        padding-right: 40px;
     }
     .typography-logo {
         font-family: 'Poppins', sans-serif;
         font-size: 32px;
         font-weight: 800;
-        color: #D3A129; /* สีทองเบทาโกร */
+        color: #D3A129; 
         letter-spacing: 2px;
         line-height: 1;
-        margin-top: 8px;
+        margin-top: 10px;
     }
 
-    /* 💡 แก้ปัญหาไอคอนลิงก์ และจัดให้อยู่บรรทัดเดียว */
-    .hero-title-text {
+    /* 💡 การจัดวาง Typography แบบหรูหรา (Strategic Level) */
+    .banner-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    .hero-title-eng {
         color: #005B31 !important; 
-        font-size: 30px !important; 
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 26px !important; 
         font-weight: 800 !important; 
         margin: 0 !important; 
-        line-height: 1.2 !important; 
-        letter-spacing: -0.5px !important;
-        white-space: nowrap !important; /* บังคับให้อยู่บรรทัดเดียว ไม่ให้ตกขอบ */
+        line-height: 1.1 !important; 
+        letter-spacing: 1px !important;
+        white-space: nowrap !important;
     }
-    .banner-text p {
-        color: #D3A129 !important; font-size: 15px !important; font-weight: 700 !important; 
-        letter-spacing: 2px !important; text-transform: uppercase !important; margin-top: 5px !important; margin-bottom: 0 !important;
+    .hero-title-thai {
+        color: #265F36 !important; 
+        font-family: 'Sarabun', sans-serif !important;
+        font-size: 20px !important;
+        font-weight: 600 !important;
+        margin: 5px 0 0 0 !important;
+        line-height: 1.3 !important;
+        white-space: nowrap !important;
+    }
+    .hero-subtitle {
+        color: #D3A129 !important; 
+        font-family: 'Poppins', sans-serif !important;
+        font-size: 13px !important; 
+        font-weight: 700 !important; 
+        letter-spacing: 3px !important; 
+        text-transform: uppercase !important; 
+        margin-top: 14px !important; 
+        margin-bottom: 0 !important;
+        padding-top: 10px !important;
+        border-top: 1px solid rgba(211, 161, 41, 0.3) !important;
+        width: fit-content;
     }
     
-    /* Responsive ย่อขนาดลงในมือถือเพื่อให้ยังเป็นบรรทัดเดียว */
+    /* Responsive สำหรับมือถือ */
     @media (max-width: 768px) {
-        .premium-banner { flex-direction: column; text-align: center; padding: 30px 20px; gap: 15px; border-left: none; border-top: 12px solid #005B31; }
-        .logo-wrapper { border-right: none; padding-right: 0; border-bottom: 2px solid #EAEAEA; padding-bottom: 20px; }
-        .hero-title-text { font-size: 22px !important; white-space: normal !important; /* ยอมให้ตัดบรรทัดได้ถ้าจอมือถือเล็กจริงๆ */ }
+        .premium-banner { flex-direction: column; text-align: center; padding: 35px 20px; gap: 20px; border-left: none; border-top: 12px solid #005B31; }
+        .logo-wrapper { border-right: none; padding-right: 0; border-bottom: 2px solid #EAEAEA; padding-bottom: 25px; }
+        .hero-title-eng { font-size: 20px !important; white-space: normal !important; letter-spacing: 0.5px !important;}
+        .hero-title-thai { font-size: 17px !important; white-space: normal !important;}
+        .hero-subtitle { font-size: 11px !important; letter-spacing: 1.5px !important; margin: 15px auto 0 auto !important;}
     }
 
     .control-panel {
@@ -113,12 +139,11 @@ st.markdown("""
 st.markdown("""
     <div class="premium-banner">
         <div class="logo-wrapper">
-            <!-- 🎨 SVG โลโก้เบทาโกร (3 แฉก) สร้างใหม่ให้หรูหราและขอบมน -->
+            <!-- 🎨 SVG โลโก้เบทาโกร (3 แฉก) -->
             <svg width="75" height="75" viewBox="0 0 100 100" style="margin-bottom: 5px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
                 <circle cx="36" cy="38" r="23" fill="#005B31"/>
                 <circle cx="64" cy="38" r="23" fill="#005B31"/>
                 <circle cx="50" cy="62" r="23" fill="#005B31"/>
-                <!-- ช่องว่างสีขาวตรงกลาง ทำเป็นเส้นโค้ง (Bezier Curve) ให้เหมือนโลโก้จริง -->
                 <path d="M 50,42 Q 54,54 62,60 Q 50,56 38,60 Q 46,54 50,42 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
             </svg>
             <div class="typography-logo">
@@ -126,9 +151,9 @@ st.markdown("""
             </div>
         </div>
         <div class="banner-text">
-            <!-- เปลี่ยนจาก <h1> เป็น <div> ป้องกันไอคอนลิงก์ 🔗 โผล่ -->
-            <div class="hero-title-text">ระบบประเมิน HRDD อัจฉริยะ</div>
-            <p>Smart Assessment Toolkit</p>
+            <div class="hero-title-eng">BETAGRO STRATEGIC HRDD TOOLKIT</div>
+            <div class="hero-title-thai">ระบบยุทธศาสตร์บริหารจัดการสิทธิมนุษยชนอัจฉริยะ</div>
+            <div class="hero-subtitle">Smart Assessment Systems & Analytics</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
