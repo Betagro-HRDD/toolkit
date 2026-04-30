@@ -5,7 +5,7 @@ import gspread
 from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="👑", layout="centered")
+st.set_page_config(page_title="Betagro Strategic HRDD Toolkit", page_icon="👑", layout="centered")
 
 # --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
@@ -118,8 +118,8 @@ st.markdown("""
                 <circle cx="36" cy="38" r="23" fill="#005B31"/>
                 <circle cx="64" cy="38" r="23" fill="#005B31"/>
                 <circle cx="50" cy="62" r="23" fill="#005B31"/>
-                <!-- ช่องว่างสีขาวตรงกลาง ทำขอบมนให้เนียนเหมือนโลโก้จริง -->
-                <polygon points="50,42 63,62 37,62" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/>
+                <!-- ช่องว่างสีขาวตรงกลาง ทำเป็นเส้นโค้ง (Bezier Curve) ให้เหมือนโลโก้จริง -->
+                <path d="M 50,42 Q 54,54 62,60 Q 50,56 38,60 Q 46,54 50,42 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
             </svg>
             <div class="typography-logo">
                 BETAGRO
