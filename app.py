@@ -5,12 +5,7 @@ import gspread
 from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(
-    page_title="Betagro HRDD Premium Toolkit", 
-    page_icon="https://www.betagro.com/favicon.ico", 
-    layout="wide",
-    initial_sidebar_state="expanded" # บังคับให้แถบเมนูด้านซ้ายเปิดพร้อมใช้งานทันที
-)
+st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="https://www.betagro.com/favicon.ico", layout="wide")
 
 # --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
@@ -27,61 +22,57 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. PREMIUM STYLING (ฉบับแก้ไขปุ่ม Sidebar และ Mobile) ---
+# --- 3. PREMIUM STYLING (แก้ปัญหาปุ่มบนมือถือให้เด่นชัด) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
+    .stApp { background-color: #F8FAFB; }
     
-    /* 📱 จัดการปุ่มเปิด Sidebar (Hamburger Menu) ให้เด่นชัด */
-    /* สำหรับตอนที่ Sidebar พับอยู่ (ปุ่มเปิด) */
-    [data-testid="stSidebarCollapsedControl"] {
+    /* 📱 ทำปุ่มเปิดเมนู (☰) ให้ลอยเด่นชัดขึ้น */
+    button[kind="headerNoPadding"] {
         background-color: #F9A818 !important;
         color: white !important;
-        border-radius: 0 10px 10px 0 !important;
         width: 50px !important;
         height: 50px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        left: 0 !important;
+        border-radius: 8px !important; 
+        position: fixed !important;
         top: 10px !important;
+        left: 10px !important;
+        z-index: 999999 !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
     }
-    /* บังคับเปลี่ยนไอคอน > เป็น ☰ */
-    [data-testid="stSidebarCollapsedControl"] svg {
-        display: none !important;
-    }
-    [data-testid="stSidebarCollapsedControl"]::after {
+    button[kind="headerNoPadding"] svg { display: none !important; }
+    button[kind="headerNoPadding"]::after {
         content: "☰" !important;
-        font-size: 24px !important;
         color: white !important;
+        font-size: 26px !important;
+        line-height: 50px !important;
+        text-align: center !important;
+        display: block !important;
     }
+    header[data-testid="stHeader"] { background: transparent !important; }
 
-    /* 💻 สำหรับตอนที่ Sidebar กางอยู่ (ปุ่มปิด - บน PC) */
-    [data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] {
-        background-color: #f0f0f0 !important;
-        border-radius: 50% !important;
-    }
-
-    /* 🚨 แก้ไขปัญหา Mobile: ให้ช่อง ID และเมนูเลือก Tool เด่นชัดขึ้นใน Sidebar */
-    [data-testid="stSidebar"] {
-        background-color: #ffffff !important;
-        border-right: 2px solid #F9A818 !important;
-    }
-    
-    /* ซ่อนเมนู Toolbar ด้านขวาบน (3 จุด) */
-    [data-testid="stToolbar"] { visibility: hidden !important; }
-
-    /* สไตล์ส่วนหัว */
+    /* สไตล์ส่วนตกแต่งอื่นๆ */
     .main-header {
-        background-color: white; padding: 20px; border-radius: 15px;
+        background-color: white; padding: 25px; border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 10px solid #F9A818;
-        margin-bottom: 20px;
+        margin-bottom: 25px; text-align: center;
     }
+    .salient-badge { background-color: #EF4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: block; text-align: center; }
+    .citation-box { background-color: #E8EEE8; padding: 15px; border-left: 5px solid #265F36; border-radius: 5px; margin: 10px 0; }
+    .heat-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
+    .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. SIDEBAR ---
+# --- 4. SIDEBAR & MOBILE UX HACK ---
+# ฟังก์ชันสร้างช่องกรอกข้อมูล
+def user_info_inputs(key_suffix):
+    rid = st.text_input("รหัสผู้ให้ข้อมูล (ID):", placeholder="เช่น EMP-001", key=f"id_{key_suffix}")
+    rgroup = st.selectbox("กลุ่มเป้าหมาย:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"], key=f"group_{key_suffix}")
+    return rid, rgroup
+
 with st.sidebar:
     st.image("https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png", width=160)
     st.title("HRDD Settings")
@@ -95,8 +86,26 @@ with st.sidebar:
     ])
     st.divider()
     st.subheader("👤 ข้อมูลผู้ให้ข้อมูล")
-    resp_id = st.text_input("รหัสพนักงาน/ID:", placeholder="เช่น EMP-001 หรือ MGMT-01")
-    resp_group = st.selectbox("กลุ่ม:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
+    resp_id_sidebar, resp_group_sidebar = user_info_inputs("side")
+
+# 🔥 UX Hack สำหรับมือถือ: ถ้ายังไม่ได้กรอก ID ให้ขึ้นช่องกรอกกลางจอไปเลย!
+if not resp_id_sidebar:
+    st.warning("🚨 ตรวจพบว่ายังไม่ได้ระบุ รหัสผู้ให้ข้อมูล (ID)")
+    st.info("กรุณากรอกรหัส ID เพื่อเริ่มใช้งานเครื่องมือประเมิน:")
+    col1, col2 = st.columns(2)
+    with col1:
+        resp_id_main = st.text_input("รหัสผู้ให้ข้อมูล (ID):", placeholder="เช่น EMP-001", key="id_main")
+    with col2:
+        resp_group_main = st.selectbox("กลุ่มเป้าหมาย:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"], key="group_main")
+    
+    if not resp_id_main:
+        st.stop() # หยุดหน้าเว็บไว้ตรงนี้จนกว่าจะกรอก ID เสร็จ
+    else:
+        resp_id = resp_id_main
+        resp_group = resp_group_main
+else:
+    resp_id = resp_id_sidebar
+    resp_group = resp_group_sidebar
 
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
