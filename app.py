@@ -167,7 +167,7 @@ with col2:
     resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือ</h4>", unsafe_allow_html=True)
 choice = st.selectbox("เลือกแบบฟอร์มด้านล่างนี้:", [
     "Tool 1: ประเมินสถานะองค์กร",
     "Tool 2: แบบสำรวจภาคสนาม",
