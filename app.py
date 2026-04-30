@@ -27,51 +27,57 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. PREMIUM STYLING ---
+# --- 3. PREMIUM STYLING (ฉบับแก้ไขปุ่ม Sidebar และ Mobile) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
-    .stApp { background-color: #F8FAFB; }
     
-    /* 🎨 จัดการหน้าตาปุ่มเปิด Sidebar (เปลี่ยน > เป็นปุ่มเมนู ☰) */
-    [data-testid="collapsedControl"] {
-        background-color: #F9A818 !important; /* สีส้ม/เหลืองเบทาโกร */
-        border-radius: 8px !important;
-        margin: 10px !important;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-        transition: 0.3s;
-    }
-    [data-testid="collapsedControl"]:hover {
-        background-color: #265F36 !important; /* Hover เป็นสีเขียว */
-    }
-    [data-testid="collapsedControl"] svg {
-        display: none !important; /* ซ่อนเครื่องหมาย > เดิม */
-    }
-    [data-testid="collapsedControl"]::after {
-        content: "☰" !important; /* ใส่สัญลักษณ์เมนูมาตรฐาน */
-        font-size: 20px !important;
+    /* 📱 จัดการปุ่มเปิด Sidebar (Hamburger Menu) ให้เด่นชัด */
+    /* สำหรับตอนที่ Sidebar พับอยู่ (ปุ่มเปิด) */
+    [data-testid="stSidebarCollapsedControl"] {
+        background-color: #F9A818 !important;
         color: white !important;
-        font-weight: bold !important;
-        padding: 5px 12px !important;
-        display: block;
+        border-radius: 0 10px 10px 0 !important;
+        width: 50px !important;
+        height: 50px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        left: 0 !important;
+        top: 10px !important;
+    }
+    /* บังคับเปลี่ยนไอคอน > เป็น ☰ */
+    [data-testid="stSidebarCollapsedControl"] svg {
+        display: none !important;
+    }
+    [data-testid="stSidebarCollapsedControl"]::after {
+        content: "☰" !important;
+        font-size: 24px !important;
+        color: white !important;
     }
 
-    /* 🧹 ซ่อนเมนู 3 จุดของ Streamlit ด้านขวาบนที่ไม่ได้ใช้ */
-    [data-testid="stToolbar"] {
-        visibility: hidden !important;
+    /* 💻 สำหรับตอนที่ Sidebar กางอยู่ (ปุ่มปิด - บน PC) */
+    [data-testid="stSidebar"] [data-testid="stBaseButton-headerNoPadding"] {
+        background-color: #f0f0f0 !important;
+        border-radius: 50% !important;
     }
 
-    /* สไตล์กล่องข้อความและสีสันอื่นๆ (คงเดิม) */
+    /* 🚨 แก้ไขปัญหา Mobile: ให้ช่อง ID และเมนูเลือก Tool เด่นชัดขึ้นใน Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #ffffff !important;
+        border-right: 2px solid #F9A818 !important;
+    }
+    
+    /* ซ่อนเมนู Toolbar ด้านขวาบน (3 จุด) */
+    [data-testid="stToolbar"] { visibility: hidden !important; }
+
+    /* สไตล์ส่วนหัว */
     .main-header {
-        background-color: white; padding: 30px; border-radius: 15px;
+        background-color: white; padding: 20px; border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 10px solid #F9A818;
-        margin-bottom: 25px; text-align: center;
+        margin-bottom: 20px;
     }
-    .salient-badge { background-color: #EF4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: block; text-align: center; }
-    .citation-box { background-color: #E8EEE8; padding: 15px; border-left: 5px solid #265F36; border-radius: 5px; margin: 10px 0; }
-    .heat-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
-    .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -101,6 +107,9 @@ now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 # ==========================================
 if choice == "Tool 1: ประเมินสถานะองค์กร":
     st.markdown('<div class="main-header"><h1>Tool 1: แบบประเมินสถานะองค์กร (Policy Gap Analysis)</h1></div>', unsafe_allow_html=True)
+    # ใส่ไว้ในทุก Tool เพื่อเตือนคนใช้มือถือ
+if not resp_id:
+    st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t1"):
         st.subheader("หมวด A: การกำกับดูแลและนโยบาย (Governance & Policy)")
         q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' ที่เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"])
@@ -132,6 +141,9 @@ if choice == "Tool 1: ประเมินสถานะองค์กร":
 # ==========================================
 elif choice == "Tool 2: แบบสอบถามหน้างาน":
     st.markdown('<div class="main-header"><h1>Tool 2: แบบสอบถามการปฏิบัติหน้างาน (Worker Survey)</h1></div>', unsafe_allow_html=True)
+    # ใส่ไว้ในทุก Tool เพื่อเตือนคนใช้มือถือ
+if not resp_id:
+    st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t2"):
         st.subheader("ส่วนที่ 1: สภาพการจ้างและค่าจ้าง")
         s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามสัญญาหรือไม่?", options=[1,2,3,4,5], value=3)
@@ -159,6 +171,9 @@ elif choice == "Tool 2: แบบสอบถามหน้างาน":
 # ==========================================
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)":
     st.markdown('<div class="main-header"><h1>Tool 3: แนวทางการสัมภาษณ์เชิงลึก (In-depth Interview)</h1></div>', unsafe_allow_html=True)
+    # ใส่ไว้ในทุก Tool เพื่อเตือนคนใช้มือถือ
+if not resp_id:
+    st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t3"):
         st.write("### 🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)")
         topics = st.multiselect("ประเด็นที่พูดคุย:", 
@@ -186,6 +201,9 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)
 # ==========================================
 elif choice == "Tool 4: บันทึกการสังเกตการณ์":
     st.markdown('<div class="main-header"><h1>Tool 4: แบบบันทึกการสังเกตการณ์หน้างาน (Site Observation Log)</h1></div>', unsafe_allow_html=True)
+    # ใส่ไว้ในทุก Tool เพื่อเตือนคนใช้มือถือ
+if not resp_id:
+    st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
     with st.form("form_t4"):
         st.write("### 🔎 เช็คลิสต์การตรวจประเมินพื้นที่ (ติ๊กข้อที่ปฏิบัติได้ถูกต้อง)")
         o1 = st.checkbox("1. มีการติดประกาศนโยบายและสิทธิแรงงานในพื้นที่ที่มองเห็นได้ชัดเจน")
@@ -211,6 +229,11 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
 # ==========================================
 elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient Rule)":
     st.markdown('<div class="main-header"><h1>Tool 5: Human Rights Risk Matrix</h1><p>คำนวณตามหลัก "ความร้ายแรงนำ" (Severity-led Rule)</p></div>', unsafe_allow_html=True)
+    # --- วางตรงนี้ครับ ---
+    if not resp_id:
+        st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
+        st.stop() # หยุดการทำงานข้างล่างไว้ก่อนจนกว่าจะกรอก ID
+    # ------------------
     col1, col2 = st.columns([1, 1.2])
     with col1:
         st.write("**📌 1. ระบุประเด็นความเสี่ยง (เลือกตามมาตรฐานสากล ILO/UNGPs)**")
@@ -270,7 +293,12 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
 # ==========================================
 elif choice == "Tool 6: AI Triangulation":
     st.markdown('<div class="main-header"><h1>Tool 6: AI-Augmented Triangulation</h1></div>', unsafe_allow_html=True)
-    st.info("ระบบจะดึง 'ประโยคอ้างอิง' (Citations) จาก Tool 3 และ 4 มาเปรียบเทียบกับ Tool 1 เพื่อพิสูจน์ความสอดคล้อง")
+    # --- วางตรงนี้ครับ ---
+    if not resp_id:
+        st.warning("⚠️ โปรดกดปุ่ม ☰ (มุมซ้ายบน) เพื่อกรอก รหัสผู้ประเมิน และ เลือกกลุ่มเป้าหมาย ก่อนเริ่มทำรายการ")
+        st.stop() # หยุดการทำงานข้างล่างไว้ก่อนจนกว่าจะกรอก ID
+    # ------------------
+        st.info("ระบบจะดึง 'ประโยคอ้างอิง' (Citations) จาก Tool 3 และ 4 มาเปรียบเทียบกับ Tool 1 เพื่อพิสูจน์ความสอดคล้อง")
     
     st.markdown("""
     <div class="citation-box">
