@@ -53,7 +53,10 @@ with st.sidebar:
         "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
         "Tool 6: AI Triangulation"
     ])
-    st.hr()
+    
+    # เปลี่ยนจาก st.hr() เป็น st.divider()
+    st.divider() 
+    
     st.subheader("👤 ข้อมูลผู้ให้ข้อมูล")
     resp_id = st.text_input("รหัสพนักงาน/ID:", placeholder="เช่น EMP-001")
     resp_group = st.selectbox("กลุ่ม:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
