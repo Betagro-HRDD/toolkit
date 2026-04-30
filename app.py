@@ -19,7 +19,7 @@ def connect_to_sheet():
         credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(credentials)
         # ลิงก์ Google Sheet ของพี่
-        sheet_url = ""https://docs.google.com/spreadsheets/d/1YUkrlk_RlvskDluFoAdTQ7KRYRxYhi8ZqNdw13X7JxY/edit"
+        sheet_url = "https://docs.google.com/spreadsheets/d/1YUkrlk_RlvskDluFoAdTQ7KRYRxYhi8ZqNdw13X7JxY/edit"
         return client.open_by_url(sheet_url).sheet1
     except Exception as e:
         return None
