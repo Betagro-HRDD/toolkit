@@ -22,52 +22,58 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. PREMIUM STYLING (เคลียร์ตัวอักษรขยะทิ้ง 100%) ---
+# --- 3. PREMIUM STYLING (ฉบับแก้ไขปุ่มซ้อนทับ) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F8FAFB; }
-    
-    /* 📱 ทำปุ่ม ☰ และลบอักษรขยะล่องหน */
-    button[kind="headerNoPadding"] {
+
+    /* 1. จัดการเฉพาะปุ่มเปิด Sidebar (ซ้าย) ไม่ให้ไปยุ่งกับปุ่มอื่น */
+    [data-testid="stSidebarCollapsedControl"] {
         background-color: #F9A818 !important;
-        color: transparent !important; /* ทำให้ตัวอักษร > หรือขยะอื่นๆ โปร่งใสล่องหน */
-        width: 50px !important;
-        height: 50px !important;
-        border-radius: 8px !important; 
+        width: 55px !important;
+        height: 55px !important;
+        border-radius: 8px !important;
         position: fixed !important;
         top: 10px !important;
         left: 10px !important;
-        z-index: 999999 !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-        overflow: hidden !important;
+        z-index: 9999999 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
     }
-    button[kind="headerNoPadding"] svg, button[kind="headerNoPadding"] span { 
-        display: none !important; 
-    }
-    button[kind="headerNoPadding"]::after {
-        content: "☰" !important;
-        color: white !important; /* ให้สีขาวเฉพาะ ☰ ของเรา */
-        font-size: 26px !important;
-        line-height: 50px !important;
-        text-align: center !important;
-        display: block !important;
-        position: absolute !important;
-        top: 0; left: 0; right: 0; bottom: 0;
-    }
-    header[data-testid="stHeader"] { background: transparent !important; }
 
-    /* สไตล์ส่วนตกแต่งอื่นๆ */
-    .main-header {
-        background-color: white; padding: 25px; border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 10px solid #F9A818;
-        margin-bottom: 25px; text-align: center;
+    /* เปลี่ยนไอคอนเป็น ☰ และซ่อนของเดิม */
+    [data-testid="stSidebarCollapsedControl"] svg {
+        display: none !important;
     }
-    .salient-badge { background-color: #EF4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: block; text-align: center; }
-    .citation-box { background-color: #E8EEE8; padding: 15px; border-left: 5px solid #265F36; border-radius: 5px; margin: 10px 0; }
-    .heat-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
-    .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 5px; }
+    [data-testid="stSidebarCollapsedControl"]::after {
+        content: "☰" !important;
+        color: white !important;
+        font-size: 28px !important;
+    }
+
+    /* 2. จัดการปุ่ม "ปิด" (X) เวลาแถบข้างกางออกมาแล้ว */
+    [data-testid="stSidebar"] button[kind="headerNoPadding"] {
+        background-color: #f0f0f0 !important;
+        color: #333 !important;
+        border-radius: 50% !important;
+    }
+
+    /* 3. 🔥 หัวใจสำคัญ: สั่งซ่อนเมนู 3 จุด (ขวาสุด) ทิ้งไปเลย เพื่อไม่ให้มาทับปุ่มเรา */
+    [data-testid="stToolbar"], #MainMenu {
+        visibility: hidden !important;
+        display: none !important;
+    }
+
+    /* ตกแต่งส่วนหัว */
+    .main-header {
+        background-color: white; padding: 20px; border-radius: 15px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 10px solid #F9A818;
+        margin-bottom: 20px; text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
 
