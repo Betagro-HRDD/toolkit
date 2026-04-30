@@ -215,22 +215,28 @@ if choice == "Tool 1: ประเมินสถานะองค์กร":
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 elif choice == "Tool 2: แบบสำรวจภาคสนาม":
+    st.header("📊 Tool 2: แบบสำรวจภาคสนาม (On-site Field Survey)")
     with st.form("form_t2"):
-        st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสำรวจภาคสนาม (Worker Survey)</h3><hr>", unsafe_allow_html=True)
-        st.markdown("**ส่วนที่ 1: สภาพการจ้างและค่าจ้าง**")
-        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามสัญญาหรือไม่?", options=[1,2,3,4,5], value=3)
-        s1_3 = st.select_slider("1.2 ท่านเป็นผู้เก็บเอกสารประจำตัวไว้เองใช่หรือไม่?", options=[1,2,3,4,5], value=3)
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        st.subheader("ส่วนที่ 1: สภาพการจ้างและค่าจ้าง")
+        q2_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนหรือไม่?", options=[1,2,3,4,5], value=3)
+        q2_2 = st.select_slider("1.2 ท่านได้รับวันหยุดประจำสัปดาห์และวันหยุดตามกฎหมายหรือไม่?", options=[1,2,3,4,5], value=3)
+        q2_3 = st.select_slider("1.3 ท่านได้เก็บเอกสารประจำตัวและสัญญาจ้างไว้กับตัวหรือไม่?", options=[1,2,3,4,5], value=3)
         
-        st.markdown("**ส่วนที่ 2: ความปลอดภัยและสุขอนามัย (OHS)**")
-        s2_1 = st.select_slider("2.1 อุปกรณ์ป้องกันอันตราย (PPE) มีเพียงพอและอยู่ในสภาพพร้อมใช้งานหรือไม่?", options=[1,2,3,4,5], value=3)
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
+        st.subheader("ส่วนที่ 2: ความปลอดภัยและอาชีวอนามัย (OHS)")
+        q3_1 = st.select_slider("2.1 อุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE) มีเพียงพอและอยู่ในสภาพดีหรือไม่?", options=[1,2,3,4,5], value=3)
+        q3_2 = st.select_slider("2.2 ท่านได้รับการอบรมด้านความปลอดภัยก่อนเริ่มงานหรือไม่?", options=[1,2,3,4,5], value=3)
+        q3_3 = st.select_slider("2.3 สภาพแวดล้อมที่ทำงานมีความปลอดภัย (แสงสว่าง, อากาศถ่ายเท) หรือไม่?", options=[1,2,3,4,5], value=3)
+        
+        st.subheader("ส่วนที่ 3: การปฏิบัติต่อแรงงานอย่างเท่าเทียม")
+        q4_1 = st.select_slider("3.1 ท่านได้รับการปฏิบัติอย่างเท่าเทียมโดยไม่เลือกปฏิบัติหรือไม่?", options=[1,2,3,4,5], value=3)
+        q4_2 = st.select_slider("3.2 บรรยากาศการทำงานปราศจากการล่วงละเมิดหรือข่มขู่หรือไม่?", options=[1,2,3,4,5], value=3)
+        q4_3 = st.select_slider("3.3 ท่านทราบช่องทางการร้องเรียนและกล้าที่จะแจ้งปัญหาหรือไม่?", options=[1,2,3,4,5], value=3)
+        
+        if st.form_submit_button("ส่งผลแบบสำรวจภาคสนาม"):
             sheet = connect_to_sheet()
             if sheet:
-                detail = f"การจ้าง({s1_1},{s1_3}) | ความปลอดภัย({s2_1})"
-                sheet.append_row([now, "Tool 2", resp_id, resp_group, "Worker Practice", detail, "", "", "", ""])
-                st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
+                sheet.append_row([now, "Tool 2", q2_1, q2_2, q2_3, q3_1, q3_2, q3_3, q4_1, q4_2, q4_3])
+                st.success("✅ บันทึกข้อมูลแบบสำรวจภาคสนามเรียบร้อย!")
 
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)":
     with st.form("form_t3"):
