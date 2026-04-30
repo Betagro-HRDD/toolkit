@@ -7,7 +7,7 @@ from datetime import datetime
 # --- 1. SETTING UP THE PAGE ---
 st.set_page_config(
     page_title="Betagro HRDD Premium Toolkit", 
-    page_icon="https://www.betagro.com/favicon.ico", 
+    page_icon="👑", 
     layout="centered" 
 )
 
@@ -26,131 +26,137 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. ULTRA PREMIUM BETAGRO STYLING ---
+# --- 3. THE BETAGRO SPIRIT (ULTRA PREMIUM CSS) ---
 st.markdown("""
     <style>
-    /* นำเข้าฟอนต์ Sarabun และปรับน้ำหนักให้ดูแพง */
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
     
-    html, body, [class*="st-"] { 
-        font-family: 'Sarabun', sans-serif; 
-    }
+    html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     
-    /* พื้นหลังสีเทาอ่อนสุดหรู เพื่อขับให้กล่องสีขาวเด้งขึ้นมา */
-    .stApp { background-color: #F8F9FA; }
+    /* พื้นหลังสีขาวมุก สะอาดตาแต่ดูแพง */
+    .stApp { background-color: #FAFCFB; }
     
-    /* ซ่อนเมนูขยะทั้งหมด */
     header {visibility: hidden !important;}
     [data-testid="collapsedControl"], [data-testid="stToolbar"] {display: none !important;}
     
     /* -------------------------------------- */
-    /* 🎨 BETAGRO CORPORATE IDENTITY (CI) */
-    /* สีเขียวเบทาโกร: #005B31 */
-    /* สีทองพรีเมียม: #D3A129 หรือ #E5B33A */
+    /* 👑 ป้ายแบนเนอร์ด้านบนสุด (Hero Banner) */
+    .hero-banner {
+        background: linear-gradient(135deg, #005B31 0%, #003D20 100%);
+        padding: 40px 20px;
+        border-radius: 16px;
+        text-align: center;
+        border-bottom: 6px solid #D3A129; /* แถบสีทองเบทาโกร */
+        box-shadow: 0 15px 35px rgba(0,91,49,0.2);
+        margin-bottom: 35px;
+        position: relative;
+        overflow: hidden;
+    }
+    /* เอฟเฟกต์แสงสะท้อนในแบนเนอร์ */
+    .hero-banner::after {
+        content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+        transform: rotate(30deg); pointer-events: none;
+    }
+    .hero-title { color: #FFFFFF; font-weight: 700; margin: 0; font-size: 32px; letter-spacing: 1px; }
+    .hero-subtitle { color: #D3A129; font-weight: 500; margin-top: 5px; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; }
     /* -------------------------------------- */
 
-    /* ตกแต่งกล่อง Form ให้หรูหราเหมือนแอปการเงิน/องค์กรชั้นนำ */
+    /* ตกแต่งกล่อง Form ให้หรูหรา */
     [data-testid="stForm"] {
         background-color: #FFFFFF;
         border-radius: 16px;
         padding: 40px 30px;
-        box-shadow: 0px 10px 40px rgba(0, 91, 49, 0.08); /* เงาสีเขียวอ่อนๆ */
-        border: 1px solid rgba(0, 91, 49, 0.05);
-        border-top: 6px solid #005B31; /* แถบบนสีเขียวเข้ม Betagro */
+        box-shadow: 0px 10px 40px rgba(0, 91, 49, 0.06);
+        border: 1px solid rgba(211, 161, 41, 0.2); /* ขอบสีทองอ่อนๆ */
+        border-top: 6px solid #005B31; /* แถบบนเขียว */
+        border-bottom: 6px solid #D3A129; /* แถบล่างทอง */
         transition: all 0.3s ease;
     }
     
-    /* ตกแต่งปุ่ม Submit ให้ดูแพงแบบมีมิติ */
+    /* ตกแต่งปุ่ม Submit หรูหรา (เขียว-ทอง) */
     [data-testid="stFormSubmitButton"] > button, .stButton > button {
-        background: linear-gradient(135deg, #005B31 0%, #004222 100%) !important; /* ไล่สีเขียวเข้ม */
-        color: white !important;
+        background: linear-gradient(135deg, #005B31 0%, #004222 100%) !important;
+        color: #F9A818 !important; /* ตัวหนังสือสีทอง */
         border-radius: 8px !important;
-        font-weight: 600 !important;
+        font-weight: 700 !important;
         font-size: 16px !important;
-        letter-spacing: 0.5px;
-        border: 1px solid #004222 !important;
+        letter-spacing: 1px;
+        border: 1px solid #D3A129 !important; /* ขอบสีทอง */
         padding: 12px 24px !important;
-        box-shadow: 0 4px 15px rgba(0, 91, 49, 0.2) !important;
+        box-shadow: 0 6px 20px rgba(0, 91, 49, 0.25) !important;
         transition: all 0.3s ease !important;
         width: 100%;
         text-transform: uppercase;
     }
     [data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover {
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 20px rgba(0, 91, 49, 0.35) !important;
-        background: linear-gradient(135deg, #006B3A 0%, #005B31 100%) !important;
+        box-shadow: 0 8px 25px rgba(211, 161, 41, 0.4) !important; /* เรืองแสงสีทองตอนชี้ */
+        color: #FFFFFF !important;
     }
 
-    /* ตกแต่งส่วนหัวของ Tool (Premium Header) */
+    /* ตกแต่งส่วนหัวของ Tool */
     .premium-header {
         background: #FFFFFF;
         padding: 20px 25px;
         border-radius: 12px;
-        text-align: left;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         margin-bottom: 25px;
-        border-left: 8px solid #D3A129; /* แถบข้างสีทองพรีเมียม */
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+        border-left: 8px solid #005B31; /* ซ้ายเขียว */
+        border-right: 8px solid #D3A129; /* ขวาทอง */
     }
-    .premium-header h3 { color: #005B31 !important; margin: 0; font-weight: 700; font-size: 22px; }
-    .premium-header p { color: #666 !important; margin: 5px 0 0 0; font-weight: 400; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+    .premium-header h3 { color: #005B31 !important; margin: 0; font-weight: 700; font-size: 20px; }
+    .premium-header p { color: #D3A129 !important; margin: 5px 0 0 0; font-weight: 600; font-size: 14px; text-transform: uppercase;}
     
-    /* กล่องข้อมูลผู้ใช้ (User Profile Card) */
+    /* กล่องข้อมูล User */
     .user-card {
-        background: #FFFFFF;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-        border: 1px solid #EAEAEA;
-        margin-bottom: 30px;
+        background: #FFFFFF; padding: 25px; border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        border: 1px solid #EAEAEA; margin-bottom: 30px;
+        border-top: 4px solid #D3A129;
     }
 
-    /* ป้ายเตือนความเสี่ยง (Salient Badge) สไตล์มินิมอลแต่เตะตา */
     .salient-badge { 
-        background-color: #FEF2F2;
-        color: #DC2626; 
-        padding: 15px; 
-        border-radius: 8px; 
-        border: 1px solid #FECACA;
-        font-weight: 700; 
-        text-align: center; 
-        box-shadow: 0 4px 10px rgba(220,38,38,0.1);
-        margin-top: 15px;
+        background-color: #FEF2F2; color: #DC2626; padding: 15px; border-radius: 8px; 
+        border: 1px solid #FECACA; font-weight: 700; text-align: center; 
+        box-shadow: 0 4px 10px rgba(220,38,38,0.1); margin-top: 15px;
     }
     
-    /* สไตล์ตาราง Heatmap สำหรับดีไซน์พรีเมียม */
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
     .heat-cell { height: 45px; text-align: center; font-weight: bold; color: white; border-radius: 4px; font-size: 14px; }
     
-    /* ปรับแต่งเส้นคั่น (Divider) ให้หรูขึ้น */
     hr { border-color: #EAEAEA !important; margin: 25px 0 !important; }
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
-# --- 4. TOP-DOWN UI (Clean & Elegant) ---
+# --- 4. TOP-DOWN UI (The Betagro Spirit) ---
 # ==========================================
 
-# ส่วนโลโก้ตรงกลาง (ปรับโครงสร้างใหม่เพื่อลบเลข 0 ที่อาจโผล่มา)
+# 👑 พยายามโหลดโลโก้ (ถ้าโหลดไม่ขึ้น แบนเนอร์ด้านล่างจะทำหน้าที่แทนอย่างสวยงาม)
+try:
+    # คำแนะนำ: ให้อัปโหลดไฟล์ชื่อ logo.png ลงใน GitHub โฟลเดอร์เดียวกับโค้ดนี้
+    st.image("logo.png", width=180) 
+except:
+    pass # ถ้าไม่มีไฟล์ logo.png ระบบจะข้ามไป ไม่โชว์ Error ให้เกะกะ
+
+# 👑 Hero Banner สุดหรู (จิตวิญญาณเบทาโกร)
 st.markdown("""
-    <div style="text-align: center; padding-top: 20px; margin-bottom: 10px;">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Betagro_Logo.svg/800px-Betagro_Logo.svg.png" width="180">
+    <div class="hero-banner">
+        <h1 class="hero-title">BETAGRO HRDD</h1>
+        <div class="hero-subtitle">Smart Assessment Toolkit</div>
     </div>
-    <h2 style='text-align: center; color: #005B31; font-weight: 700; font-size: 28px; margin-bottom: 30px;'>ระบบประเมิน HRDD อัจฉริยะ</h2>
 """, unsafe_allow_html=True)
 
-# กล่องข้อมูลผู้ใช้งาน (ดีไซน์ใหม่)
+# กล่องข้อมูลผู้ใช้งาน
 st.markdown('<div class="user-card">', unsafe_allow_html=True)
-st.markdown("<h4 style='color: #333; font-weight: 600; font-size: 18px; margin-bottom: 20px;'>👤 ข้อมูลผู้ให้ข้อมูล (Data Source)</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; font-weight: 600; font-size: 18px; margin-bottom: 20px;'>👤 ข้อมูลอ้างอิง (Data Source)</h4>", unsafe_allow_html=True)
 
-# ใช้ Container ในการวางเลย์เอาท์แทนการใช้ st.columns บางจุดเพื่อลดปัญหาบั๊กบนมือถือ
 resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น EMP-001 หรือ MGT-05")
 resp_group = st.selectbox("กลุ่มเป้าหมาย (Target Group) *", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 st.markdown('</div>', unsafe_allow_html=True)
 
-st.markdown("<h4 style='color: #333; font-weight: 600; font-size: 18px; margin-top: 10px;'>🛠️ เลือกเครื่องมือประเมิน (Assessment Tools)</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; font-weight: 600; font-size: 18px; margin-top: 10px;'>🛠️ เลือกเครื่องมือประเมิน (Assessment Tools)</h4>", unsafe_allow_html=True)
 choice = st.selectbox("คลิกที่นี่เพื่อเลือกแบบฟอร์มการประเมิน:", [
     "Tool 1: ประเมินสถานะองค์กร",
     "Tool 2: แบบสอบถามหน้างาน",
@@ -158,7 +164,7 @@ choice = st.selectbox("คลิกที่นี่เพื่อเลือ
     "Tool 4: บันทึกการสังเกตการณ์",
     "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
     "Tool 6: ระบบวิเคราะห์ AI Triangulation"
-], label_visibility="collapsed") # ซ่อน label เพื่อความคลีน
+], label_visibility="collapsed") 
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -241,7 +247,7 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)
              
         st.markdown("<br>**✍️ บันทึกคำให้การและข้อเท็จจริง (Testimony)**", unsafe_allow_html=True)
         testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=120,
-                                 placeholder="เช่น: 'พนักงานยืนยันว่าต้องจ่ายค่านายหน้าจำนวน 10,000 บาท ผ่านเอเจนซี่...'")
+                                 placeholder="เช่น: 'พนักงานยืนยันว่าต้องจ่ายค่านายหน้าจำนวน 10,000 บาท...'")
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("บันทึกข้อมูล (Submit)"):
@@ -310,7 +316,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     if is_salient == "YES":
         st.markdown('<div class="salient-badge">🚨 SALIENT ISSUE : พบประเด็นความเสี่ยงระดับวิกฤต</div>', unsafe_allow_html=True)
 
-    # วาด Heat Map
     rows = ""
     for l in range(5, 0, -1):
         rows += "<tr>"
@@ -336,21 +341,21 @@ elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation
     
     st.markdown("""
     <div style="background-color: #FFFFFF; padding: 25px; border-left: 6px solid #DC2626; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #F3F4F6;">
-        <h4 style="color: #DC2626; margin-top: 0; font-size: 18px; font-weight: 600;">🚩 ตรวจพบความขัดแย้งเชิงนโยบาย (Policy vs Practice)</h4>
+        <h4 style="color: #DC2626; margin-top: 0; font-size: 18px; font-weight: 700;">🚩 ตรวจพบความขัดแย้งเชิงนโยบาย (Policy vs Practice)</h4>
         <p style="color: #333; margin-bottom: 15px;"><b>ประเด็น:</b> สัญญาจ้างไม่เป็นภาษาที่พนักงานเข้าใจ</p>
-        <div style="background: #F9FAFB; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
+        <div style="background: #F9FAFB; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #E5E7EB;">
             <span style="color: #4B5563; font-size: 14px;">🗣️ <b>คำสัมภาษณ์อ้างอิง (ID: EMP-045):</b></span><br>
             <span style="color: #111827; font-style: italic;">"ผมเซ็นไปโดยไม่รู้ว่าเป็นภาษาอะไร เพราะไม่ได้มีล่ามแปลให้ฟังเลยครับ"</span>
         </div>
-        <div style="color: #005B31; font-size: 14px; font-weight: 500;">
+        <div style="color: #005B31; font-size: 14px; font-weight: 600; padding-top: 5px;">
             ❌ ขัดแย้งกับข้อมูลบริหาร (Tool 1 ข้อ 1.3): ระบุว่ามีการสื่อสารนโยบายในภาษาที่เข้าใจแล้ว
         </div>
     </div>
     
     <div style="background-color: #FFFFFF; padding: 25px; border-left: 6px solid #D3A129; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid #F3F4F6;">
-        <h4 style="color: #D3A129; margin-top: 0; font-size: 18px; font-weight: 600;">⚠️ ประเด็นเฝ้าระวังความเสี่ยง (Watchlist)</h4>
+        <h4 style="color: #D3A129; margin-top: 0; font-size: 18px; font-weight: 700;">⚠️ ประเด็นเฝ้าระวังความเสี่ยง (Watchlist)</h4>
         <p style="color: #333; margin-bottom: 15px;"><b>ประเด็น:</b> ร่องรอยการจ่ายค่าธรรมเนียมสรรหา (Recruitment Fees)</p>
-        <div style="background: #F9FAFB; padding: 15px; border-radius: 8px;">
+        <div style="background: #F9FAFB; padding: 15px; border-radius: 8px; border: 1px solid #E5E7EB;">
             <span style="color: #4B5563; font-size: 14px;">📄 <b>หลักฐานอ้างอิง (ID: EMP-012):</b></span><br>
             <span style="color: #111827; font-style: italic;">"ต้องจ่ายให้เอเจนซี่ฝั่งพม่าไป 15,000 บาท ก่อนที่จะเข้ามาทำงานที่โรงงานนี้"</span>
         </div>
