@@ -19,9 +19,16 @@ def connect_to_sheet():
         credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(credentials)
         sheet_url = "https://docs.google.com/spreadsheets/d/1YUkrlk_RlvskDluFoAdTQ7KRYRxYhi8ZqNdw13X7JxY/edit"
-        return client.open_by_url(sheet_url).get_worksheet(0)
+        sheet = client.open_by_url(sheet_url).get_worksheet(0)
+        
+        # --- เพิ่มระบบเช็คหัวตารางอัตโนมัติ ---
+        if not sheet.get_all_values(): # ถ้าชีตว่างเปล่า
+            header = ["วันที่-เวลา", "เครื่องมือ", "ข้อมูล 1", "ข้อมูล 2", "ข้อมูล 3", "ข้อมูล 4", "ข้อมูล 5", "ข้อมูล 6", "ข้อมูล 7", "ข้อมูล 8", "ข้อมูล 9", "ข้อมูล 10"]
+            sheet.append_row(header)
+            
+        return sheet
     except Exception as e:
-        st.error(f"❌ เชื่อมต่อ Google Sheet ไม่ได้: {e}")
+        st.error(f"❌ เชื่อมต่อไม่ได้: {e}")
         return None
 
 # --- 3. THE PREMIUM STYLING ---
