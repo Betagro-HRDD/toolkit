@@ -21,14 +21,14 @@ def connect_to_sheet():
         sheet_url = "https://docs.google.com/spreadsheets/d/1YUkrlk_RlvskDluFoAdTQ7KRYRxYhi8ZqNdw13X7JxY/edit"
         sheet = client.open_by_url(sheet_url).get_worksheet(0)
         
-        # --- เพิ่มระบบเช็คหัวตารางอัตโนมัติ ---
-        if not sheet.get_all_values(): # ถ้าชีตว่างเปล่า
-            header = ["วันที่-เวลา", "เครื่องมือ", "ข้อมูล 1", "ข้อมูล 2", "ข้อมูล 3", "ข้อมูล 4", "ข้อมูล 5", "ข้อมูล 6", "ข้อมูล 7", "ข้อมูล 8", "ข้อมูล 9", "ข้อมูล 10"]
-            sheet.append_row(header)
+        # เช็คถ้าชีตว่าง (เหมือนในรูป image_1cc6e3.png) ให้ใส่หัวตารางให้ก่อน
+        if not sheet.get_all_values():
+            headers = ["Timestamp", "Tool", "Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "Q8", "Q9", "Q10"]
+            sheet.append_row(headers)
             
         return sheet
     except Exception as e:
-        st.error(f"❌ เชื่อมต่อไม่ได้: {e}")
+        st.error(f"การเชื่อมต่อล้มเหลว: {e}")
         return None
 
 # --- 3. THE PREMIUM STYLING ---
