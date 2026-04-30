@@ -22,17 +22,17 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. PREMIUM STYLING (แก้ปัญหาปุ่มบนมือถือให้เด่นชัด) ---
+# --- 3. PREMIUM STYLING (เคลียร์ตัวอักษรขยะทิ้ง 100%) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F8FAFB; }
     
-    /* 📱 ทำปุ่มเปิดเมนู (☰) ให้ลอยเด่นชัดขึ้น */
+    /* 📱 ทำปุ่ม ☰ และลบอักษรขยะล่องหน */
     button[kind="headerNoPadding"] {
         background-color: #F9A818 !important;
-        color: white !important;
+        color: transparent !important; /* ทำให้ตัวอักษร > หรือขยะอื่นๆ โปร่งใสล่องหน */
         width: 50px !important;
         height: 50px !important;
         border-radius: 8px !important; 
@@ -41,15 +41,20 @@ st.markdown("""
         left: 10px !important;
         z-index: 999999 !important;
         box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+        overflow: hidden !important;
     }
-    button[kind="headerNoPadding"] svg { display: none !important; }
+    button[kind="headerNoPadding"] svg, button[kind="headerNoPadding"] span { 
+        display: none !important; 
+    }
     button[kind="headerNoPadding"]::after {
         content: "☰" !important;
-        color: white !important;
+        color: white !important; /* ให้สีขาวเฉพาะ ☰ ของเรา */
         font-size: 26px !important;
         line-height: 50px !important;
         text-align: center !important;
         display: block !important;
+        position: absolute !important;
+        top: 0; left: 0; right: 0; bottom: 0;
     }
     header[data-testid="stHeader"] { background: transparent !important; }
 
@@ -67,7 +72,6 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- 4. SIDEBAR & MOBILE UX HACK ---
-# ฟังก์ชันสร้างช่องกรอกข้อมูล
 def user_info_inputs(key_suffix):
     rid = st.text_input("รหัสผู้ให้ข้อมูล (ID):", placeholder="เช่น EMP-001", key=f"id_{key_suffix}")
     rgroup = st.selectbox("กลุ่มเป้าหมาย:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"], key=f"group_{key_suffix}")
@@ -76,19 +80,21 @@ def user_info_inputs(key_suffix):
 with st.sidebar:
     st.image("https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png", width=160)
     st.title("HRDD Settings")
+    
+    # ⚠️ ชื่อเมนูตรงนี้ ต้องตรงกับเงื่อนไข if choice == "..." ในโค้ด Tool 1-6 ของคุณเป๊ะๆ นะครับ
     choice = st.radio("📋 เลือกเครื่องมือ:", [
         "Tool 1: ประเมินสถานะองค์กร",
         "Tool 2: แบบสอบถามหน้างาน",
         "Tool 3: สัมภาษณ์เชิงลึก (Evidence)",
         "Tool 4: บันทึกการสังเกตการณ์",
         "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
-        "Tool 6: AI Triangulation"
+        "Tool 6: ระบบวิเคราะห์ AI Triangulation"
     ])
     st.divider()
     st.subheader("👤 ข้อมูลผู้ให้ข้อมูล")
     resp_id_sidebar, resp_group_sidebar = user_info_inputs("side")
 
-# 🔥 UX Hack สำหรับมือถือ: ถ้ายังไม่ได้กรอก ID ให้ขึ้นช่องกรอกกลางจอไปเลย!
+# 🔥 UX Hack สำหรับมือถือ: ถ้ายังไม่ได้กรอก ID ให้ขึ้นช่องกรอกกลางจอ
 if not resp_id_sidebar:
     st.warning("🚨 ตรวจพบว่ายังไม่ได้ระบุ รหัสผู้ให้ข้อมูล (ID)")
     st.info("กรุณากรอกรหัส ID เพื่อเริ่มใช้งานเครื่องมือประเมิน:")
@@ -109,7 +115,9 @@ else:
 
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-# --- 5. TOOLS LOGIC ---
+# ==========================================
+# --- 5. TOOLS LOGIC (วางโค้ด Tool 1-6 ฉบับเต็มของคุณต่อจากบรรทัดนี้ได้เลยครับ) ---
+# ==========================================
 
 # ==========================================
 # TOOL 1: แบบประเมินสถานะองค์กร (Gap Analysis)
