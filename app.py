@@ -22,7 +22,7 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. PREMIUM STYLING (Fixed Icon & Standardized Layout) ---
+# --- 3. PREMIUM STYLING ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
@@ -35,16 +35,16 @@ st.markdown("""
     }
     .salient-badge { background-color: #EF4444; color: white; padding: 10px 20px; border-radius: 10px; font-weight: bold; display: block; text-align: center; }
     .citation-box { background-color: #E8EEE8; padding: 15px; border-left: 5px solid #265F36; border-radius: 5px; margin: 10px 0; }
-    /* Heat Map Styling */
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 5px; }
     .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. SIDEBAR (Respondent Identification) ---
+# --- 4. SIDEBAR ---
 with st.sidebar:
     st.image("https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png", width=160)
     st.title("HRDD Settings")
+    # ชื่อในลิสต์นี้ ต้องตรงกับเงื่อนไข if/elif ข้างล่างเป๊ะๆ
     choice = st.radio("📋 เลือกเครื่องมือ:", [
         "Tool 1: ประเมินสถานะองค์กร",
         "Tool 2: แบบสอบถามหน้างาน",
@@ -53,10 +53,7 @@ with st.sidebar:
         "Tool 5: ประเมินนัยสำคัญ (Salient Rule)",
         "Tool 6: AI Triangulation"
     ])
-    
-    # เปลี่ยนจาก st.hr() เป็น st.divider()
-    st.divider() 
-    
+    st.divider()
     st.subheader("👤 ข้อมูลผู้ให้ข้อมูล")
     resp_id = st.text_input("รหัสพนักงาน/ID:", placeholder="เช่น EMP-001")
     resp_group = st.selectbox("กลุ่ม:", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
