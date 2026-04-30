@@ -136,7 +136,7 @@ st.markdown("""
 # ส่วนโลโก้ตรงกลาง (ปรับโครงสร้างใหม่เพื่อลบเลข 0 ที่อาจโผล่มา)
 st.markdown("""
     <div style="text-align: center; padding-top: 20px; margin-bottom: 10px;">
-        <img src="https://www.betagro.com/wp-content/themes/betagro/assets/img/logo-en.png" width="180">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Betagro_Logo.svg/800px-Betagro_Logo.svg.png" width="180">
     </div>
     <h2 style='text-align: center; color: #005B31; font-weight: 700; font-size: 28px; margin-bottom: 30px;'>ระบบประเมิน HRDD อัจฉริยะ</h2>
 """, unsafe_allow_html=True)
