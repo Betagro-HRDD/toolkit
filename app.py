@@ -5,7 +5,12 @@ import gspread
 from datetime import datetime
 
 # --- 1. SETTING UP THE PAGE ---
-st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="https://www.betagro.com/favicon.ico", layout="wide")
+st.set_page_config(
+    page_title="Betagro HRDD Premium Toolkit", 
+    page_icon="https://www.betagro.com/favicon.ico", 
+    layout="wide",
+    initial_sidebar_state="expanded" # บังคับให้แถบเมนูด้านซ้ายเปิดพร้อมใช้งานทันที
+)
 
 # --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
@@ -28,6 +33,36 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F8FAFB; }
+    
+    /* 🎨 จัดการหน้าตาปุ่มเปิด Sidebar (เปลี่ยน > เป็นปุ่มเมนู ☰) */
+    [data-testid="collapsedControl"] {
+        background-color: #F9A818 !important; /* สีส้ม/เหลืองเบทาโกร */
+        border-radius: 8px !important;
+        margin: 10px !important;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+        transition: 0.3s;
+    }
+    [data-testid="collapsedControl"]:hover {
+        background-color: #265F36 !important; /* Hover เป็นสีเขียว */
+    }
+    [data-testid="collapsedControl"] svg {
+        display: none !important; /* ซ่อนเครื่องหมาย > เดิม */
+    }
+    [data-testid="collapsedControl"]::after {
+        content: "☰" !important; /* ใส่สัญลักษณ์เมนูมาตรฐาน */
+        font-size: 20px !important;
+        color: white !important;
+        font-weight: bold !important;
+        padding: 5px 12px !important;
+        display: block;
+    }
+
+    /* 🧹 ซ่อนเมนู 3 จุดของ Streamlit ด้านขวาบนที่ไม่ได้ใช้ */
+    [data-testid="stToolbar"] {
+        visibility: hidden !important;
+    }
+
+    /* สไตล์กล่องข้อความและสีสันอื่นๆ (คงเดิม) */
     .main-header {
         background-color: white; padding: 30px; border-radius: 15px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 10px solid #F9A818;
