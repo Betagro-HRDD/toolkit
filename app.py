@@ -30,44 +30,58 @@ st.markdown("""
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F4F7F6; }
     
-    /* ซ่อนเมนูระบบ */
+    /* 🚫 ซ่อนเมนูระบบและไอคอนลิงก์กวนใจทั้งหมด */
     header[data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
+    a.header-anchor { display: none !important; } /* ซ่อนไอคอนลิงก์ 🔗 สำรองไว้ */
 
     /* 👑 แบนเนอร์ด้านบน (Hero Banner) - เรียบ หรู แพง */
     .premium-banner {
-        background: #FFFFFF; border-radius: 24px; padding: 40px 50px;
+        background: #FFFFFF; border-radius: 24px; padding: 35px 45px;
         box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
         border: 1px solid rgba(0, 91, 49, 0.08); border-left: 12px solid #005B31; 
-        display: flex; align-items: center; gap: 30px; margin-bottom: 40px;
+        display: flex; align-items: center; gap: 35px; margin-bottom: 40px;
         position: relative; overflow: hidden;
     }
     .premium-banner::after { content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 8px; background: #F9A818; }
     
-    /* 🎨 Typography Logo (แก้ปัญหาโลโก้ไม่ขึ้นด้วย CSS ล้วนๆ) */
+    /* 🎨 โลโก้และ Typography (จัดเรียงบน-ล่าง) */
+    .logo-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-right: 2px solid #EAEAEA;
+        padding-right: 35px;
+    }
     .typography-logo {
         font-family: 'Poppins', sans-serif;
-        font-size: 38px;
+        font-size: 32px;
         font-weight: 800;
-        color: #005B31;
+        color: #D3A129; /* สีทองเบทาโกร */
         letter-spacing: 2px;
         line-height: 1;
-        border-right: 2px solid #EAEAEA;
-        padding-right: 30px;
+        margin-top: 8px;
     }
-    .typography-logo span { color: #F9A818; }
 
-    .banner-text h1 {
-        color: #005B31 !important; font-size: 28px !important; font-weight: 800 !important; 
-        margin: 0 !important; line-height: 1.2 !important; letter-spacing: -0.5px !important;
+    /* 💡 แก้ปัญหาไอคอนลิงก์ และจัดให้อยู่บรรทัดเดียว */
+    .hero-title-text {
+        color: #005B31 !important; 
+        font-size: 30px !important; 
+        font-weight: 800 !important; 
+        margin: 0 !important; 
+        line-height: 1.2 !important; 
+        letter-spacing: -0.5px !important;
+        white-space: nowrap !important; /* บังคับให้อยู่บรรทัดเดียว ไม่ให้ตกขอบ */
     }
     .banner-text p {
-        color: #D3A129 !important; font-size: 14px !important; font-weight: 700 !important; 
+        color: #D3A129 !important; font-size: 15px !important; font-weight: 700 !important; 
         letter-spacing: 2px !important; text-transform: uppercase !important; margin-top: 5px !important; margin-bottom: 0 !important;
     }
+    
+    /* Responsive ย่อขนาดลงในมือถือเพื่อให้ยังเป็นบรรทัดเดียว */
     @media (max-width: 768px) {
-        .premium-banner { flex-direction: column; text-align: center; padding: 30px 20px; gap: 20px; border-left: none; border-top: 12px solid #005B31; }
-        .typography-logo { border-right: none; padding-right: 0; border-bottom: 2px solid #EAEAEA; padding-bottom: 15px; }
-        .banner-text h1 { font-size: 22px !important; }
+        .premium-banner { flex-direction: column; text-align: center; padding: 30px 20px; gap: 15px; border-left: none; border-top: 12px solid #005B31; }
+        .logo-wrapper { border-right: none; padding-right: 0; border-bottom: 2px solid #EAEAEA; padding-bottom: 20px; }
+        .hero-title-text { font-size: 22px !important; white-space: normal !important; /* ยอมให้ตัดบรรทัดได้ถ้าจอมือถือเล็กจริงๆ */ }
     }
 
     .control-panel {
@@ -98,11 +112,22 @@ st.markdown("""
 # --- 4. TOP-DOWN UI ---
 st.markdown("""
     <div class="premium-banner">
-        <div class="typography-logo">
-            <span>B</span>ETAGRO
+        <div class="logo-wrapper">
+            <!-- 🎨 SVG โลโก้เบทาโกร (3 แฉก) สร้างใหม่ให้หรูหราและขอบมน -->
+            <svg width="75" height="75" viewBox="0 0 100 100" style="margin-bottom: 5px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
+                <circle cx="36" cy="38" r="23" fill="#005B31"/>
+                <circle cx="64" cy="38" r="23" fill="#005B31"/>
+                <circle cx="50" cy="62" r="23" fill="#005B31"/>
+                <!-- ช่องว่างสีขาวตรงกลาง ทำขอบมนให้เนียนเหมือนโลโก้จริง -->
+                <polygon points="50,42 63,62 37,62" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="5" stroke-linejoin="round"/>
+            </svg>
+            <div class="typography-logo">
+                BETAGRO
+            </div>
         </div>
         <div class="banner-text">
-            <h1>ระบบประเมิน HRDD อัจฉริยะ</h1>
+            <!-- เปลี่ยนจาก <h1> เป็น <div> ป้องกันไอคอนลิงก์ 🔗 โผล่ -->
+            <div class="hero-title-text">ระบบประเมิน HRDD อัจฉริยะ</div>
             <p>Smart Assessment Toolkit</p>
         </div>
     </div>
@@ -246,11 +271,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     likelihood = st.slider("📌 3. Likelihood (โอกาสที่จะเกิด)", 1, 5, 1)
     score = sev_max * likelihood
 
-    is_salient = "YES" if sev_max >= 4 else "NO" # ตั้งให้ 4-5 เป็น Salient
+    is_salient = "YES" if sev_max >= 4 else "NO"
     
     st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
     
-    # 🌟 ส่วนเพิ่มใหม่: STRATEGIC PLAN (เมื่อพบความเสี่ยงสูง)
     plan_text = ""
     if is_salient == "YES":
         st.markdown('<div class="salient-badge">🚨 SALIENT ISSUE: ความเสี่ยงระดับสูง (จำเป็นต้องมีแผนจัดการกลยุทธ์)</div>', unsafe_allow_html=True)
@@ -292,7 +316,6 @@ elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation
             ❌ ขัดแย้งกับข้อมูลบริหาร (Tool 1 ข้อ 1.3): ระบุว่าสื่อสารเข้าใจแล้ว
         </p>
         
-        <!-- ส่วน AI Strategic Recommendation -->
         <div style="margin-top: 20px; background: #FFFDF0; padding: 15px; border-radius: 8px; border-left: 4px solid #F9A818;">
             <h5 style="color: #D3A129; margin-top: 0; margin-bottom: 5px;">🤖 AI Strategic Recommendation (ข้อเสนอแนะเชิงกลยุทธ์):</h5>
             <ol style="margin-bottom: 0; font-size: 14px; color: #444; padding-left: 20px;">
