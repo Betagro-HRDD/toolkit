@@ -34,7 +34,7 @@ st.markdown("""
     header[data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
     a.header-anchor { display: none !important; }
 
-    /* 👑 แบนเนอร์ด้านบน (Hero Banner) - ปรับย่อขนาด Padding ให้พอดีไม่ตกขอบ */
+    /* 👑 แบนเนอร์ด้านบน (Hero Banner) */
     .premium-banner {
         background: #FFFFFF; border-radius: 24px; padding: 30px 40px;
         box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
@@ -54,7 +54,7 @@ st.markdown("""
     }
     .typography-logo {
         font-family: 'Poppins', sans-serif;
-        font-size: 26px; /* ย่อจาก 32px เพื่อให้สมดุล */
+        font-size: 26px;
         font-weight: 800;
         color: #D3A129; 
         letter-spacing: 2px;
@@ -62,7 +62,7 @@ st.markdown("""
         margin-top: 10px;
     }
 
-    /* 💡 การจัดวาง Typography แบบหรูหรา (ปรับขนาดฟอนต์ไม่ให้ตกขอบหน้าจอ) */
+    /* 💡 การจัดวาง Typography แบบหรูหรา */
     .banner-text {
         display: flex;
         flex-direction: column;
@@ -71,7 +71,7 @@ st.markdown("""
     .hero-title-eng {
         color: #005B31 !important; 
         font-family: 'Poppins', sans-serif !important;
-        font-size: 21px !important; /* ปรับลดจาก 26px เพื่อให้พอดีขอบ */
+        font-size: 21px !important;
         font-weight: 800 !important; 
         margin: 0 !important; 
         line-height: 1.1 !important; 
@@ -81,7 +81,7 @@ st.markdown("""
     .hero-title-thai {
         color: #265F36 !important; 
         font-family: 'Sarabun', sans-serif !important;
-        font-size: 16px !important; /* ปรับลดจาก 20px */
+        font-size: 16px !important;
         font-weight: 600 !important;
         margin: 5px 0 0 0 !important;
         line-height: 1.3 !important;
@@ -90,7 +90,7 @@ st.markdown("""
     .hero-subtitle {
         color: #D3A129 !important; 
         font-family: 'Poppins', sans-serif !important;
-        font-size: 11px !important; /* ปรับลดจาก 13px */
+        font-size: 11px !important;
         font-weight: 700 !important; 
         letter-spacing: 3px !important; 
         text-transform: uppercase !important; 
@@ -132,6 +132,9 @@ st.markdown("""
     .citation-box { background-color: #FFFFFF; padding: 25px; border-left: 6px solid #DC2626; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #F3F4F6;}
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
     .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 14px;}
+    
+    /* ปรับแต่ง Label ให้ดูเนี้ยบขึ้น */
+    .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -159,17 +162,33 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="control-panel">', unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>👤 1. ข้อมูลโครงการและผู้ให้ข้อมูล</h4>", unsafe_allow_html=True)
-col1, col2 = st.columns(2)
-with col1:
+
+# โซนที่ 1: ข้อมูลโครงการ (Project Header)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-folder-open'></i> 1. ข้อมูลโครงการ (Project Info)</h4>", unsafe_allow_html=True)
+col_p1, col_p2, col_p3 = st.columns(3)
+with col_p1:
+    audit_cycle = st.selectbox("รอบการประเมิน (Audit Cycle) *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
+with col_p2:
     auditor_name = st.text_input("ชื่อผู้บันทึกข้อมูล (Auditor) *", placeholder="เช่น สมชาย ใจดี")
-    resp_id = st.text_input("รหัสผู้ให้ข้อมูล (ID) *", placeholder="เช่น EMP-001")
-with col2:
+with col_p3:
     location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น โรงงานลพบุรี")
+
+st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
+
+# โซนที่ 2: ข้อมูลผู้ให้ข้อมูล (Respondent Header)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลผู้ให้ข้อมูล (Respondent Info)</h4>", unsafe_allow_html=True)
+col_r1, col_r2, col_r3, col_r4 = st.columns(4)
+with col_r1:
+    resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น EMP-001")
+with col_r2:
     resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
+with col_r3:
+    resp_dept = st.text_input("แผนก/ส่วนงาน", placeholder="เช่น ฝ่ายตัดแต่ง")
+with col_r4:
+    resp_gender = st.selectbox("เพศ (Gender)", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-screwdriver-wrench'></i> 3. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
 choice = st.selectbox("เลือกแบบฟอร์มด้านล่างนี้:", [
     "Tool 1: ประเมินสถานะองค์กร",
     "Tool 2: แบบสอบถามหน้างาน",
@@ -180,8 +199,9 @@ choice = st.selectbox("เลือกแบบฟอร์มด้านล่
 ], label_visibility="collapsed")
 st.markdown('</div>', unsafe_allow_html=True)
 
+# เช็คแค่ฟิลด์ที่บังคับ (*)
 if not resp_id or not auditor_name or not location:
-    st.info("📌 กรุณาระบุข้อมูลโครงการและรหัสผู้ให้ข้อมูลให้ครบถ้วน เพื่อปลดล็อกแบบฟอร์ม")
+    st.info("📌 กรุณาระบุ 'ข้อมูลโครงการ' และ 'รหัสอ้างอิง (ID)' ให้ครบถ้วน เพื่อปลดล็อกแบบฟอร์มการประเมิน")
     st.stop()
 
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -213,7 +233,8 @@ if choice == "Tool 1: ประเมินสถานะองค์กร":
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                sheet.append_row([now, auditor_name, location, "Tool 1", resp_id, resp_group, "Policy Gap Analysis", detail, "", "", "", ""])
+                # อัปเดตการส่งข้อมูล (เพิ่ม Audit Cycle, Dept, Gender)
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 elif choice == "Tool 2: แบบสอบถามหน้างาน":
@@ -231,7 +252,7 @@ elif choice == "Tool 2: แบบสอบถามหน้างาน":
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"การจ้าง({s1_1},{s1_3}) | ความปลอดภัย({s2_1})"
-                sheet.append_row([now, auditor_name, location, "Tool 2", resp_id, resp_group, "Worker Practice", detail, "", "", "", ""])
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Practice", detail, "", "", "", ""])
                 st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)":
@@ -248,7 +269,7 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, auditor_name, location, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony, "", "", "", ""])
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
                 st.success("✅ บันทึกหลักฐานสำเร็จ")
 
 elif choice == "Tool 4: บันทึกการสังเกตการณ์":
@@ -266,7 +287,7 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"Checklist({o1},{o2},{o3}) | Note:{obs_detail}"
-                sheet.append_row([now, auditor_name, location, "Tool 4", resp_id, resp_group, "Site Observation", detail, "", "", "", ""])
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
 # ==========================================
@@ -318,7 +339,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
         sheet = connect_to_sheet()
         if sheet:
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
-            sheet.append_row([now, auditor_name, location, "Tool 5", resp_id, resp_group, issue, detail, sev_max, likelihood, score, is_salient])
+            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 5", resp_id, resp_group, resp_dept, resp_gender, issue, detail, sev_max, likelihood, score, is_salient])
             st.success("✅ บันทึกความเสี่ยงและแผนกลยุทธ์ (Strategic Plan) เข้าสู่ระบบเรียบร้อย")
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -358,6 +379,6 @@ elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation
     if st.button("💾 บันทึกสรุปผล AI Analysis และแผนกลยุทธ์ลงระบบ"):
         sheet = connect_to_sheet()
         if sheet:
-            sheet.append_row([now, auditor_name, location, "Tool 6", resp_id, resp_group, "AI Triangulation", "พบข้อขัดแย้งสัญญาจ้าง พร้อมจัดทำแผนแก้ไข 30 วัน", "", "", "", ""])
+            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", resp_id, resp_group, resp_dept, resp_gender, "AI Triangulation", "พบข้อขัดแย้งสัญญาจ้าง พร้อมจัดทำแผนแก้ไข 30 วัน", "", "", "", ""])
             st.success("✅ บันทึกข้อมูลการวิเคราะห์เชิงลึกและแผนกลยุทธ์เสร็จสิ้น")
     st.markdown("</div>", unsafe_allow_html=True)
