@@ -159,18 +159,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="control-panel">', unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>👤 1. ข้อมูลอ้างอิง (Data Source)</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>👤 1. ข้อมูลโครงการและผู้ให้ข้อมูล</h4>", unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
+    auditor_name = st.text_input("ชื่อผู้บันทึกข้อมูล (Auditor) *", placeholder="เช่น สมชาย ใจดี")
     resp_id = st.text_input("รหัสผู้ให้ข้อมูล (ID) *", placeholder="เช่น EMP-001")
 with col2:
+    location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น โรงงานลพบุรี")
     resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือ</h4>", unsafe_allow_html=True)
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>🛠️ 2. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
 choice = st.selectbox("เลือกแบบฟอร์มด้านล่างนี้:", [
     "Tool 1: ประเมินสถานะองค์กร",
-    "Tool 2: แบบสำรวจภาคสนาม",
+    "Tool 2: แบบสอบถามหน้างาน",
     "Tool 3: สัมภาษณ์เชิงลึก (Evidence)",
     "Tool 4: บันทึกการสังเกตการณ์",
     "Tool 5: ประเมินนัยสำคัญ (Salient Rule & Strategic Plan)",
@@ -178,8 +180,8 @@ choice = st.selectbox("เลือกแบบฟอร์มด้านล่
 ], label_visibility="collapsed")
 st.markdown('</div>', unsafe_allow_html=True)
 
-if not resp_id:
-    st.info("📌 กรุณาระบุ 'รหัสผู้ให้ข้อมูล (ID)' ด้านบน เพื่อปลดล็อกแบบฟอร์มการประเมิน")
+if not resp_id or not auditor_name or not location:
+    st.info("📌 กรุณาระบุข้อมูลโครงการและรหัสผู้ให้ข้อมูลให้ครบถ้วน เพื่อปลดล็อกแบบฟอร์ม")
     st.stop()
 
 now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -211,32 +213,26 @@ if choice == "Tool 1: ประเมินสถานะองค์กร":
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                sheet.append_row([now, "Tool 1", resp_id, resp_group, "Policy Gap Analysis", detail, "", "", "", ""])
+                sheet.append_row([now, auditor_name, location, "Tool 1", resp_id, resp_group, "Policy Gap Analysis", detail, "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
-elif choice == "Tool 2: แบบสำรวจภาคสนาม":
-    st.header("📊 Tool 2: แบบสำรวจภาคสนาม (On-site Field Survey)")
+elif choice == "Tool 2: แบบสอบถามหน้างาน":
     with st.form("form_t2"):
-        st.subheader("ส่วนที่ 1: สภาพการจ้างและค่าจ้าง")
-        q2_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนหรือไม่?", options=[1,2,3,4,5], value=3)
-        q2_2 = st.select_slider("1.2 ท่านได้รับวันหยุดประจำสัปดาห์และวันหยุดตามกฎหมายหรือไม่?", options=[1,2,3,4,5], value=3)
-        q2_3 = st.select_slider("1.3 ท่านได้เก็บเอกสารประจำตัวและสัญญาจ้างไว้กับตัวหรือไม่?", options=[1,2,3,4,5], value=3)
+        st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน (Worker Survey)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**ส่วนที่ 1: สภาพการจ้างและค่าจ้าง**")
+        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามสัญญาหรือไม่?", options=[1,2,3,4,5], value=3)
+        s1_3 = st.select_slider("1.2 ท่านเป็นผู้เก็บเอกสารประจำตัวไว้เองใช่หรือไม่?", options=[1,2,3,4,5], value=3)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         
-        st.subheader("ส่วนที่ 2: ความปลอดภัยและอาชีวอนามัย (OHS)")
-        q3_1 = st.select_slider("2.1 อุปกรณ์ป้องกันอันตรายส่วนบุคคล (PPE) มีเพียงพอและอยู่ในสภาพดีหรือไม่?", options=[1,2,3,4,5], value=3)
-        q3_2 = st.select_slider("2.2 ท่านได้รับการอบรมด้านความปลอดภัยก่อนเริ่มงานหรือไม่?", options=[1,2,3,4,5], value=3)
-        q3_3 = st.select_slider("2.3 สภาพแวดล้อมที่ทำงานมีความปลอดภัย (แสงสว่าง, อากาศถ่ายเท) หรือไม่?", options=[1,2,3,4,5], value=3)
-        
-        st.subheader("ส่วนที่ 3: การปฏิบัติต่อแรงงานอย่างเท่าเทียม")
-        q4_1 = st.select_slider("3.1 ท่านได้รับการปฏิบัติอย่างเท่าเทียมโดยไม่เลือกปฏิบัติหรือไม่?", options=[1,2,3,4,5], value=3)
-        q4_2 = st.select_slider("3.2 บรรยากาศการทำงานปราศจากการล่วงละเมิดหรือข่มขู่หรือไม่?", options=[1,2,3,4,5], value=3)
-        q4_3 = st.select_slider("3.3 ท่านทราบช่องทางการร้องเรียนและกล้าที่จะแจ้งปัญหาหรือไม่?", options=[1,2,3,4,5], value=3)
-        
-        if st.form_submit_button("ส่งผลแบบสำรวจภาคสนาม"):
+        st.markdown("**ส่วนที่ 2: ความปลอดภัยและสุขอนามัย (OHS)**")
+        s2_1 = st.select_slider("2.1 อุปกรณ์ป้องกันอันตราย (PPE) มีเพียงพอและอยู่ในสภาพพร้อมใช้งานหรือไม่?", options=[1,2,3,4,5], value=3)
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 2", q2_1, q2_2, q2_3, q3_1, q3_2, q3_3, q4_1, q4_2, q4_3])
-                st.success("✅ บันทึกข้อมูลแบบสำรวจภาคสนามเรียบร้อย!")
+                detail = f"การจ้าง({s1_1},{s1_3}) | ความปลอดภัย({s2_1})"
+                sheet.append_row([now, auditor_name, location, "Tool 2", resp_id, resp_group, "Worker Practice", detail, "", "", "", ""])
+                st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)":
     with st.form("form_t3"):
@@ -252,7 +248,7 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony, "", "", "", ""])
+                sheet.append_row([now, auditor_name, location, "Tool 3", resp_id, resp_group, ", ".join(topics), testimony, "", "", "", ""])
                 st.success("✅ บันทึกหลักฐานสำเร็จ")
 
 elif choice == "Tool 4: บันทึกการสังเกตการณ์":
@@ -270,7 +266,7 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"Checklist({o1},{o2},{o3}) | Note:{obs_detail}"
-                sheet.append_row([now, "Tool 4", resp_id, resp_group, "Site Observation", detail, "", "", "", ""])
+                sheet.append_row([now, auditor_name, location, "Tool 4", resp_id, resp_group, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
 # ==========================================
@@ -322,7 +318,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
         sheet = connect_to_sheet()
         if sheet:
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
-            sheet.append_row([now, "Tool 5", resp_id, resp_group, issue, detail, sev_max, likelihood, score, is_salient])
+            sheet.append_row([now, auditor_name, location, "Tool 5", resp_id, resp_group, issue, detail, sev_max, likelihood, score, is_salient])
             st.success("✅ บันทึกความเสี่ยงและแผนกลยุทธ์ (Strategic Plan) เข้าสู่ระบบเรียบร้อย")
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -362,6 +358,6 @@ elif choice == "Tool 6: ระบบวิเคราะห์ AI Triangulation
     if st.button("💾 บันทึกสรุปผล AI Analysis และแผนกลยุทธ์ลงระบบ"):
         sheet = connect_to_sheet()
         if sheet:
-            sheet.append_row([now, "Tool 6", resp_id, resp_group, "AI Triangulation", "พบข้อขัดแย้งสัญญาจ้าง พร้อมจัดทำแผนแก้ไข 30 วัน", "", "", "", ""])
+            sheet.append_row([now, auditor_name, location, "Tool 6", resp_id, resp_group, "AI Triangulation", "พบข้อขัดแย้งสัญญาจ้าง พร้อมจัดทำแผนแก้ไข 30 วัน", "", "", "", ""])
             st.success("✅ บันทึกข้อมูลการวิเคราะห์เชิงลึกและแผนกลยุทธ์เสร็จสิ้น")
     st.markdown("</div>", unsafe_allow_html=True)
