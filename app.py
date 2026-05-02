@@ -3,6 +3,7 @@ import pandas as pd
 from google.oauth2 import service_account
 import gspread
 from datetime import datetime
+import altair as alt
 
 # ==========================================
 # --- 1. SETTING UP THE PAGE (ต้องอยู่บนสุดเสมอ) ---
@@ -304,16 +305,26 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     if st.session_state.get("ai_scanned_issues", False):
         st.markdown("""
         <div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;">
-            <span style="color: #1967D2; font-weight: 700; font-size: 14px;">🤖 Gemini AI พบประเด็นความเสี่ยงที่น่ากังวล 3 ประเด็น จากการประมวลผลข้อมูล 135 รายการ:</span>
+            <span style="color: #1967D2; font-weight: 700; font-size: 14px;">🤖 Gemini AI พบประเด็นความเสี่ยงที่น่ากังวล จากการประมวลผลข้อมูล 135 รายการ:</span>
         </div>
         """, unsafe_allow_html=True)
         
-        # ให้ผู้ตรวจประเมินเลือกว่าจะจัดการประเด็นไหนก่อน
+        # เพิ่มประเด็นให้ครอบคลุมและหลากหลายมากขึ้น
         selected_issue = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", [
             "เลือกประเด็นความเสี่ยงเพื่อจัดการ...",
             "[สิทธิแรงงาน] พนักงาน 35% ร้องเรียนเรื่องการจ่ายเงิน OT ไม่ครบ/ล่าช้า",
+            "[สิทธิแรงงาน] การหักค่าจ้างอย่างไม่เป็นธรรม (เช่น หักค่าอุปกรณ์ทำงาน)",
             "[แรงงานบังคับ] พบกลุ่มแรงงานข้ามชาติ 12 คน ถูกยึดพาสปอร์ตโดยเอเจนซี่",
-            "[อาชีวอนามัย] พบเครื่องจักรโซน B ไม่มีฝาครอบป้องกันอันตราย 3 จุด"
+            "[แรงงานบังคับ] ภาระหนี้ผูกพันจากการเรียกเก็บค่าธรรมเนียมสรรหาเกินจริง",
+            "[แรงงานบังคับ] การบังคับทำโอทีโดยขู่เลิกจ้าง หรือจำกัดการเดินทาง",
+            "[อาชีวอนามัย] พบเครื่องจักรโซน B ไม่มีฝาครอบป้องกันอันตราย 3 จุด",
+            "[อาชีวอนามัย] สภาพแวดล้อมการทำงานมีสารเคมีอันตราย / ขาด PPE",
+            "[อาชีวอนามัย] สภาพที่พักอาศัย/โรงอาหารไม่ถูกสุขลักษณะ",
+            "[การเลือกปฏิบัติ] ความไม่เท่าเทียมด้านค่าจ้างระหว่างเพศ",
+            "[การเลือกปฏิบัติ] การคุกคามทางเพศ / การล่วงละเมิดด้วยวาจาในที่ทำงาน",
+            "[เสรีภาพสมาคม] การขัดขวางไม่ให้พนักงานรวมกลุ่มหรือเข้าร่วมสหภาพ",
+            "[การใช้แรงงานเด็ก] พบการจ้างงานผู้ที่อายุต่ำกว่า 18 ปี ในงานที่มีความเสี่ยงอันตราย",
+            "[ชุมชน] ข้อร้องเรียนจากชุมชนรอบข้างเรื่องน้ำเสียและกลิ่นเหม็น"
         ])
 
     # 🌟 2. เข้าสู่กระบวนการประเมินคะแนน
@@ -322,9 +333,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     
     # ระบบ AI ช่วยตั้งค่า Slider อัตโนมัติตามประเด็นที่เลือก
     def_scale, def_scope, def_remedy, def_lik = 1, 1, 1, 1
-    if "โอที" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 3, 4, 2, 4
-    elif "พาสปอร์ต" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 2, 3, 3
-    elif "เครื่องจักร" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 4, 2, 2, 4
+    if "โอที" in selected_issue or "หักค่าจ้าง" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 3, 4, 2, 4
+    elif "พาสปอร์ต" in selected_issue or "หนี้ผูกพัน" in selected_issue or "บังคับทำโอที" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 3, 3, 3
+    elif "เครื่องจักร" in selected_issue or "สารเคมี" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 4, 2, 2, 4
+    elif "เด็ก" in selected_issue or "คุกคาม" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 1, 4, 2
 
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1: scale = st.slider("Scale (ความรุนแรง)", 1, 5, def_scale)
@@ -338,6 +350,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     is_salient = "YES" if sev_max >= 4 else "NO"
     
     # 🌟 3. แสดง Heat Map
+    st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
     rows = ""
     for l in range(5, 0, -1):
         rows += "<tr>"
@@ -360,11 +373,14 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
         </div>
         """, unsafe_allow_html=True)
         
-        # Mock ข้อความ Draft
+        # Mock ข้อความ Draft สอดคล้องกับประเด็นใหม่
         ai_draft = ""
-        if "โอที" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance\nRemediation: จ่ายค่า OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไป"
-        elif "พาสปอร์ต" in selected_issue: ai_draft = "Preventive: สื่อสารนโยบาย Employer Pays Principle (EPP) ให้เอเจนซี่\nRemediation: คืนพาสปอร์ตให้พนักงานทันที (ภายใน 24 ชม.)"
-        elif "เครื่องจักร" in selected_issue: ai_draft = "Preventive: สั่งหยุดเดินเครื่องจักรโซน B ทันที\nRemediation: จัดทำฝาครอบนิรภัยให้แล้วเสร็จภายใน 7 วัน"
+        if "โอที" in selected_issue or "หักค่าจ้าง" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไป"
+        elif "พาสปอร์ต" in selected_issue or "หนี้ผูกพัน" in selected_issue: ai_draft = "Preventive: สื่อสารนโยบาย Employer Pays Principle (EPP) ให้เอเจนซี่ และทำตู้ล็อกเกอร์ให้แรงงาน\nRemediation: คืนพาสปอร์ตให้พนักงานทันที (ภายใน 24 ชม.) และคืนค่าธรรมเนียม"
+        elif "เครื่องจักร" in selected_issue or "สารเคมี" in selected_issue: ai_draft = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์\nRemediation: หยุดการทำงานจุดเสี่ยง แจก PPE ใหม่ และรับผิดชอบค่ารักษาพยาบาล"
+        elif "เด็ก" in selected_issue: ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที"
+        elif "คุกคาม" in selected_issue or "เลือกปฏิบัติ" in selected_issue: ai_draft = "Preventive: อบรมเรื่องความหลากหลายและการคุกคาม (Harassment Zero Tolerance)\nRemediation: ตั้งกรรมการสอบสวนข้อเท็จจริง และเยียวยาจิตใจผู้ถูกกระทำ"
+        elif "ชุมชน" in selected_issue: ai_draft = "Preventive: ตรวจวัดค่าน้ำเสียและกลิ่นรายสัปดาห์\nRemediation: ตั้งทีม CSR รับฟังปัญหาและชดเชยเยียวยาชุมชนที่ได้รับผลกระทบ"
         else: ai_draft = "[พิมพ์แผนบรรเทาผลกระทบและการเยียวยาที่นี่...]"
 
         plan_text = st.text_area("กล่องข้อความปรับแก้ (Edit & Approve):", value=ai_draft, height=100, label_visibility="collapsed")
@@ -387,28 +403,36 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: AI Early Warning Radar</h3><p style='color:#666;'>ระบบครอสเช็คความขัดแย้งของข้อมูล เพื่อเตือนภัยก่อนบานปลายเป็น Salient Risk</p><hr>", unsafe_allow_html=True)
     
     st.markdown("""
-    <div class="citation-box">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="background-color: #FFFFFF; padding: 25px; border-left: 6px solid #D3A129; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #F3F4F6;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <h4 style="color: #D3A129; margin: 0;"><i class="fa-solid fa-triangle-exclamation"></i> Early Warning Signal: การเรียกเก็บค่าธรรมเนียม</h4>
             <span style="background: #FEF3C7; color: #D97706; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">Weak Signal Detected</span>
         </div>
         <p style="font-size: 14px; color: #666; margin-top: 10px;">ระบบตรวจพบข้อมูลที่ขัดแย้งกัน (Contradiction) ระหว่างการสัมภาษณ์พนักงานและนโยบายฝ่ายบริหาร:</p>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-            <div style="background: #F0FDF4; padding: 15px; border-radius: 8px; border: 1px solid #BBF7D0;">
-                <span style="color: #166534; font-size: 12px; font-weight: 700;">📋 ข้อมูลนโยบาย (Tool 1)</span><br>
-                <span style="color: #14532D; font-size: 14px;">ฝ่ายบริหารยืนยันว่า: "บริษัทใช้กลยุทธ์ Zero Recruitment Fees และออกค่าใช้จ่ายในการเดินทางให้พนักงานทั้งหมด"</span>
-            </div>
-            <div style="background: #FEF2F2; padding: 15px; border-radius: 8px; border: 1px solid #FECACA;">
-                <span style="color: #991B1B; font-size: 12px; font-weight: 700;">🗣️ ข้อมูลปฏิบัติจริง (Tool 3: EMP-012, EMP-018)</span><br>
-                <span style="color: #7F1D1D; font-size: 14px; font-style: italic;">"พวกเราต้องจ่ายให้เอเจนซี่ฝั่งพม่าไปคนละ 15,000 บาทก่อนเข้ามาทำงาน..."</span>
-            </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 💡 ใช้คอลัมน์ของ Streamlit แทนโค้ด HTML grid เพื่อแก้ปัญหาบั๊กการแสดงผลโค้ดดิบ
+    col_w1, col_w2 = st.columns(2)
+    with col_w1:
+        st.markdown("""
+        <div style="background: #F0FDF4; padding: 15px; border-radius: 8px; border: 1px solid #BBF7D0; height: 100%;">
+            <span style="color: #166534; font-size: 12px; font-weight: 700;">📋 ข้อมูลนโยบาย (Tool 1)</span><br><br>
+            <span style="color: #14532D; font-size: 14px;">ฝ่ายบริหารยืนยันว่า: "บริษัทใช้กลยุทธ์ Zero Recruitment Fees และออกค่าใช้จ่ายในการเดินทางให้พนักงานทั้งหมด"</span>
         </div>
-        
-        <div class="gemini-draft-box" style="margin-top: 20px;">
-            <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Suggestion (คำแนะนำเชิงป้องกัน):</h5>
-            <p style="font-size: 14px; color: #444; margin: 0;">พบความเสี่ยงสูงด้าน <b>Debt Bondage (ภาระหนี้ผูกพัน)</b> แนะนำให้ทีม Audit สุ่มสัมภาษณ์กลุ่มแรงงานข้ามชาติจากเอเจนซี่ A เพิ่มเติมโดยด่วน และติดต่อเอเจนซี่ต้นทางเพื่อตรวจสอบเส้นทางการเงิน (Traceability)</p>
+        """, unsafe_allow_html=True)
+    with col_w2:
+        st.markdown("""
+        <div style="background: #FEF2F2; padding: 15px; border-radius: 8px; border: 1px solid #FECACA; height: 100%;">
+            <span style="color: #991B1B; font-size: 12px; font-weight: 700;">🗣️ ข้อมูลปฏิบัติจริง (Tool 3: EMP-012, 018)</span><br><br>
+            <span style="color: #7F1D1D; font-size: 14px; font-style: italic;">"พวกเราต้องจ่ายให้เอเจนซี่ฝั่งพม่าไปคนละ 15,000 บาทก่อนเข้ามาทำงาน..."</span>
         </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="gemini-draft-box" style="margin-top: 20px;">
+        <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Suggestion (คำแนะนำเชิงป้องกัน):</h5>
+        <p style="font-size: 14px; color: #444; margin: 0;">พบความเสี่ยงสูงด้าน <b>Debt Bondage (ภาระหนี้ผูกพัน)</b> แนะนำให้ทีม Audit สุ่มสัมภาษณ์กลุ่มแรงงานข้ามชาติจากเอเจนซี่ A เพิ่มเติมโดยด่วน และติดต่อเอเจนซี่ต้นทางเพื่อตรวจสอบเส้นทางการเงิน (Traceability)</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -423,26 +447,56 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
 # ----------------- TOOL 7 (Executive Dashboard) -----------------
 elif choice == "Tool 7: แดชบอร์ดสรุปผลภาพรวม (Executive Dashboard)":
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: Executive Dashboard (Mockup)</h3><p style='color:#666;'>สรุปภาพรวมความเสี่ยงสิทธิมนุษยชนทั้งหมดระดับองค์กร</p><hr>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: Executive Dashboard</h3><p style='color:#666;'>สรุปภาพรวมและกระจายตัวของความเสี่ยงสิทธิมนุษยชน (Interactive Risk Matrix)</p><hr>", unsafe_allow_html=True)
     
     # 🌟 Dashboard Metrics
     c1, c2, c3 = st.columns(3)
     with c1:
         st.markdown("<div class='dash-card'><div class='dash-label'>ผู้เข้าร่วมสำรวจทั้งหมด</div><div class='dash-number'>135</div><div style='color: #005B31; font-size:12px;'>พนักงานและผู้มีส่วนได้เสีย</div></div>", unsafe_allow_html=True)
     with c2:
-        st.markdown("<div class='dash-card'><div class='dash-label'>Salient Issues (ปี 2026)</div><div class='dash-number' style='color:#DC2626;'>3</div><div style='color: #666; font-size:12px;'>ประเด็นความเสี่ยงระดับสูง</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='dash-card'><div class='dash-label'>Salient Issues (ปี 2026)</div><div class='dash-number' style='color:#DC2626;'>3</div><div style='color: #666; font-size:12px;'>ประเด็นความเสี่ยงระดับวิกฤต</div></div>", unsafe_allow_html=True)
     with c3:
-        st.markdown("<div class='dash-card'><div class='dash-label'>Early Warning Signals</div><div class='dash-number' style='color:#D97706;'>1</div><div style='color: #666; font-size:12px;'>จุดเฝ้าระวังความขัดแย้งข้อมูล</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='dash-card'><div class='dash-label'>Early Warning Signals</div><div class='dash-number' style='color:#D97706;'>2</div><div style='color: #666; font-size:12px;'>จุดเฝ้าระวังความขัดแย้งข้อมูล</div></div>", unsafe_allow_html=True)
     
-    st.markdown("<br><h5 style='color: #005B31;'>📊 ภาพรวมประเด็นความเสี่ยง (Risk Distribution)</h5>", unsafe_allow_html=True)
+    st.markdown("<br><h5 style='color: #005B31;'>📊 แผนผังกระจายตัวความเสี่ยง (Interactive Salient Risk Matrix)</h5>", unsafe_allow_html=True)
     
-    # Mock Data for Chart
-    chart_data = pd.DataFrame({
-        "หมวดหมู่ความเสี่ยง": ["ชั่วโมงการทำงาน/OT", "อาชีวอนามัย (OHS)", "แรงงานบังคับ", "เสรีภาพในการสมาคม"],
-        "จำนวนเรื่องที่ร้องเรียน": [42, 28, 12, 5]
+    # 🌟 สร้าง Interactive Heat Map ด้วย Altair (เอาเมาส์ชี้ดูข้อมูลได้)
+    # ข้อมูลจำลอง (Mock Data)
+    source = pd.DataFrame({
+        'Severity': [4, 5, 3, 4, 2, 5, 3, 2, 4, 5],
+        'Likelihood': [4, 3, 4, 5, 2, 4, 3, 3, 2, 5],
+        'Issue': [
+            'การจ่ายเงินล่าช้า / ไม่จ่ายโอที',
+            'การยึดพาสปอร์ต',
+            'สภาพแวดล้อมอันตราย (โซน B)',
+            'ขาดอุปกรณ์ PPE',
+            'ไม่มีที่พักผ่อนเพียงพอ',
+            'การเรียกเก็บค่านายหน้า',
+            'สวัสดิการอาหารไม่สะอาด',
+            'การเลือกปฏิบัติต่อแรงงานหญิง',
+            'ชั่วโมงทำงานติดต่อกันเกินกำหนด',
+            'การใช้แรงงานเด็ก (Sub-contract)'
+        ],
+        'Risk_Level': ['Significant', 'Critical', 'Moderate', 'Significant', 'Minor', 'Critical', 'Moderate', 'Minor', 'Significant', 'Critical']
     })
-    st.bar_chart(chart_data.set_index("หมวดหมู่ความเสี่ยง"), color="#D3A129")
+
+    # วาดกราฟ Scatter แบบ Interactive
+    matrix_chart = alt.Chart(source).mark_circle(size=600, opacity=0.8).encode(
+        x=alt.X('Severity:O', title='Severity (ความรุนแรง)', scale=alt.Scale(domain=[1, 2, 3, 4, 5])),
+        y=alt.Y('Likelihood:O', title='Likelihood (โอกาสเกิด)', scale=alt.Scale(domain=[1, 2, 3, 4, 5])),
+        color=alt.Color('Risk_Level:N', 
+                        scale=alt.Scale(domain=['Critical', 'Significant', 'Moderate', 'Minor'], 
+                                        range=['#DC2626', '#F9A818', '#005B31', '#10B981']),
+                        legend=alt.Legend(title="ระดับความเสี่ยง", orient="bottom")),
+        tooltip=[
+            alt.Tooltip('Issue', title='ประเด็น'),
+            alt.Tooltip('Severity', title='ความรุนแรง'),
+            alt.Tooltip('Likelihood', title='โอกาสเกิด'),
+            alt.Tooltip('Risk_Level', title='ระดับเตือนภัย')
+        ]
+    ).interactive().properties(height=450)
     
-    st.info("💡 หมายเหตุ: นี่คือหน้า Dashboard จำลอง เมื่อมีการพัฒนาเต็มรูปแบบ ระบบจะดึงข้อมูลจริงจาก Google Sheet มาวาดกราฟเหล่านี้แบบ Real-time ครับ")
+    st.altair_chart(matrix_chart, use_container_width=True)
+    st.info("💡 หมายเหตุ: เอาเมาส์ชี้ (Hover) ที่จุดวงกลมบนแผนผัง เพื่อดูรายละเอียดของแต่ละประเด็นความเสี่ยง เมื่อระบบพัฒนาเสร็จสมบูรณ์กราฟนี้จะดึงข้อมูลจริงจาก Google Sheet อัตโนมัติ")
     
     st.markdown("</div>", unsafe_allow_html=True)
