@@ -98,18 +98,12 @@ st.markdown("""
 
     /* Radar Animation CSS for Tool 6 */
     .radar-pulse {
-        width: 60px; height: 60px; background: rgba(220, 38, 38, 0.2); border-radius: 50%;
+        width: 80px; height: 80px; background: rgba(220, 38, 38, 0.15); border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
         animation: pulse 2s infinite; margin: 0 auto 20px auto;
     }
-    .radar-core { width: 20px; height: 20px; background: #DC2626; border-radius: 50%; }
+    .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
-    
-    /* Hover Card for Tool 6 */
-    .warning-card { background: #FFFFFF; border-left: 6px solid #D97706; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: 0.3s; position: relative; overflow: hidden;}
-    .warning-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    .warning-details { max-height: 0; opacity: 0; transition: 0.4s ease-out; overflow: hidden; margin-top: 0; }
-    .warning-card:hover .warning-details { max-height: 500px; opacity: 1; margin-top: 15px; }
     
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     </style>
@@ -330,17 +324,12 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (อัปเดตเกณฑ์ และ Gradient) -----------------
+# ----------------- TOOL 5 (อัปเดตระบบ Overwrite ใน Google Sheet) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient Risk & AI Mitigation Plan)":
-    
-    # ระบบ Track การอนุมัติ (ป้องกันการเซฟซ้ำ)
-    if "approved_issues" not in st.session_state:
-        st.session_state.approved_issues = []
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: HR Risk Matrix (Issue-Based)</h3>", unsafe_allow_html=True)
     
-    # คำอธิบายเกณฑ์
     st.markdown("""
     <div style="background: #F8FAFB; padding: 20px; border-radius: 8px; border: 1px solid #EAEAEA; margin-bottom: 20px;">
         <h5 style="color:#005B31; margin-top:0;">💡 เกณฑ์การประเมินนัยสำคัญ (Risk Criteria):</h5>
@@ -385,12 +374,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด)", 1, 5, def_lik)
     score = sev_max * likelihood
 
-    # 💡 อัปเดตเงื่อนไข: เป็น Salient หากคะแนนรวม >= 16 หรือ Severity แตะระดับ 5
     is_salient = "YES" if (score >= 16 or sev_max == 5) else "NO"
     
     st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
     
-    # 🌟 สร้าง Gradient Heat Map
     rows = ""
     for l in range(5, 0, -1):
         rows += "<tr>"
@@ -423,27 +410,46 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     st.markdown("<br>", unsafe_allow_html=True)
     save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
     
-    # 🌟 เช็คว่าอนุมัติไปหรือยัง (เปลี่ยนปุ่มเป็น Overwrite)
-    is_already_approved = save_issue in st.session_state.approved_issues
-    button_label = "🔄 อัปเดตแผนกลยุทธ์ (Overwrite Data)" if is_already_approved else "💾 อนุมัติและบันทึกข้อมูล (Approve & Submit Issue)"
-
-    if st.button(button_label):
+    # 🌟 ปุ่ม Save (ระบบจะเช็คและเขียนทับใน Google Sheet โดยอัตโนมัติ)
+    if st.button("💾 อนุมัติและบันทึกข้อมูล (Approve & Update Database)"):
         sheet = connect_to_sheet()
         if sheet:
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
-            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", resp_group, resp_dept, "N/A", save_issue, detail, sev_max, likelihood, score, is_salient])
+            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", resp_group, resp_dept, "N/A", save_issue, detail, sev_max, likelihood, score, is_salient]
             
-            if not is_already_approved:
-                st.session_state.approved_issues.append(save_issue)
-                st.success(f"✅ บันทึกและอนุมัติประเด็น {save_issue} เรียบร้อยแล้ว")
-            else:
-                st.success(f"🔄 อัปเดตข้อมูลของประเด็น {save_issue} ทับของเดิมเรียบร้อยแล้ว")
+            # --- ระบบเขียนทับข้อมูลเดิม (UPSERT Logic) ---
+            with st.spinner("กำลังซิงค์ข้อมูลกับฐานข้อมูล..."):
+                all_records = sheet.get_all_values()
+                row_to_update = -1
+                
+                # ค้นหาว่ามีประเด็นนี้ ในพื้นที่นี้ รอบประเมินนี้ หรือยัง (ค้นจากล่างขึ้นบน จะได้เจอล่าสุด)
+                for i in range(len(all_records)-1, -1, -1):
+                    row = all_records[i]
+                    # เช็คคอลัมน์: [1]Audit Cycle, [3]Location, [4]Tool, [9]Issue
+                    if len(row) >= 10 and row[1] == audit_cycle and row[3] == location and row[4] == "Tool 5" and row[9] == save_issue:
+                        row_to_update = i + 1  # Index ของ Google Sheet เริ่มที่ 1
+                        break
+                
+                if row_to_update != -1:
+                    # ถ้าเจอของเดิม ให้อัปเดตทับบรรทัดนั้นเลย (ป้องกันข้อมูลซ้ำซ้อน)
+                    try:
+                        sheet.update(f"A{row_to_update}:O{row_to_update}", [new_row_data])
+                        st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว (ไม่เกิดบรรทัดซ้ำในระบบ)")
+                    except TypeError:
+                        # รองรับ gspread version ใหม่
+                        sheet.update(values=[new_row_data], range_name=f"A{row_to_update}:O{row_to_update}")
+                        st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว")
+                else:
+                    # ถ้ายังไม่เคยมี ให้เพิ่มบรรทัดใหม่
+                    sheet.append_row(new_row_data)
+                    st.success(f"✅ **อนุมัติและบันทึกใหม่สำเร็จ:** เพิ่มประเด็น '{save_issue}' เข้าสู่ระบบเรียบร้อยแล้ว")
+            
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ----------------- TOOL 6 (Early Warning System) -----------------
+# ----------------- TOOL 6 (อัปเดต UI และ Human Approval) -----------------
 elif choice == "Tool 6: ระบบเตือนภัยล่วงหน้า (AI Triangulation & Early Warning)":
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: AI Early Warning Radar</h3><p style='color:#666;'>ระบบครอสเช็คข้ามเครื่องมือแบบอัตโนมัติ เพื่อเฝ้าระวังความขัดแย้งของข้อมูล</p><hr>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: AI Early Warning Radar</h3><p style='color:#666;'>ระบบครอสเช็คข้ามเครื่องมือแบบอัตโนมัติ พร้อมส่วนการพิจารณาโดยมนุษย์ (Human Validation)</p><hr>", unsafe_allow_html=True)
     
     # 🌟 หน้าปัดเรดาร์สแกนหาปัญหาอัตโนมัติ
     st.markdown("""
@@ -451,36 +457,47 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
         <div class="radar-pulse">
             <div class="radar-core"></div>
         </div>
-        <span style="color: #DC2626; font-weight: 700;">System Auto-Scanning... Found 1 Anomaly!</span>
-    </div>
-    
-    <p style="color: #666; font-size: 14px; text-align: center;">👇 เอาเมาส์ชี้ (Hover) ที่การ์ดด้านล่างเพื่อดูรายละเอียดความขัดแย้งของข้อมูล</p>
-    
-    <div class="warning-card" style="margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h4 style="color: #D97706; margin: 0;"><i class="fa-solid fa-triangle-exclamation"></i> สัญญาณเตือน: การเรียกเก็บค่าธรรมเนียมสรรหา (Recruitment Fee)</h4>
-            <span style="background: #FEF3C7; color: #D97706; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">Weak Signal Detected</span>
-        </div>
-        
-        <div class="warning-details">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                <div style="background: #F0FDF4; padding: 15px; border-radius: 8px; border: 1px solid #BBF7D0;">
-                    <span style="color: #166534; font-size: 12px; font-weight: 700;">📋 ข้อมูลนโยบาย (Tool 1)</span><br><br>
-                    <span style="color: #14532D; font-size: 14px;">ฝ่ายบริหาร: "เราใช้นโยบาย Zero Recruitment Fees โดยเด็ดขาด"</span>
-                </div>
-                <div style="background: #FEF2F2; padding: 15px; border-radius: 8px; border: 1px solid #FECACA;">
-                    <span style="color: #991B1B; font-size: 12px; font-weight: 700;">🗣️ ข้อมูลปฏิบัติจริง (Tool 3: EMP-012, 018)</span><br><br>
-                    <span style="color: #7F1D1D; font-size: 14px; font-style: italic;">พนักงาน: "พวกเราถูกเก็บเงินคนละ 15,000 บาทให้เอเจนซี่..."</span>
-                </div>
-            </div>
-            
-            <div style="background: #F0F4FF; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-top: 15px;">
-                <span style="color: #1967D2; font-weight: 700; font-size: 14px;">✨ Gemini AI Suggestion:</span>
-                <p style="font-size: 14px; color: #444; margin-top: 5px;">มีความเสี่ยงสูงด้าน <b>Debt Bondage</b> แนะนำให้สุ่มสัมภาษณ์กลุ่มแรงงานข้ามชาติจากเอเจนซี่เพิ่มเติมทันที</p>
-            </div>
-        </div>
+        <span style="color: #DC2626; font-weight: 700; font-size: 18px;">System Auto-Scanning... Found 1 Anomaly!</span>
     </div>
     """, unsafe_allow_html=True)
+    
+    st.markdown("#### 🚩 สัญญาณเตือน: การเรียกเก็บค่าธรรมเนียมสรรหา (Recruitment Fee)")
+    st.info("🤖 **Gemini AI Triangulation:** ระบบตรวจพบข้อมูลที่ขัดแย้งกัน (Contradiction) ระหว่าง 'นโยบายฝ่ายบริหาร' และ 'คำให้การพนักงาน'")
+    
+    # 🌟 ใช้ Streamlit UI แทน HTML ดิบ เพื่อป้องกันบั๊กการแสดงผลโค้ด
+    c_left, c_right = st.columns(2)
+    with c_left:
+        st.success("📋 **ข้อมูลนโยบาย (Tool 1)**\n\nฝ่ายบริหารยืนยันว่า:\n\n*\"บริษัทใช้กลยุทธ์ Zero Recruitment Fees และออกค่าใช้จ่ายในการเดินทางให้พนักงานทั้งหมดโดยเด็ดขาด\"*")
+    with c_right:
+        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: EMP-012, 018)**\n\nคำให้การพนักงาน:\n\n*\"พวกเราต้องจ่ายเงินให้เอเจนซี่ฝั่งพม่าไปคนละ 15,000 บาท ก่อนที่จะเข้ามาทำงานในโรงงาน...\"*")
+
+    st.markdown("""
+    <div class="gemini-draft-box" style="margin-top: 20px;">
+        <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Suggestion (คำแนะนำเชิงป้องกัน):</h5>
+        <p style="font-size: 14px; color: #444; margin-top: 5px;">มีความเสี่ยงสูงด้าน <b>Debt Bondage (ภาระหนี้ผูกพัน)</b> แนะนำให้ทีม Audit สุ่มสัมภาษณ์กลุ่มแรงงานข้ามชาติจากเอเจนซี่ต้นทางเพิ่มเติมโดยด่วน เพื่อตรวจสอบเส้นทางการเงิน (Traceability)</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 🌟 ส่วนการพิจารณาโดยมนุษย์ (Human Validation)
+    st.markdown("<hr style='border: 1px dashed #ccc; margin: 30px 0;'>", unsafe_allow_html=True)
+    st.markdown("#### ✍️ ส่วนพิจารณาโดยผู้เชี่ยวชาญ (Human Validation)")
+    
+    t6_decision = st.radio("คุณเห็นด้วยกับการเตือนภัยของ AI หรือไม่? *", 
+                           ["✔️ ยืนยันความเสี่ยง (Approve & Flag for Investigation)", 
+                            "❌ ปฏิเสธ (Reject - False Alarm)"], 
+                           horizontal=True)
+    
+    t6_note = st.text_input("บันทึกความเห็นเพิ่มเติม (เหตุผลที่อนุมัติ/ปฏิเสธ):", placeholder="พิมพ์บันทึกการพิจารณาของคุณที่นี่...")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("💾 บันทึกผลการพิจารณา Tool 6"):
+        sheet = connect_to_sheet()
+        if sheet:
+            decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
+            detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
+            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", "Issue-Based", "N/A", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
+            st.success("✅ บันทึกผลการพิจารณาสัญญาณเตือนภัยเข้าสู่ฐานข้อมูลเรียบร้อย")
+            
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ----------------- TOOL 7 (Executive Dashboard) -----------------
@@ -488,7 +505,6 @@ elif choice == "Tool 7: แดชบอร์ดสรุปผลภาพร�
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: Executive Dashboard</h3><p style='color:#666;'>สรุปภาพรวมและกระจายตัวของความเสี่ยงทั้งหมดบน Risk Matrix</p><hr>", unsafe_allow_html=True)
     
-    # 🌟 Dashboard Metrics
     c1, c2, c3 = st.columns(3)
     with c1: st.markdown("<div class='dash-card'><div class='dash-label'>สำรวจทั้งหมด</div><div class='dash-number'>135</div><div style='color: #005B31; font-size:12px;'>ตัวอย่างพนักงาน</div></div>", unsafe_allow_html=True)
     with c2: st.markdown("<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>4</div><div style='color: #666; font-size:12px;'>ประเด็นระดับวิกฤต</div></div>", unsafe_allow_html=True)
@@ -497,7 +513,6 @@ elif choice == "Tool 7: แดชบอร์ดสรุปผลภาพร�
     st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังกระจายตัวความเสี่ยง (Interactive Dashboard Matrix)</h5>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; color:#666; font-size:14px; margin-bottom: 20px;'>👉 เอาเมาส์ชี้ที่วงกลม (Bubble) เพื่อดูรายชื่อประเด็นความเสี่ยงที่ตกอยู่ในจุดนั้น</p>", unsafe_allow_html=True)
     
-    # 🌟 ข้อมูลจำลองพิกัดบน Matrix (s=Severity, l=Likelihood)
     matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
     matrix_data[(4, 4)].append("[แรงงาน] การจ่ายเงินล่าช้า / ไม่จ่ายโอที")
     matrix_data[(4, 4)].append("[อาชีวอนามัย] ขาดอุปกรณ์ PPE")
@@ -507,7 +522,6 @@ elif choice == "Tool 7: แดชบอร์ดสรุปผลภาพร�
     matrix_data[(2, 2)].append("[แรงงาน] ไม่มีที่พักผ่อนเพียงพอ")
     matrix_data[(4, 2)].append("[การเลือกปฏิบัติ] ความไม่เท่าเทียมด้านค่าจ้าง")
     
-    # 🌟 สร้าง HTML Interactive 5x5 Matrix
     rows = ""
     for l in range(5, 0, -1):
         rows += "<tr>"
@@ -516,7 +530,6 @@ elif choice == "Tool 7: แดชบอร์ดสรุปผลภาพร�
             color = get_heat_color(s, l)
             content = ""
             if len(issues) > 0:
-                # สร้างข้อความสำหรับ Tooltip (ใช้ \n แทนการขึ้นบรรทัดใหม่ใน Attribute Title)
                 issue_text = "&#10;".join([f"- {i}" for i in issues])
                 content = f"<div class='matrix-bubble' title='ประเด็นในจุดนี้:&#10;{issue_text}'>{len(issues)}</div>"
             
