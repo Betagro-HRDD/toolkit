@@ -367,13 +367,14 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
     
+    # ดึงค่าตั้งต้น (ถ้าเคยเซฟแล้ว ให้ดึงค่าที่เคยเซฟมาโชว์ ถ้ายัง ให้ AI เดาค่าให้)
     def_scale, def_scope, def_remedy, def_lik = 1, 1, 1, 1
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
         saved_data = st.session_state.saved_plans_dict[save_issue]
         def_scale, def_lik = saved_data.get('sev', 1), saved_data.get('lik', 1)
         def_scope, def_remedy = def_scale, def_scale
     else:
-        if "โอที" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 3, 4, 2, 4
+        if "OT" in selected_issue or "โอที" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 3, 4, 2, 4
         elif "พาสปอร์ต" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 2, 3, 3
         elif "เครื่องจักร" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 4, 2, 2, 4
         elif "เด็ก" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 1, 4, 1
@@ -430,7 +431,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         elif risk_zone == "YELLOW":
             ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: จัดอบรมให้ความรู้เพิ่มเติม ทบทวนขั้นตอนการทำงาน และสื่อสารนโยบายให้แก่ผู้เกี่ยวข้องอย่างเคร่งครัด\n- Timeline: กำหนดระยะเวลาติดตามผลการปรับปรุงภายใน 3-6 เดือน เพื่อลดระดับความเสี่ยงกลับมาอยู่ในเกณฑ์สีเขียว"
         else: # RED
-            if "โอที" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip อย่างเข้มงวด\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไปทันที"
+            if "OT" in selected_issue or "โอที" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip อย่างเข้มงวด\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไปทันที"
             elif "พาสปอร์ต" in selected_issue: ai_draft = "Preventive: สื่อสารนโยบาย EPP ให้เอเจนซี่ และจัดเตรียมตู้ล็อกเกอร์ให้แรงงาน\nRemediation: คืนพาสปอร์ตให้พนักงานทุกคนทันที (ภายใน 24 ชม.)"
             elif "เครื่องจักร" in selected_issue: ai_draft = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์\nRemediation: หยุดการทำงานจุดเสี่ยงทันที แจก PPE ใหม่ และรับผิดชอบค่ารักษาพยาบาลหากเกิดเหตุ"
             elif "เด็ก" in selected_issue: ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด (Zero Tolerance)\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที พร้อมจ่ายค่าชดเชยตามกฎหมาย"
