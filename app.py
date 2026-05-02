@@ -424,18 +424,34 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
         # หากดึงจากที่เคย Approve แล้ว
         ai_draft = st.session_state.saved_plans_dict[save_issue]['plan']
-    else:
+        
+    # 💡 AUTO-HEAL: ถ้าเกิดบั๊กหรือเผลอเซฟตอนกล่องว่างเปล่า ให้ AI ร่างให้ใหม่ทันที
+    if not ai_draft or ai_draft.strip() == "" or "พิมพ์แผนบรรเทาผลกระทบ" in ai_draft:
         # ให้ AI ร่างใหม่ตามโซนสี
         if risk_zone == "GREEN":
-            ai_draft = "Maintenance Plan (แผนคงสภาพ):\n- Monitoring: ระดับความเสี่ยงปกติ ให้ทำการตรวจสอบซ้ำและติดตามผลตามวงรอบอย่างน้อยปีละ 1 ครั้ง เพื่อให้มั่นใจว่าคู่ค้ายังรักษามาตรฐานสีเขียวไว้ได้ตลอดไป"
+            ai_draft = "Maintenance Plan (แผนคงสภาพ):\n- Monitoring: ระดับความเสี่ยงปกติ ให้ทำการตรวจสอบซ้ำและติดตามผลตามวงรอบอย่างน้อยปีละ 1 ครั้ง เพื่อให้มั่นใจว่าคู่ค้ายังรักษามาตรฐานไว้ได้ตลอดไป"
         elif risk_zone == "YELLOW":
-            ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: จัดอบรมให้ความรู้เพิ่มเติม ทบทวนขั้นตอนการทำงาน และสื่อสารนโยบายให้แก่ผู้เกี่ยวข้องอย่างเคร่งครัด\n- Timeline: กำหนดระยะเวลาติดตามผลการปรับปรุงภายใน 3-6 เดือน เพื่อลดระดับความเสี่ยงกลับมาอยู่ในเกณฑ์สีเขียว"
+            if "OT" in selected_issue or "โอที" in selected_issue or "หักค่าจ้าง" in selected_issue: 
+                ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: จัดอบรมเรื่องกฎหมายแรงงาน (เวลาทำงาน/ค่าจ้าง) ให้หัวหน้างาน และสุ่มตรวจ Pay slip ทุกไตรมาส\n- Timeline: ติดตามผลการปรับปรุงภายใน 3 เดือน เพื่อดึงระดับความเสี่ยงกลับมาสีเขียว"
+            elif "พาสปอร์ต" in selected_issue or "หนี้ผูกพัน" in selected_issue or "บังคับ" in selected_issue: 
+                ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: ตรวจสอบกระบวนการจ้างงานผ่านเอเจนซี่ และย้ำนโยบาย Employer Pays Principle (EPP)\n- Timeline: ติดตามผลการปรับปรุงภายใน 3 เดือน เพื่อดึงระดับความเสี่ยงกลับมาสีเขียว"
+            elif "เครื่องจักร" in selected_issue or "สารเคมี" in selected_issue or "สภาพแวดล้อม" in selected_issue: 
+                ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: เพิ่มความถี่ในการทำ Safety Patrol และซ่อมบำรุงเครื่องมือ/PPE ให้อยู่ในสภาพพร้อมใช้เสมอ\n- Timeline: ติดตามผลการปรับปรุงภายใน 1-3 เดือน เพื่อดึงระดับความเสี่ยงกลับมาสีเขียว"
+            else:
+                ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: จัดอบรมให้ความรู้เพิ่มเติม ทบทวนขั้นตอนการทำงาน และสื่อสารนโยบายให้แก่ผู้เกี่ยวข้องอย่างเคร่งครัด\n- Timeline: กำหนดระยะเวลาติดตามผลการปรับปรุงภายใน 3-6 เดือน"
         else: # RED
-            if "OT" in selected_issue or "โอที" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip อย่างเข้มงวด\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไปทันที"
-            elif "พาสปอร์ต" in selected_issue: ai_draft = "Preventive: สื่อสารนโยบาย EPP ให้เอเจนซี่ และจัดเตรียมตู้ล็อกเกอร์ให้แรงงาน\nRemediation: คืนพาสปอร์ตให้พนักงานทุกคนทันที (ภายใน 24 ชม.)"
-            elif "เครื่องจักร" in selected_issue: ai_draft = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์\nRemediation: หยุดการทำงานจุดเสี่ยงทันที แจก PPE ใหม่ และรับผิดชอบค่ารักษาพยาบาลหากเกิดเหตุ"
-            elif "เด็ก" in selected_issue: ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด (Zero Tolerance)\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที พร้อมจ่ายค่าชดเชยตามกฎหมาย"
-            else: ai_draft = "Preventive: [ระบุมาตรการป้องกันเชิงระบบ]\nRemediation: [ระบุมาตรการเยียวยาผู้ได้รับผลกระทบเร่งด่วน]"
+            if "OT" in selected_issue or "โอที" in selected_issue or "หักค่าจ้าง" in selected_issue: 
+                ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip อย่างเข้มงวด\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไปทันที"
+            elif "พาสปอร์ต" in selected_issue or "หนี้ผูกพัน" in selected_issue or "บังคับ" in selected_issue: 
+                ai_draft = "Preventive: สื่อสารนโยบาย EPP ให้เอเจนซี่ และจัดเตรียมตู้ล็อกเกอร์ให้แรงงานเก็บเอกสารเอง\nRemediation: คืนพาสปอร์ตให้พนักงานทุกคนทันที (ภายใน 24 ชม.) และจ่ายคืนค่าธรรมเนียม"
+            elif "เครื่องจักร" in selected_issue or "สารเคมี" in selected_issue or "สภาพแวดล้อม" in selected_issue: 
+                ai_draft = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์อย่างเคร่งครัด\nRemediation: หยุดการทำงานจุดเสี่ยงทันที แจก PPE ใหม่ และรับผิดชอบค่ารักษาพยาบาลหากเกิดเหตุ"
+            elif "เด็ก" in selected_issue: 
+                ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด (Zero Tolerance)\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที พร้อมจ่ายค่าชดเชยตามกฎหมาย"
+            elif "เลือกปฏิบัติ" in selected_issue or "คุกคาม" in selected_issue:
+                ai_draft = "Preventive: อบรมเรื่องความหลากหลายและการคุกคาม (Harassment Zero Tolerance)\nRemediation: ตั้งกรรมการสอบสวนข้อเท็จจริง และเยียวยาจิตใจ/ชดเชยผู้ถูกกระทำ"
+            else: 
+                ai_draft = "Preventive: [ระบุมาตรการป้องกันเชิงระบบ]\nRemediation: [ระบุมาตรการเยียวยาผู้ได้รับผลกระทบเร่งด่วน]"
 
     # ใช้ Label ให้อ่านชัดเจน แทนการ collapse
     st.markdown("**✍️ แผนการจัดการความเสี่ยง (Mitigation & Remediation Plan):**")
