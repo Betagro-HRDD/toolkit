@@ -84,7 +84,7 @@ st.markdown("""
     }
     [data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover { background: #004222 !important; transform: translateY(-2px) !important; box-shadow: 0 12px 25px rgba(0, 91, 49, 0.3) !important; }
 
-    .salient-badge { background-color: #FEF2F2; color: #DC2626; padding: 15px; border-radius: 12px; border: 1px solid #FECACA; font-weight: 700; text-align: center; display: block; margin-top: 15px;}
+    .salient-badge { padding: 15px; border-radius: 12px; font-weight: 700; text-align: center; display: block; margin-top: 15px; border: 1px solid transparent;}
     .gemini-draft-box { background: linear-gradient(135deg, #F0F4FF 0%, #FFFFFF 100%); border-left: 6px solid #4285F4; padding: 20px; border-radius: 10px; margin-top: 20px; border: 1px solid #D2E3FC; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.05);}
     .gemini-title { color: #1967D2; font-family: 'Poppins', sans-serif; font-weight: 700; margin-top: 0; font-size: 16px; display: flex; align-items: center; gap: 8px;}
     
@@ -329,7 +329,7 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (อัปเดตระบบดึงข้อมูล Draft เดิมกลับมา) -----------------
+# ----------------- TOOL 5 (อัปเดตระบบ AI ร่างแผนแยกตามโซนสี) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -341,8 +341,8 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <ul style="font-size: 14px; color: #444; margin-bottom: 0;">
             <li>ความร้ายแรง (Severity) ใช้ค่าสูงสุดระหว่าง: <b>Scale</b> (ขนาดผลกระทบ), <b>Scope</b> (จำนวนผู้ได้รับผลกระทบ), และ <b>Remedy</b> (ระดับความยากในการเยียวยา)</li>
             <li><span style="color:#DC2626; font-weight:700;">🔴 วิกฤต (Critical/Salient):</span> คะแนน 16-25 <b>หรือ ความรุนแรงระดับ 5 (Zero Tolerance)</b></li>
-            <li><span style="color:#D97706; font-weight:700;">🟡 สูง (Significant):</span> คะแนน 8-15 (เฝ้าระวังและแก้ไข)</li>
-            <li><span style="color:#059669; font-weight:700;">🟢 ปานกลาง/ต่ำ (Moderate/Minor):</span> คะแนน 1-7 (บริหารจัดการตามปกติ)</li>
+            <li><span style="color:#D97706; font-weight:700;">🟡 สูง (Significant):</span> คะแนน 8-15 (เฝ้าระวังและจัดทำแผนป้องกัน)</li>
+            <li><span style="color:#059669; font-weight:700;">🟢 ปานกลาง/ต่ำ (Moderate/Minor):</span> คะแนน 1-7 (บริหารจัดการและจัดทำแผนคงสภาพ)</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -389,7 +389,16 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, def_lik)
     score = sev_max * likelihood
 
-    is_salient = "YES" if (score >= 16 or sev_max == 5) else "NO"
+    # 💡 อัปเดตโซนสีความเสี่ยง
+    if score >= 16 or sev_max == 5:
+        risk_zone = "RED"
+        badge_html = '<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK: ประเด็นนี้มีความเสี่ยงระดับวิกฤต (AI กำลังร่างแผนกลยุทธ์และมาตรการเยียวยาเร่งด่วน)</div>'
+    elif score >= 8:
+        risk_zone = "YELLOW"
+        badge_html = '<div class="salient-badge" style="background-color: #FFFBEB; color: #D97706; border-color: #FDE68A;">⚠️ SIGNIFICANT RISK: ประเด็นความเสี่ยงปานกลาง/สูง (AI กำลังร่างแผนป้องกันเชิงรุก)</div>'
+    else:
+        risk_zone = "GREEN"
+        badge_html = '<div class="salient-badge" style="background-color: #F0FDF4; color: #166534; border-color: #BBF7D0;">✅ MODERATE/MINOR RISK: ความเสี่ยงต่ำ (AI กำลังร่างแผนคงสภาพ)</div>'
     
     st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
     
@@ -403,28 +412,32 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         rows += "</tr>"
     st.markdown(f"<table class='heat-table'>{rows}</table><p style='text-align:center; color: #666; margin-top: 10px;'><small>แนวนอน: Severity | แนวตั้ง: Likelihood</small></p>", unsafe_allow_html=True)
     
-    plan_text = ""
-    if is_salient == "YES":
-        st.markdown('<div class="salient-badge">🚨 SALIENT RISK: ประเด็นนี้มีความเสี่ยงระดับวิกฤต (AI กำลังร่างแผนกลยุทธ์)</div>', unsafe_allow_html=True)
-        st.markdown("""
-        <div class="gemini-draft-box">
-            <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
-            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">คุณสามารถปรับแก้แผนปฏิบัติการด้านล่างก่อนกด "อนุมัติ" (หากเคยบันทึกแล้ว ระบบจะดึงข้อความล่าสุดของคุณมาแสดง)</p>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # 💡 LOGIC ดึง Draft: ถ้าเคย Approve แล้ว ให้ดึงจาก Session State ล่าสุดมาเลย!
-        ai_draft = ""
-        if is_already_approved and save_issue in st.session_state.saved_plans_dict:
-            ai_draft = st.session_state.saved_plans_dict[save_issue]['plan']
-        else:
-            if "โอที" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไป"
-            elif "พาสปอร์ต" in selected_issue: ai_draft = "Preventive: สื่อสารนโยบาย EPP ให้เอเจนซี่ และทำตู้ล็อกเกอร์ให้แรงงาน\nRemediation: คืนพาสปอร์ตให้พนักงานทันที (ภายใน 24 ชม.)"
-            elif "เครื่องจักร" in selected_issue: ai_draft = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์\nRemediation: หยุดการทำงานจุดเสี่ยง แจก PPE ใหม่"
-            elif "เด็ก" in selected_issue: ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที"
-            else: ai_draft = "[พิมพ์แผนบรรเทาผลกระทบและการเยียวยาที่นี่...]"
+    # โชว์ป้ายสถานะความเสี่ยงทุกระดับ
+    st.markdown(badge_html, unsafe_allow_html=True)
+    st.markdown("""
+    <div class="gemini-draft-box">
+        <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
+        <p style="font-size: 14px; color: #666; margin-bottom: 15px;">คุณสามารถปรับแก้แผนปฏิบัติการด้านล่างก่อนกด "อนุมัติ" (หากเคยบันทึกแล้ว ระบบจะดึงข้อความล่าสุดของคุณมาแสดง)</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # 💡 LOGIC ดึง Draft: ดึงของเดิมถ้ามี หรือให้ AI ร่างตามโซนสี (Green/Yellow/Red)
+    ai_draft = ""
+    if is_already_approved and save_issue in st.session_state.saved_plans_dict:
+        ai_draft = st.session_state.saved_plans_dict[save_issue]['plan']
+    else:
+        if risk_zone == "GREEN":
+            ai_draft = "Maintenance Plan (แผนคงสภาพ):\n- Monitoring: ระดับความเสี่ยงปกติ ให้ทำการตรวจสอบซ้ำและติดตามผลตามวงรอบอย่างน้อยปีละ 1 ครั้ง เพื่อให้มั่นใจว่าคู่ค้ายังรักษามาตรฐานสีเขียวไว้ได้ตลอดไป"
+        elif risk_zone == "YELLOW":
+            ai_draft = "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: จัดอบรมให้ความรู้เพิ่มเติม ทบทวนขั้นตอนการทำงาน และสื่อสารนโยบายให้แก่ผู้เกี่ยวข้องอย่างเคร่งครัด\n- Timeline: กำหนดระยะเวลาติดตามผลการปรับปรุงภายใน 3-6 เดือน เพื่อลดระดับความเสี่ยงกลับมาอยู่ในเกณฑ์สีเขียว"
+        else: # RED
+            if "โอที" in selected_issue: ai_draft = "Preventive: ตรวจสอบระบบ Time Attendance และ Pay slip อย่างเข้มงวด\nRemediation: จ่ายค่าจ้าง/OT ค้างชำระย้อนหลังพร้อมดอกเบี้ยในงวดถัดไปทันที"
+            elif "พาสปอร์ต" in selected_issue: ai_draft = "Preventive: สื่อสารนโยบาย EPP ให้เอเจนซี่ และจัดเตรียมตู้ล็อกเกอร์ให้แรงงาน\nRemediation: คืนพาสปอร์ตให้พนักงานทุกคนทันที (ภายใน 24 ชม.)"
+            elif "เครื่องจักร" in selected_issue: ai_draft = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์\nRemediation: หยุดการทำงานจุดเสี่ยงทันที แจก PPE ใหม่ และรับผิดชอบค่ารักษาพยาบาลหากเกิดเหตุ"
+            elif "เด็ก" in selected_issue: ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด (Zero Tolerance)\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที พร้อมจ่ายค่าชดเชยตามกฎหมาย"
+            else: ai_draft = "Preventive: [ระบุมาตรการป้องกันเชิงระบบ]\nRemediation: [ระบุมาตรการเยียวยาผู้ได้รับผลกระทบเร่งด่วน]"
 
-        plan_text = st.text_area("กล่องข้อความปรับแก้ (Edit & Approve):", value=ai_draft, height=120, label_visibility="collapsed")
+    plan_text = st.text_area("กล่องข้อความปรับแก้ (Edit & Approve):", value=ai_draft, height=140, label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -433,8 +446,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     if st.button(button_label):
         sheet = connect_to_sheet()
         if sheet:
+            # ใช้ risk_zone เพื่อบันทึกระดับความเสี่ยง
+            db_risk_level = "Salient" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
-            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", resp_group, resp_dept, "N/A", save_issue, detail, sev_max, likelihood, score, is_salient]
+            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", resp_group, resp_dept, "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
             
             # บันทึกสถานะล่าสุดลง Memory (เพื่อให้ดึงมารายงานผลหรือแก้ทีหลังได้)
             st.session_state.saved_plans_dict[save_issue] = {
@@ -560,7 +575,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
     """, unsafe_allow_html=True)
     
     # =========================================================
-    # 🌟 NEW SECTION: AI Report Generation (รายงานประเมินความเสี่ยง) ย้ายมาไว้ Tool 7
+    # 🌟 NEW SECTION: AI Report Generation (รายงานประเมินความเสี่ยง)
     # =========================================================
     st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ร่างรายงานประเมินความเสี่ยง (Risk Assessment Report)</h3>", unsafe_allow_html=True)
@@ -584,7 +599,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         
         if len(saved_dict) > 0:
             for iss, data in saved_dict.items():
-                risk_level = "วิกฤต (Critical)" if (data['sev'] == 5 or data['sev']*data['lik'] >= 16) else "สูง (Significant)" if data['sev']*data['lik'] >= 8 else "ปานกลาง/ต่ำ"
+                risk_level = "วิกฤต (Critical)" if (data['sev'] == 5 or data['sev']*data['lik'] >= 16) else "สูง (Significant)" if data['sev']*data['lik'] >= 8 else "ปานกลาง/ต่ำ (Moderate/Minor)"
                 issue_list_text += f"- {iss} (ความรุนแรง: {data['sev']}, โอกาสเกิด: {data['lik']} - ระดับ: {risk_level})\n"
                 
                 # ตัดข้อความแผนมาแสดงแบบกระชับขึ้น
@@ -594,8 +609,9 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
             issue_list_text = "- (ยังไม่มีประเด็นที่ได้รับการอนุมัติจาก Tool 5 โปรดไปประเมินความเสี่ยงก่อนทำการออกรายงาน)\n"
             action_list_text = "- (รอข้อมูลมาตรการจาก Tool 5)\n"
 
+        # 💡 แก้ไข Header ของรายงานให้ครอบคลุม "ระดับองค์กร" แทนการดึงแค่ location ปัจจุบัน
         report_mockup = f"""รายงานสรุปการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRDD Report)
-รอบการประเมิน: {audit_cycle} | พื้นที่: {location}
+รอบการประเมิน: {audit_cycle} | พื้นที่: ภาพรวมทุกพื้นที่ปฏิบัติการ (Corporate Overview)
 
 1. วัตถุประสงค์และภาพรวม
 เพื่อระบุและประเมินความเสี่ยงด้านสิทธิมนุษยชนที่อาจเกิดขึ้นตลอดห่วงโซ่คุณค่าขององค์กร พร้อมจัดทำแผนบรรเทาผลกระทบที่สอดคล้องกับมาตรฐานสากลและแนวทางขององค์กร
@@ -607,7 +623,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
 - การเยียวยา (Remediability): ระดับความยากในการฟื้นฟูสิทธิ
 
 3. ผลการวิเคราะห์ประเด็นที่มีนัยสำคัญ (Salient Human Rights Issues)
-พบความเสี่ยงที่ได้รับการอนุมัติเข้าระบบจำนวน {len(saved_dict)} ประเด็น ได้แก่:
+พบความเสี่ยงที่ได้รับการประเมินและอนุมัติเข้าระบบจำนวน {len(saved_dict)} ประเด็น ได้แก่:
 {issue_list_text}
 4. มาตรการและการตอบสนองเชิงยุทธศาสตร์ (Strategic Roadmap)
 {action_list_text}
@@ -615,7 +631,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
 องค์กรยังคงรักษามาตรฐาน Zero Tolerance โดยมุ่งเน้นการจัดการปัญหาเชิงรุกและให้ความสำคัญกับสิทธิของกลุ่มเปราะบางเป็นอันดับแรก
 
 6. กลไกการติดตามและประเมินผล (Monitoring & Review)
-กำหนดรอบการตรวจสอบซ้ำ (Follow-up Audit) สำหรับประเด็น Salient Risk ภายใน 3 เดือน และอัปเดตสถานะการเยียวยาผ่านระบบ Dashboard ทุกไตรมาส"""
+กำหนดรอบการตรวจสอบซ้ำ (Follow-up Audit) สำหรับประเด็นวิกฤต (Salient Risk) ภายใน 3 เดือน และอัปเดตสถานะการเยียวยาผ่านระบบ Dashboard ทุกไตรมาส"""
 
         report_text = st.text_area("แก้ไขและอนุมัติรายงาน (Edit & Approve):", value=report_mockup, height=500, label_visibility="collapsed")
         
@@ -623,7 +639,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         if st.button("💾 อนุมัติและบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Report)"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 7 - Report", "Annual Summary", "N/A", "N/A", "N/A", f"Report: {audit_cycle}", report_text, "", "", "", "Approved"])
-                st.success("✅ อนุมัติและบันทึกรายงานประเมินความเสี่ยงเข้าสู่ฐานข้อมูลเรียบร้อยแล้ว!")
+                sheet.append_row([now, audit_cycle, auditor_name, "ภาพรวมทุกพื้นที่", "Tool 7 - Report", "Annual Summary", "N/A", "N/A", "N/A", f"Report: {audit_cycle}", report_text, "", "", "", "Approved"])
+                st.success("✅ อนุมัติและบันทึกรายงานประเมินความเสี่ยงระดับองค์กรเข้าสู่ฐานข้อมูลเรียบร้อยแล้ว!")
                 
     st.markdown("</div>", unsafe_allow_html=True)
