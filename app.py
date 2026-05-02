@@ -7,7 +7,6 @@ from datetime import datetime
 # ==========================================
 # --- 1. SETTING UP THE PAGE (ต้องอยู่บนสุดเสมอ) ---
 # ==========================================
-# 💡 หมายเหตุ: สามารถเปลี่ยน "🟢" เป็น URL รูปโลโก้ได้ เช่น page_icon="https://your-link.com/logo.png"
 st.set_page_config(page_title="Betagro Smart HRDD Toolkit", page_icon="🟢", layout="centered")
 
 # --- 2. CONNECT ENGINE ---
@@ -128,6 +127,7 @@ st.markdown("""
 
     [data-testid="stForm"], .standalone-form { background: #FFFFFF; border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.04); padding: 30px; }
     
+    /* ปุ่ม Submit */
     [data-testid="stFormSubmitButton"] > button, .stButton > button {
         background: #005B31 !important; color: #FFFFFF !important; border-radius: 10px !important;
         font-weight: 700 !important; padding: 12px 24px !important; border: none !important;
@@ -143,12 +143,60 @@ st.markdown("""
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
     .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 14px;}
     
-    /* ปรับแต่ง Label ให้ดูเนี้ยบขึ้น */
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. TOP-DOWN UI ---
+# ==========================================
+# --- 3.1 SECURITY ACCESS GATE (ระบบล็อกรหัสผ่าน) ---
+# ==========================================
+def check_password():
+    """เช็คว่าผู้ใช้กรอกรหัสผ่านถูกต้องหรือไม่"""
+    if "password_correct" not in st.session_state:
+        st.session_state["password_correct"] = False
+
+    if not st.session_state["password_correct"]:
+        # สร้างหน้าจอ Login ตรงกลาง
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            st.markdown("""
+                <div style="text-align: center; margin-top: 60px; margin-bottom: 30px;">
+                    <svg width="90" height="90" viewBox="0 0 100 100" style="margin-bottom: 15px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
+                        <circle cx="36" cy="38" r="23" fill="#005B31"/>
+                        <circle cx="64" cy="38" r="23" fill="#005B31"/>
+                        <circle cx="50" cy="62" r="23" fill="#005B31"/>
+                        <path d="M 50,42 Q 54,54 62,60 Q 50,56 38,60 Q 46,54 50,42 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <h2 style="color: #005B31; font-family: 'Poppins', sans-serif; font-weight: 800; margin: 0; font-size: 36px; letter-spacing: 2px;">BETAGRO</h2>
+                    <p style="color: #D3A129; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; font-size: 12px; margin-top: 5px;">Secure Access Only</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            with st.form("login_form"):
+                st.markdown("<h4 style='color: #005B31; text-align: center; margin-bottom: 20px; font-weight: 600;'>🔒 ระบบประเมิน HRDD อัจฉริยะ</h4>", unsafe_allow_html=True)
+                # ใส่รหัสผ่าน
+                pwd = st.text_input("Security Access Key", type="password", placeholder="Enter Password...", label_visibility="collapsed")
+                submitted = st.form_submit_button("LOGIN")
+                
+                if submitted:
+                    # ดึงรหัสจาก Secrets (ถ้ามี) ถ้าไม่มีจะใช้ Betagro@2026
+                    correct_password = st.secrets.get("APP_PASSWORD", "Betagro@2026")
+                    if pwd == correct_password:
+                        st.session_state["password_correct"] = True
+                        st.rerun()
+                    else:
+                        st.error("❌ Access Denied. รหัสผ่านไม่ถูกต้อง")
+        return False
+    return True
+
+# 🛑 หากรหัสผิด ให้หยุดการโหลดโค้ดทั้งหมดด้านล่างนี้ทันที
+if not check_password():
+    st.stop()
+
+
+# ==========================================
+# --- 4. TOP-DOWN UI (เนื้อหาหลักหลัง Login) ---
+# ==========================================
 st.markdown("""
     <div class="premium-banner">
         <div class="logo-wrapper">
@@ -243,7 +291,6 @@ if choice == "Tool 1: ประเมินสถานะองค์กร":
             sheet = connect_to_sheet()
             if sheet:
                 detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                # อัปเดตการส่งข้อมูล (เพิ่ม Audit Cycle, Dept, Gender)
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
