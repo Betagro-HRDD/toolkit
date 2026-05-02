@@ -99,6 +99,9 @@ st.markdown("""
 
     .citation-box { background-color: #FFFFFF; padding: 25px; border-left: 6px solid #DC2626; border-radius: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #F3F4F6;}
     
+    .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
+    .heat-cell { height: 50px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 14px;}
+    
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     </style>
     """, unsafe_allow_html=True)
@@ -289,28 +292,40 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence)
 elif choice == "Tool 4: บันทึกการสังเกตการณ์ (อัปเดตใหม่)":
     with st.form("form_t4"):
         st.markdown("<h3 style='color:#005B31;'>Tool 4: บันทึกการสังเกตการณ์หน้างาน (Site Observation)</h3>", unsafe_allow_html=True)
-        st.info("📌 ประเมินสิ่งที่พบเห็นจริงหน้างาน ให้เลือก 'พบ', 'ไม่พบ' หรือ 'N/A'")
+        st.info("📌 ประเมินสิ่งที่พบเห็นจริงหน้างาน และสามารถบันทึกข้อสังเกตเพิ่มเติมในแต่ละข้อได้ทันที")
         st.markdown("<hr>", unsafe_allow_html=True)
         
         o1 = st.radio("1. มีการติดประกาศนโยบายและช่องทางร้องเรียนในพื้นที่ที่พนักงานมองเห็นได้ชัดเจน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o1 = st.text_input("บันทึกเพิ่มเติมข้อ 1:", key="n1", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 1 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
         o2 = st.radio("2. ทางหนีไฟ อุปกรณ์ดับเพลิง ไม่มีสิ่งกีดขวางและพร้อมใช้งาน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o2 = st.text_input("บันทึกเพิ่มเติมข้อ 2:", key="n2", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 2 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
         o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกัน (PPE) ถูกต้อง", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 3 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
         o4 = st.radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 4 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
         o5 = st.radio("5. ตู้ยาสามัญประจำโรงงานมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
-        
-        st.markdown("<br>**📝 บันทึกข้อสังเกตเพิ่มเติม (Observation Note)**", unsafe_allow_html=True)
-        obs_detail = st.text_area("รายละเอียด (เช่น หากตอบ 'ไม่พบ' โปรดระบุปัญหา):", height=100, label_visibility="collapsed")
+        note_o5 = st.text_input("บันทึกเพิ่มเติมข้อ 5:", key="n5", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 5 (ถ้ามี)...")
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             sheet = connect_to_sheet()
             if sheet:
-                res_o1 = o1.split(" ")[1]
-                res_o2 = o2.split(" ")[1]
-                res_o3 = o3.split(" ")[1]
-                res_o4 = o4.split(" ")[1]
-                res_o5 = o5.split(" ")[1]
-                detail = f"Policy:{res_o1} | Fire:{res_o2} | PPE:{res_o3} | Env:{res_o4} | Med:{res_o5} | Note:{obs_detail}"
+                # จัดรูปแบบข้อมูลให้กระชับ เช่น พบ (บันทึกเพิ่มเติม) หรือ พบ เฉยๆถ้าไม่มีบันทึก
+                res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
+                res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
+                res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
+                res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
+                res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
+                
+                detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
@@ -319,7 +334,11 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
 # ==========================================
 elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient Rule & Gemini AI Plan)":
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: HR Risk Matrix & Gemini AI Plan</h3><p style='color:#666;'>ประเมินความเสี่ยงและให้ AI ร่างแผนบรรเทาผลกระทบเพื่อพิจารณาอนุมัติ</p><hr>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: HR Risk Matrix & Gemini AI Plan</h3>", unsafe_allow_html=True)
+    
+    # 💡 อธิบายเกณฑ์การประเมิน
+    st.info("💡 **เกณฑ์การประเมิน:** ไม่จำเป็นต้องประเมิน Tool นี้กับทุก ID แต่ให้ใช้ประเมิน **'ประเด็นปัญหา (Issue)'** เมื่อพบการร้องเรียนจาก Tool 1-4 ที่มีแนวโน้มรุนแรง หรือพบปัญหาเดิมซ้ำๆ ในหลายพื้นที่ เพื่อหามาตรการจัดการเชิงระบบ")
+    st.markdown("<hr>", unsafe_allow_html=True)
     
     # 🌟 จำลองการทำงานของ AI (Pre-fill Data)
     if st.button("✨ ให้ Gemini AI ประมวลผลและระบุความเสี่ยงอัตโนมัติ"):
@@ -369,6 +388,19 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     is_salient = "YES" if sev_max >= 4 else "NO"
     
     st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
+    
+    # 🌟 สร้าง Heat Map (สีแดง เหลือง เขียว พร้อมตำแหน่ง ★)
+    rows = ""
+    for l in range(5, 0, -1):
+        rows += "<tr>"
+        for s in range(1, 6):
+            val = s * l
+            # กำหนดเกณฑ์สี: แดง (>=16 หรือ Severity เป็น 5), เหลือง (>=8), เขียว (ที่เหลือ)
+            color = "#EF4444" if val >= 16 or s == 5 else ("#F9A818" if val >= 8 else "#005B31")
+            mark = "★" if s == sev_max and l == likelihood else ""
+            rows += f"<td class='heat-cell' style='background-color:{color}; box-shadow: inset 0 0 10px rgba(0,0,0,0.1);'>{mark}</td>"
+        rows += "</tr>"
+    st.markdown(f"<table class='heat-table'>{rows}</table><p style='text-align:center; color: #666; margin-top: 10px;'><small>แนวนอน: Severity (ความรุนแรง) | แนวตั้ง: Likelihood (โอกาสเกิด)</small></p>", unsafe_allow_html=True)
     
     # 🌟 ฟังก์ชันจำลอง Gemini AI ร่างข้อความ
     ai_drafts = {
