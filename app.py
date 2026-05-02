@@ -3,6 +3,7 @@ import pandas as pd
 from google.oauth2 import service_account
 import gspread
 from datetime import datetime, timedelta
+import altair as alt
 
 # ==========================================
 # --- 1. SETTING UP THE PAGE (ต้องอยู่บนสุดเสมอ) ---
@@ -188,7 +189,7 @@ choice = st.selectbox("เลือกแบบฟอร์มด้านล่
     "Tool 2: แบบสอบถามหน้างาน (Worker Survey)",
     "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)",
     "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)",
-    "Tool 5: ประเมินนัยสำคัญ (Salient Risk & AI Mitigation Plan)",
+    "Tool 5: ประเมินนัยสำคัญและร่างรายงาน (Salient Risk & AI Report)",
     "Tool 6: ระบบเตือนภัยล่วงหน้า (AI Triangulation & Early Warning)",
     "Tool 7: แดชบอร์ดสรุปผลภาพรวม (Executive Dashboard)"
 ], label_visibility="collapsed")
@@ -324,19 +325,22 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (อัปเดตระบบ Overwrite ใน Google Sheet) -----------------
-elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient Risk & AI Mitigation Plan)":
+# ----------------- TOOL 5 (อัปเดตเกณฑ์ และเพิ่ม Report) -----------------
+elif choice == "Tool 5: ประเมินนัยสำคัญและร่างรายงาน (Salient Risk & AI Report)":
+
+    if "approved_issues" not in st.session_state: st.session_state.approved_issues = []
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: HR Risk Matrix (Issue-Based)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>📊 ส่วนที่ 1: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)</h3>", unsafe_allow_html=True)
     
     st.markdown("""
     <div style="background: #F8FAFB; padding: 20px; border-radius: 8px; border: 1px solid #EAEAEA; margin-bottom: 20px;">
         <h5 style="color:#005B31; margin-top:0;">💡 เกณฑ์การประเมินนัยสำคัญ (Risk Criteria):</h5>
         <ul style="font-size: 14px; color: #444; margin-bottom: 0;">
-            <li><span style="color:#DC2626; font-weight:700;">🔴 วิกฤต (Critical/Salient):</span> คะแนน 16-25 <b>หรือ ความรุนแรงระดับ 5</b> (AI บังคับร่างแผนกลยุทธ์ทันที)</li>
-            <li><span style="color:#D97706; font-weight:700;">🟡 สูง (Significant):</span> คะแนน 8-15 (ต้องเฝ้าระวังและแก้ไข)</li>
-            <li><span style="color:#059669; font-weight:700;">🟢 ปานกลาง/ต่ำ (Moderate/Minor):</span> คะแนน 1-7 (ยอมรับได้ / บริหารจัดการตามปกติ)</li>
+            <li>ความร้ายแรง (Severity) ใช้ค่าสูงสุดระหว่าง: <b>Scale</b> (ขนาดผลกระทบ), <b>Scope</b> (จำนวนผู้ได้รับผลกระทบ), และ <b>Remedy</b> (ระดับความยากในการเยียวยา)</li>
+            <li><span style="color:#DC2626; font-weight:700;">🔴 วิกฤต (Critical/Salient):</span> คะแนน 16-25 <b>หรือ ความรุนแรงระดับ 5 (Zero Tolerance)</b></li>
+            <li><span style="color:#D97706; font-weight:700;">🟡 สูง (Significant):</span> คะแนน 8-15 (เฝ้าระวังและแก้ไข)</li>
+            <li><span style="color:#059669; font-weight:700;">🟢 ปานกลาง/ต่ำ (Moderate/Minor):</span> คะแนน 1-7 (บริหารจัดการตามปกติ)</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -366,12 +370,12 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     elif "เด็ก" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 1, 4, 1 # Severity = 5, Likelihood = 1
 
     col_s1, col_s2, col_s3 = st.columns(3)
-    with col_s1: scale = st.slider("Scale (ความรุนแรง)", 1, 5, def_scale)
-    with col_s2: scope = st.slider("Scope (จำนวนผู้ได้รับผลกระทบ)", 1, 5, def_scope)
-    with col_s3: remedy = st.slider("Remediability (ความยากในการเยียวยา)", 1, 5, def_remedy)
+    with col_s1: scale = st.slider("Scale (ขนาดผลกระทบ: 1 เล็กน้อย - 5 Zero Tolerance)", 1, 5, def_scale)
+    with col_s2: scope = st.slider("Scope (วงกว้าง: 1 เฉพาะบุคคล - 5 ระดับประเทศ)", 1, 5, def_scope)
+    with col_s3: remedy = st.slider("Remedy (การเยียวยา: 1 ทำได้ทันที - 5 เยียวยาไม่ได้)", 1, 5, def_remedy)
     
     sev_max = max(scale, scope, remedy)
-    likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด)", 1, 5, def_lik)
+    likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, def_lik)
     score = sev_max * likelihood
 
     is_salient = "YES" if (score >= 16 or sev_max == 5) else "NO"
@@ -410,48 +414,97 @@ elif choice == "Tool 5: ประเมินนัยสำคัญ (Salient R
     st.markdown("<br>", unsafe_allow_html=True)
     save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
     
-    # 🌟 ปุ่ม Save (ระบบจะเช็คและเขียนทับใน Google Sheet โดยอัตโนมัติ)
-    if st.button("💾 อนุมัติและบันทึกข้อมูล (Approve & Update Database)"):
+    is_already_approved = save_issue in st.session_state.approved_issues
+    button_label = "🔄 อัปเดตแผนกลยุทธ์ (Overwrite Data)" if is_already_approved else "💾 อนุมัติและบันทึกประเด็น (Approve & Update Database)"
+
+    if st.button(button_label):
         sheet = connect_to_sheet()
         if sheet:
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
             new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", resp_group, resp_dept, "N/A", save_issue, detail, sev_max, likelihood, score, is_salient]
             
-            # --- ระบบเขียนทับข้อมูลเดิม (UPSERT Logic) ---
             with st.spinner("กำลังซิงค์ข้อมูลกับฐานข้อมูล..."):
                 all_records = sheet.get_all_values()
                 row_to_update = -1
-                
-                # ค้นหาว่ามีประเด็นนี้ ในพื้นที่นี้ รอบประเมินนี้ หรือยัง (ค้นจากล่างขึ้นบน จะได้เจอล่าสุด)
                 for i in range(len(all_records)-1, -1, -1):
                     row = all_records[i]
-                    # เช็คคอลัมน์: [1]Audit Cycle, [3]Location, [4]Tool, [9]Issue
                     if len(row) >= 10 and row[1] == audit_cycle and row[3] == location and row[4] == "Tool 5" and row[9] == save_issue:
-                        row_to_update = i + 1  # Index ของ Google Sheet เริ่มที่ 1
+                        row_to_update = i + 1
                         break
                 
                 if row_to_update != -1:
-                    # ถ้าเจอของเดิม ให้อัปเดตทับบรรทัดนั้นเลย (ป้องกันข้อมูลซ้ำซ้อน)
                     try:
                         sheet.update(f"A{row_to_update}:O{row_to_update}", [new_row_data])
                         st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว (ไม่เกิดบรรทัดซ้ำในระบบ)")
                     except TypeError:
-                        # รองรับ gspread version ใหม่
                         sheet.update(values=[new_row_data], range_name=f"A{row_to_update}:O{row_to_update}")
                         st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว")
                 else:
-                    # ถ้ายังไม่เคยมี ให้เพิ่มบรรทัดใหม่
                     sheet.append_row(new_row_data)
+                    st.session_state.approved_issues.append(save_issue)
                     st.success(f"✅ **อนุมัติและบันทึกใหม่สำเร็จ:** เพิ่มประเด็น '{save_issue}' เข้าสู่ระบบเรียบร้อยแล้ว")
-            
+
+    # =========================================================
+    # 🌟 NEW SECTION: AI Report Generation (รายงานประเมินความเสี่ยง)
+    # =========================================================
+    st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ส่วนที่ 2: ร่างรายงานประเมินความเสี่ยง (Risk Assessment Report)</h3>", unsafe_allow_html=True)
+    st.info("💡 ระบบ AI จะรวบรวมประเด็นความเสี่ยงทั้งหมดที่คุณได้ประเมินในรอบนี้ มาร่างเป็น 'รายงานสรุปภาพรวมประจำปี' ให้อัตโนมัติ เพื่อนำไปใช้เป็น Strategic Roadmap")
+
+    if st.button("✨ ให้ Gemini AI ร่างรายงานประเมินความเสี่ยงอัตโนมัติ"):
+        st.session_state.ai_report_drafted = True
+
+    if st.session_state.get("ai_report_drafted", False):
+        st.markdown("""
+        <div class="gemini-draft-box">
+            <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Risk Assessment Report</h4>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ตรวจสอบ ปรับแก้ และกดอนุมัติรายงานฉบับสมบูรณ์ด้านล่าง</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        report_mockup = f"""รายงานสรุปการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRDD Report)
+รอบการประเมิน: {audit_cycle} | พื้นที่: {location}
+
+1. วัตถุประสงค์และภาพรวม
+เพื่อระบุและประเมินความเสี่ยงด้านสิทธิมนุษยชนที่อาจเกิดขึ้นตลอดห่วงโซ่คุณค่าขององค์กร พร้อมจัดทำแผนบรรเทาผลกระทบที่สอดคล้องกับมาตรฐานสากลและแนวทางขององค์กร
+
+2. เกณฑ์การประเมินความเสี่ยง (Assessment Criteria)
+อ้างอิงหลักการความร้ายแรงนำ (Severity-led Rule) โดยพิจารณาจากค่าที่สูงที่สุดระหว่าง:
+- ขนาด (Scale): ความหนักหน่วงของผลกระทบ
+- ขอบเขต (Scope): จำนวนผู้ได้รับผลกระทบ
+- การเยียวยา (Remediability): ระดับความยากในการฟื้นฟูสิทธิ
+
+3. ผลการวิเคราะห์ประเด็นที่มีนัยสำคัญ (Salient Human Rights Issues)
+พบความเสี่ยงระดับวิกฤต (Critical) จำนวน 1 ประเด็น ได้แก่:
+- [แรงงานบังคับ] พบกลุ่มแรงงานข้ามชาติถูกยึดพาสปอร์ตโดยเอเจนซี่ (Severity: 5, Likelihood: 3)
+
+4. มาตรการและการตอบสนองเชิงยุทธศาสตร์ (Strategic Roadmap)
+- การจัดการทันที (Immediate Action): สื่อสารนโยบาย EPP และสั่งการให้คืนพาสปอร์ตให้พนักงานทุกคนภายใน 24 ชม.
+- การยกระดับคู่ค้า (Supplier Engagement): จัดอบรมเอเจนซี่ และยกเลิกสัญญาหากพบการฝ่าฝืนซ้ำ
+
+5. ข้อสรุปเชิงยุทธศาสตร์
+องค์กรยังคงรักษามาตรฐาน Zero Tolerance โดยมุ่งเน้นการจัดการปัญหาเชิงรุกและให้ความสำคัญกับสิทธิของกลุ่มเปราะบางเป็นอันดับแรก
+
+6. กลไกการติดตามและประเมินผล (Monitoring & Review) [AI เสนอเพิ่ม]
+กำหนดรอบการตรวจสอบซ้ำ (Follow-up Audit) สำหรับประเด็น Salient Risk ภายใน 3 เดือน และอัปเดตสถานะการเยียวยาผ่านระบบ Dashboard ทุกไตรมาส"""
+
+        report_text = st.text_area("แก้ไขและอนุมัติรายงาน (Edit & Approve):", value=report_mockup, height=450, label_visibility="collapsed")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("💾 อนุมัติและบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Report)"):
+            sheet = connect_to_sheet()
+            if sheet:
+                # บันทึกรายงานเป็น Record พิเศษใน Sheet เพื่อให้ Dashboard ดึงไปโชว์ได้
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 5 - Report", "Annual Summary", "N/A", "N/A", "N/A", f"Report: {audit_cycle}", report_text, "", "", "", "Approved"])
+                st.success("✅ อนุมัติและบันทึกรายงานประเมินความเสี่ยงเข้าสู่ฐานข้อมูลเรียบร้อยแล้ว!")
+                
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ----------------- TOOL 6 (อัปเดต UI และ Human Approval) -----------------
+# ----------------- TOOL 6 (Early Warning System) -----------------
 elif choice == "Tool 6: ระบบเตือนภัยล่วงหน้า (AI Triangulation & Early Warning)":
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: AI Early Warning Radar</h3><p style='color:#666;'>ระบบครอสเช็คข้ามเครื่องมือแบบอัตโนมัติ พร้อมส่วนการพิจารณาโดยมนุษย์ (Human Validation)</p><hr>", unsafe_allow_html=True)
     
-    # 🌟 หน้าปัดเรดาร์สแกนหาปัญหาอัตโนมัติ
     st.markdown("""
     <div style="text-align: center; margin-bottom: 30px;">
         <div class="radar-pulse">
@@ -464,7 +517,6 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     st.markdown("#### 🚩 สัญญาณเตือน: การเรียกเก็บค่าธรรมเนียมสรรหา (Recruitment Fee)")
     st.info("🤖 **Gemini AI Triangulation:** ระบบตรวจพบข้อมูลที่ขัดแย้งกัน (Contradiction) ระหว่าง 'นโยบายฝ่ายบริหาร' และ 'คำให้การพนักงาน'")
     
-    # 🌟 ใช้ Streamlit UI แทน HTML ดิบ เพื่อป้องกันบั๊กการแสดงผลโค้ด
     c_left, c_right = st.columns(2)
     with c_left:
         st.success("📋 **ข้อมูลนโยบาย (Tool 1)**\n\nฝ่ายบริหารยืนยันว่า:\n\n*\"บริษัทใช้กลยุทธ์ Zero Recruitment Fees และออกค่าใช้จ่ายในการเดินทางให้พนักงานทั้งหมดโดยเด็ดขาด\"*")
@@ -478,7 +530,6 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     </div>
     """, unsafe_allow_html=True)
     
-    # 🌟 ส่วนการพิจารณาโดยมนุษย์ (Human Validation)
     st.markdown("<hr style='border: 1px dashed #ccc; margin: 30px 0;'>", unsafe_allow_html=True)
     st.markdown("#### ✍️ ส่วนพิจารณาโดยผู้เชี่ยวชาญ (Human Validation)")
     
