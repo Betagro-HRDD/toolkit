@@ -4,8 +4,11 @@ from google.oauth2 import service_account
 import gspread
 from datetime import datetime
 
-# --- 1. SETTING UP THE PAGE ---
-st.set_page_config(page_title="Betagro HRDD Premium Toolkit", page_icon="👑", layout="centered")
+# ==========================================
+# --- 1. SETTING UP THE PAGE (ต้องอยู่บนสุดเสมอ) ---
+# ==========================================
+# 💡 หมายเหตุ: สามารถเปลี่ยน "🟢" เป็น URL รูปโลโก้ได้ เช่น page_icon="https://your-link.com/logo.png"
+st.set_page_config(page_title="Betagro Smart HRDD Toolkit", page_icon="🟢", layout="centered")
 
 # --- 2. CONNECT ENGINE ---
 def connect_to_sheet():
@@ -22,7 +25,7 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
-# --- 3. ULTRA-PREMIUM STYLING (MODERN LUXURY) ---
+# --- 3. ULTRA-PREMIUM STYLING & HIDE STREAMLIT MENU ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
@@ -30,9 +33,16 @@ st.markdown("""
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F4F7F6; }
     
-    /* 🚫 ซ่อนเมนูระบบและไอคอนลิงก์กวนใจทั้งหมด */
-    header[data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
+    /* 🚫 ซ่อนเมนูระบบ ลายน้ำ และ Footer ของ Streamlit แบบถอนรากถอนโคน */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    [data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
     a.header-anchor { display: none !important; }
+    
+    /* 🛑 ซ่อนป้าย "Hosted with Streamlit" และลายน้ำบน Streamlit Cloud */
+    [data-testid="stDecoration"], [data-testid="stToolbar"] { display: none !important; }
+    div[class^="viewerBadge_"], .viewerBadge_container__1QSob, .styles_viewerBadge__1yB5_ { display: none !important; }
 
     /* 👑 แบนเนอร์ด้านบน (Hero Banner) */
     .premium-banner {
