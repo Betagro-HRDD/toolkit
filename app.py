@@ -328,7 +328,7 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (อัปเดตระบบ AI ร่างแผนแยกตามโซนสี) -----------------
+# ----------------- TOOL 5 -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -410,17 +410,21 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     st.markdown(f"<table class='heat-table'>{rows}</table><p style='text-align:center; color: #666; margin-top: 10px;'><small>แนวนอน: Severity | แนวตั้ง: Likelihood</small></p>", unsafe_allow_html=True)
     
     st.markdown(badge_html, unsafe_allow_html=True)
+    
+    # ทำให้กล่องข้อความเด่นชัดและมี Label ให้เห็นว่านี่คือกล่องพิมพ์ข้อความ
     st.markdown("""
     <div class="gemini-draft-box">
         <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
-        <p style="font-size: 14px; color: #666; margin-bottom: 15px;">คุณสามารถปรับแก้แผนปฏิบัติการด้านล่างก่อนกด "อนุมัติ" (หากเคยบันทึกแล้ว ระบบจะดึงข้อความล่าสุดของคุณมาแสดง)</p>
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">โปรดตรวจสอบและปรับแก้แผนปฏิบัติการด้านล่างก่อนอนุมัติ <i>(หากคุณเคยบันทึกประเด็นนี้ไว้แล้ว ระบบจะดึงข้อความแก้ไขล่าสุดของคุณมาแสดงอัตโนมัติ)</i></p>
     </div>
     """, unsafe_allow_html=True)
     
     ai_draft = ""
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
+        # หากดึงจากที่เคย Approve แล้ว
         ai_draft = st.session_state.saved_plans_dict[save_issue]['plan']
     else:
+        # ให้ AI ร่างใหม่ตามโซนสี
         if risk_zone == "GREEN":
             ai_draft = "Maintenance Plan (แผนคงสภาพ):\n- Monitoring: ระดับความเสี่ยงปกติ ให้ทำการตรวจสอบซ้ำและติดตามผลตามวงรอบอย่างน้อยปีละ 1 ครั้ง เพื่อให้มั่นใจว่าคู่ค้ายังรักษามาตรฐานสีเขียวไว้ได้ตลอดไป"
         elif risk_zone == "YELLOW":
@@ -432,7 +436,9 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             elif "เด็ก" in selected_issue: ai_draft = "Preventive: ตรวจสอบบัตร ปชช. ต้นทางร่วมกับ Supplier อย่างเข้มงวด (Zero Tolerance)\nRemediation: โยกย้ายพนักงานอายุต่ำกว่า 18 ปีออกจากงานอันตรายทันที พร้อมจ่ายค่าชดเชยตามกฎหมาย"
             else: ai_draft = "Preventive: [ระบุมาตรการป้องกันเชิงระบบ]\nRemediation: [ระบุมาตรการเยียวยาผู้ได้รับผลกระทบเร่งด่วน]"
 
-    plan_text = st.text_area("กล่องข้อความปรับแก้ (Edit & Approve):", value=ai_draft, height=140, label_visibility="collapsed")
+    # ใช้ Label ให้อ่านชัดเจน แทนการ collapse
+    st.markdown("**✍️ แผนการจัดการความเสี่ยง (Mitigation & Remediation Plan):**")
+    plan_text = st.text_area("แผนการจัดการ", value=ai_draft, height=150, label_visibility="collapsed")
 
     st.markdown("<br>", unsafe_allow_html=True)
     
@@ -521,7 +527,6 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
             detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
             sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", "Issue-Based", "N/A", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
             
-            # บันทึกสถานะ Tool 6 เอาไว้ให้ Tool 7 ดึงไปออกรายงาน
             st.session_state.early_warning_approved = True if "ยืนยัน" in t6_decision else False
             st.session_state.early_warning_note = t6_note
             
@@ -591,7 +596,6 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         </div>
         """, unsafe_allow_html=True)
 
-        # 💡 LOGIC สร้าง Report อัตโนมัติตามประเด็นจริงในระบบ
         issue_list_text = ""
         action_list_text = ""
         saved_dict = st.session_state.get("saved_plans_dict", {})
@@ -607,7 +611,6 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
             issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5)\n"
             action_list_text = "- (ข้อมูลว่างเปล่า: โปรดระบุมาตรการตอบสนองเชิงระบบใน Tool 5)\n"
 
-        # 💡 ข้อมูล Early Warning ดึงจากสถานะ Tool 6
         early_warning_text = ""
         if st.session_state.get("early_warning_approved", False):
             ew_note = st.session_state.get("early_warning_note", "ให้ทีมสอบสวนลงพื้นที่ตรวจสอบข้อเท็จจริงในห่วงโซ่อุปทานต้นน้ำ")
@@ -619,7 +622,6 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
             early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
 
-        # 💡 สร้าง Report ฉบับสมบูรณ์ (ลึกซึ้งและมีความเป็นที่ปรึกษาองค์กร)
         report_mockup = f"""รายงานการประเมินและการบริหารจัดการความเสี่ยงด้านสิทธิมนุษยชนอย่างรอบด้าน (Comprehensive HRDD Report)
 รอบการประเมิน: {audit_cycle}
 ขอบเขตพื้นที่: ภาพรวมระดับองค์กรและห่วงโซ่อุปทาน (Corporate & Value Chain Overview)
@@ -649,7 +651,8 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
 - ระยะสั้น (Short-term): สั่งการให้หน่วยงาน Audit ติดตามผลสัมฤทธิ์ของมาตรการเชิงรุก (Preventive) ภายใน 3 เดือน
 - ระยะยาว (Long-term): ทบทวนนโยบายและประเมินสภาวะแวดล้อมใหม่ประจำปี (Annual Review) พร้อมบูรณาการกระบวนการรับฟังเสียงจากผู้มีส่วนได้เสีย (Stakeholder Inclusivity) อย่างต่อเนื่อง"""
 
-        report_text = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=700, label_visibility="collapsed")
+        st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานก่อนการอนุมัติขั้นสุดท้าย:**")
+        report_text = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=600, label_visibility="collapsed")
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
