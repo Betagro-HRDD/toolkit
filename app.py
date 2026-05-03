@@ -26,15 +26,16 @@ def connect_to_sheet():
         return None
 
 # --- ฟังก์ชันตรวจสอบรหัสซ้ำ (Consistency Check) ---
-def check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
+# 💡 อัปเกรด: เช็คแยกตามพื้นที่ (Location) รหัส 001 ในสระบุรี จะไม่ชนกับ 001 ในลพบุรี
+def check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
     if not resp_id or resp_id.strip() == "": 
         return False
     all_records = sheet.get_all_values()
     for row in all_records:
-        # เช็คคอลัมน์ [5]=ID, [6]=Group, [7]=Dept, [8]=Gender
-        if len(row) > 8 and row[5] == resp_id:
+        # เช็คคอลัมน์ [3]=Location, [5]=ID, [6]=Group, [7]=Dept, [8]=Gender
+        if len(row) > 8 and row[3] == location and row[5] == resp_id:
             if row[6] != resp_group or row[7] != resp_dept or row[8] != resp_gender:
-                return True # ขัดแย้ง! รหัสซ้ำแต่ข้อมูลบุคคลไม่ตรงกัน
+                return True # ขัดแย้ง! รหัสซ้ำในพื้นที่เดียวกัน แต่ข้อมูลบุคคลไม่ตรงกัน
     return False # ผ่าน! รหัสใหม่ หรือ รหัสเดิมแต่เป็นคนเดียวกัน
 
 # --- ฟังก์ชันคำนวณสีไล่เฉดสี Heat Map (Gradient) ---
@@ -183,19 +184,28 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="control-panel">', unsafe_allow_html=True)
+
+# --- ส่วนที่ 1: ข้อมูลโครงการ (ผู้ทำหน้าที่ออดิท) ---
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-folder-open'></i> 1. ข้อมูลโครงการ (Project Info)</h4>", unsafe_allow_html=True)
-col_p1, col_p2, col_p3 = st.columns(3)
+col_p1, col_p2 = st.columns(2)
 with col_p1: audit_cycle = st.selectbox("รอบการประเมิน (Audit Cycle) *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
 with col_p2: auditor_name = st.text_input("ชื่อผู้บันทึกข้อมูล (Auditor) *", placeholder="เช่น สมชาย ใจดี")
-with col_p3: location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น โรงงานลพบุรี")
 
+# --- ส่วนที่ 2: ข้อมูลพื้นที่และผู้ให้ข้อมูล (จัดกลุ่มใหม่ตามหลักสถาปัตยกรรมข้อมูล) ---
 st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลผู้ให้ข้อมูล (Respondent Info)</h4>", unsafe_allow_html=True)
-col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002")
-with col_r2: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
-with col_r3: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
-with col_r4: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลพื้นที่และผู้ให้ข้อมูล (Location & Respondent)</h4>", unsafe_allow_html=True)
+
+col_r_loc, col_r_id = st.columns([2, 1])
+with col_r_loc: 
+    location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี (อาคาร B)")
+    st.caption("📍 ระบุชื่อหน่วยงาน/โซนให้ชัดเจน (ตามหลัก PDPA ห้ามระบุที่อยู่ส่วนบุคคล)")
+with col_r_id: 
+    resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002")
+
+col_r1, col_r2, col_r3 = st.columns(3)
+with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
+with col_r2: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
+with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-screwdriver-wrench'></i> 3. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
@@ -211,16 +221,14 @@ choice = st.selectbox("เลือกแบบฟอร์มด้านล่
 st.markdown('</div>', unsafe_allow_html=True)
 
 if not auditor_name or not location:
-    st.info("📌 กรุณาระบุข้อมูล **ชื่อผู้บันทึก** และ **พื้นที่สำรวจ** ให้ครบถ้วน เพื่อเริ่มใช้งานระบบ")
+    st.info("📌 กรุณาระบุข้อมูล **ชื่อผู้บันทึก** และ **พื้นที่สำรวจ** ด้านบนให้ครบถ้วน เพื่อเริ่มใช้งานระบบ")
     st.stop()
 
-# อัปเดตเวลาให้ตรงกับประเทศไทย (UTC+7)
 now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
 
 # ==========================================
 # --- 5. EARLY VALIDATION & ENGINE CONNECTION ---
 # ==========================================
-# โหลดข้อมูล Google Sheet เพียงครั้งเดียวเพื่อความรวดเร็วและใช้ตรวจรหัสซ้ำ
 sheet = connect_to_sheet()
 
 is_tool_1_to_4 = choice.startswith("Tool 1") or choice.startswith("Tool 2") or choice.startswith("Tool 3") or choice.startswith("Tool 4")
@@ -231,11 +239,11 @@ if is_tool_1_to_4:
         st.stop()
     elif sheet:
         with st.spinner("กำลังตรวจสอบความถูกต้องของรหัสอ้างอิง..."):
-            # 💡 ระบบเช็ครหัสซ้ำทันที (Fail Fast) โดยไม่ต้องรอให้ทำแบบฟอร์มจนเสร็จ!
-            if check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
-                st.error(f"❌ ไม่อนุญาตให้ทำรายการ: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น!")
+            # 💡 ระบบเช็ครหัสซ้ำทันที (Fail Fast) พร้อมแนบ Location เข้าไปในการเช็คด้วย
+            if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                st.error(f"❌ ไม่อนุญาตให้ทำรายการ: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น!")
                 st.info("💡 **สาเหตุ:** กลุ่มเป้าหมาย, แผนก หรือ เพศ ไม่ตรงกับข้อมูลเดิมในฐานข้อมูล\n\n**คำแนะนำ:** กรุณาเปลี่ยนรหัสอ้างอิงใหม่ หรือแก้ไขข้อมูลด้านบนให้ตรงกับบุคคลเดิมก่อน")
-                st.stop() # หยุดการทำงานตรงนี้เลย จะไม่แสดงแบบสอบถาม
+                st.stop() 
 
 # ==========================================
 # --- 6. TOOLS LOGIC ---
@@ -263,9 +271,12 @@ if choice == "Tool 1: ประเมินสถานะองค์กร (Go
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             if sheet:
-                detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
-                st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                else:
+                    detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
+                    st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 # ----------------- TOOL 2 -----------------
 elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker Survey)":
@@ -293,9 +304,12 @@ elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             if sheet:
-                detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
-                st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                else:
+                    detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
+                    st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 # ----------------- TOOL 3 -----------------
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)":
@@ -310,8 +324,11 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
-                st.success("✅ บันทึกหลักฐานสำเร็จ")
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                else:
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
+                    st.success("✅ บันทึกหลักฐานสำเร็จ")
 
 # ----------------- TOOL 4 -----------------
 elif choice == "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)":
@@ -342,15 +359,18 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             if sheet:
-                res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
-                res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
-                res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
-                res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
-                res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
-                
-                detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
-                st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                else:
+                    res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
+                    res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
+                    res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
+                    res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
+                    res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
+                    
+                    detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
+                    st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
 # ----------------- TOOL 5 -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
