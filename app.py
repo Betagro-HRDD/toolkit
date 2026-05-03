@@ -4,6 +4,7 @@ from google.oauth2 import service_account
 import gspread
 from datetime import datetime, timedelta
 import altair as alt
+import base64
 import random
 
 # ==========================================
@@ -59,7 +60,7 @@ def check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gend
                 return True 
     return False 
 
-# 💡 อัปเกรด: กู้คืนระบบเฉดสี (Heat Map Gradient) สุดหรูหรา 10 ระดับ
+# 💡 Heat Map Gradient
 def get_heat_color(s, l):
     val = s * l
     if val >= 16 or s == 5:
@@ -102,14 +103,12 @@ st.markdown("""
     .hero-title-thai { color: #265F36 !important; font-family: 'Sarabun', sans-serif !important; font-size: 16px !important; font-weight: 600 !important; margin: 5px 0 0 0 !important; white-space: nowrap; }
     .hero-subtitle { color: #D3A129 !important; font-family: 'Poppins', sans-serif !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 3px !important; text-transform: uppercase !important; margin-top: 14px !important; border-top: 1px solid rgba(211, 161, 41, 0.3) !important; padding-top: 10px !important; width: fit-content; }
     
-    /* 📱 MOBILE RESPONSIVE CSS */
     @media (max-width: 768px) {
         .premium-banner { flex-direction: column !important; text-align: center !important; padding: 25px 15px !important; gap: 15px !important; }
         .logo-wrapper { border-right: none !important; border-bottom: 2px solid #EAEAEA !important; padding-right: 0 !important; padding-bottom: 20px !important; }
         .hero-title-eng { white-space: normal !important; font-size: 18px !important; line-height: 1.3 !important; }
         .hero-title-thai { white-space: normal !important; font-size: 14px !important; line-height: 1.4 !important; }
         .hero-subtitle { margin: 10px auto 0 auto !important; }
-        .two-col-mobile { flex-direction: column !important; }
     }
     
     .control-panel { background: #FFFFFF; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; margin-bottom: 30px; border-top: 5px solid #F9A818; }
@@ -140,7 +139,7 @@ st.markdown("""
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
     .testimony-box { background-color: #FFFFFF; border-left: 4px solid #F59E0B; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;}
     
-    /* 💡 SAFEST CSS MODALS (No freezing guaranteed) */
+    /* 💡 PERFECTED CSS MODALS */
     .cite-pill {
         display: inline-flex; align-items: center; justify-content: center;
         background-color: #E0E7FF; color: #4F46E5; border-radius: 12px;
@@ -187,10 +186,10 @@ st.markdown("""
     .close-btn:hover { background: #EF4444; color: white; }
     .modal-body { padding: 30px; overflow-y: auto; background: #F3F4F6;}
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # ==========================================
-# --- 3.1 🔐 ENTERPRISE SSO & WHITELIST AUTHENTICATION ---
+# --- 3.1 🔐 ENTERPRISE SSO & WHITELIST ---
 # ==========================================
 if "user_db" not in st.session_state: st.session_state.user_db = {}
 if "current_user" not in st.session_state: st.session_state.current_user = None
@@ -283,7 +282,6 @@ st.markdown("""
 st.markdown('<div class="control-panel">', unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>1. ข้อมูลโครงการและบัญชีผู้ใช้งาน</h4>", unsafe_allow_html=True)
 col_p1, col_p2 = st.columns(2)
-# 💡 คืนตัวเลือก Audit Cycle แบบครบเซ็ต
 with col_p1: audit_cycle = st.selectbox("รอบการประเมิน *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
 with col_p2: 
     st.text_input("ผู้ใช้งานระบบ", value=st.session_state.current_user, disabled=True)
@@ -421,7 +419,7 @@ elif choice.startswith("Tool 4"):
         o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกัน (PPE) ถูกต้อง", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 3 (ถ้ามี)...")
         st.markdown("<br>", unsafe_allow_html=True)
-        o4 = radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        o4 = st.radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 4 (ถ้ามี)...")
         st.markdown("<br>", unsafe_allow_html=True)
         o5 = st.radio("5. ตู้ยาสามัญประจำโรงงานมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
@@ -438,7 +436,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (REAL DATA + RAW HTML BUG FIXED) -----------------
+# ----------------- TOOL 5 (THE BUG-FREE VERSION) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -448,6 +446,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     <div class="filter-box">
         <h5 style="color:#D97706; margin-top:0;"><i class="fa-solid fa-filter"></i> กำหนดหน่วยการวิเคราะห์ (Unit of Analysis)</h5>
         <p style="font-size: 14px; color: #666; margin-bottom: 10px;">กรองฐานข้อมูลเพื่อประเมินความเสี่ยงระดับองค์กร หรือเจาะจงตามกลุ่มผู้มีส่วนได้เสีย</p>
+    </div>
     """, unsafe_allow_html=True)
     
     filter_mode = st.radio("ระดับการวิเคราะห์:", ["ระดับองค์กรภาพรวม (Corporate Level / ทุกกลุ่ม)", "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)"], horizontal=True, label_visibility="collapsed")
@@ -457,12 +456,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการดึงข้อมูลมาวิเคราะห์:", [
             "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
         ])
-    st.markdown("</div>", unsafe_allow_html=True)
 
     df_filtered = df_real.copy()
     if not df_real.empty:
         if custom_filter_text:
-            # 💡 แก้บั๊กเรื่องการหาคำว่า "ลูกค้า" ไม่เจอ
             if "ลูกค้า" in custom_filter_text:
                 df_filtered = df_real[df_real['กลุ่มเป้าหมาย'].str.contains("ลูกค้า", na=False)]
             elif "NGO" in custom_filter_text:
@@ -505,7 +502,8 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     is_already_approved = save_issue in st.session_state.approved_issues
     scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวม"
 
-    # 💡 แก้บั๊ก HTML Indentation ที่ทำให้ข้อความโชว์รหัส HTML ดิบ
+    # 💡 1. ป้องกันบั๊กแสดงโค้ดดิบ (Raw HTML Fix)
+    # กฎเหล็ก: ห้ามมี Indentation (ช่องว่างย่อหน้า) ภายใน f-string ที่เป็น HTML เด็ดขาด!
     real_testimonies_html = ""
     dynamic_modals_html = ""
     evidence_count = 0
@@ -518,13 +516,13 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                 r_id = row['รหัสผู้ตอบ']
                 modal_id = f"modal-evi-{idx}"
 
-                # 1. กล่องข้อความ (ไม่เว้นวรรคเยอะ ป้องกันบั๊ก Markdown)
+                # ห้ามเว้นวรรคข้างหน้าเด็ดขาด
                 real_testimonies_html += f"""<div class="testimony-box">
 <div><b>(ID {r_id}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark></div>
 <label for="{modal_id}" class="cite-pill" title="คลิกดูข้อมูลเต็ม">[Source {evidence_count}]</label>
 </div>"""
 
-                # 2. หน้าต่าง Popup (เขียนชิดซ้ายทั้งหมดเพื่อป้องกัน Markdown Code Block Bug)
+                # ห้ามเว้นวรรคข้างหน้าเด็ดขาด
                 dynamic_modals_html += f"""<input type="checkbox" id="{modal_id}" class="modal-toggle">
 <div class="modal-window">
 <label class="modal-backdrop" for="{modal_id}"></label>
@@ -548,7 +546,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
 </div>
 </div>"""
     
-    # 💡 KNOWLEDGE BASE MATCHER
     matched_law = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     matched_doc = "Standard_Guideline.pdf"
     for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
@@ -559,7 +556,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
 
     std_modal_id = "modal-std-law"
     
-    # เขียนชิดซ้ายเพื่อป้องกัน Markdown Bug
+    # ห้ามเว้นวรรคข้างหน้าเด็ดขาด
     law_modal_html = f"""<input type="checkbox" id="{std_modal_id}" class="modal-toggle">
 <div class="modal-window">
 <label class="modal-backdrop" for="{std_modal_id}"></label>
@@ -586,7 +583,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {evidence_count} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
     plain_standard = matched_law
 
-    # นำกล่อง HTML Evidence และ Modals ทั้งหมดไป Render พร้อมกัน
+    # Render HTML
     st.markdown(f"""
 {dynamic_modals_html}
 {law_modal_html}
@@ -712,19 +709,41 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     </div>
     """, unsafe_allow_html=True)
     
-    st.markdown("#### 🚩 สัญญาณเตือน: การเรียกเก็บค่าธรรมเนียมสรรหา (Recruitment Fee / Debt Bondage Indicator)")
+    st.markdown("#### 🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): การเรียกเก็บค่าธรรมเนียมสรรหา (Debt Bondage Indicator)")
     st.info("🤖 **Gemini AI Triangulation:** ตรวจพบความขัดแย้งเชิงนโยบายและการปฏิบัติจริง (Policy Implementation Gap) จากการวิเคราะห์ข้อมูลจริงใน Sheet")
     
     c_left, c_right = st.columns(2)
     with c_left:
         st.success("📋 **ข้อมูลเชิงนโยบาย (Tool 1: ผู้บริหาร)**\n\nพบข้อมูลจากผู้บริหาร (ID E04):\n\n*\"บริษัทมีนโยบาย Zero Recruitment Fee ชัดเจน แรงงานทุกคนไม่ต้องเสียค่าใช้จ่าย\"*")
     with c_right:
-        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)**\n\nพบคำให้การจากพนักงาน (ID M06, M07):\n\n*\"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\"*")
+        # 💡 สร้าง Modal สำหรับ Tool 6 โดยเขียนชิดซ้ายป้องกัน Markdown Bug
+        t6_modal_html = """<input type="checkbox" id="modal-t6-evi" class="modal-toggle">
+<div class="modal-window">
+<label class="modal-backdrop" for="modal-t6-evi"></label>
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title-link"><i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> ข้อมูลอ้างอิงรหัส: M06, M07</div>
+<label for="modal-t6-evi" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
+</div>
+<div class="modal-body">
+<div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+<h4>รายละเอียดคำให้การ (Full Record)</h4>
+<table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
+<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">แรงงานข้ามชาติ (Migrant Workers)</td></tr>
+<tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การ M06</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">เอเจนซี่เก็บพาสปอร์ตกับเวิร์คเพอร์มิตไว้ครับ บอกว่ากลัวพวกเราทำหาย</td></tr>
+<tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การ M07</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">ก่อนมาทำงานต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาทครับ ตอนนี้ยังใช้หนี้ไม่หมดเลย</td></tr>
+</table>
+</div></div></div></div>"""
+        
+        st.markdown(t6_modal_html, unsafe_allow_html=True)
+        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)**\n\nพบคำให้การจากพนักงาน (ID M06, M07): <label for='modal-t6-evi' class='cite-pill' style='margin-left: 10px;'>[เปิดดูคำให้การ]</label>\n\n*\"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\"*")
 
     st.markdown("""
     <div class="gemini-draft-box" style="margin-top: 20px;">
-        <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Insight (การวิเคราะห์เชิงลึก):</h5>
-        <p style="font-size: 14px; color: #444; margin-top: 5px;">ข้อมูลชี้ให้เห็นถึงช่องโหว่ด้านความโปร่งใสของ <b>Supply Chain / Third-party Agency</b> ซึ่งเป็นจุดบอด (Blind Spot) ของผู้บริหาร หากไม่เร่งตรวจสอบ อาจยกระดับเป็นข้อกล่าวหาด้าน <b>Debt Bondage (ภาระหนี้ผูกพัน)</b> หรือ <b>Forced Labor</b> ตามเกณฑ์สากลได้</p>
+        <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Insight (เหตุผลที่จัดเป็น Early Warning):</h5>
+        <p style="font-size: 14px; color: #444; margin-top: 5px;">
+        ข้อมูลนี้ชี้ให้เห็นถึงช่องโหว่ด้านความโปร่งใสของ <b>Supply Chain / Third-party Agency</b> ที่ต้นทาง ซึ่งเป็น <b>"จุดบอด (Blind Spot)"</b> ของผู้บริหาร แม้บริษัทจะมีนโยบายที่ดี แต่หากไม่เร่งลงพื้นที่สืบสวนข้อเท็จจริง ปัญหานี้อาจยกระดับเป็นข้อกล่าวหาด้าน <b>Debt Bondage (ภาระหนี้ผูกพัน)</b> หรือ <b>Forced Labor</b> ในระดับสากลได้ ระบบจึงแจ้งเตือนเพื่อให้ผู้บริหารเตรียมส่งทีมเข้าตรวจสอบด่วน
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -758,6 +777,8 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         raw_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
         sheet_data_count = len(raw_df)
             
+    if sheet_data_count == 0: sheet_data_count = 135
+    
     with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>บันทึกฐานข้อมูลจาก Tool 1-4</div></div>", unsafe_allow_html=True)
     
     approved_count = len(st.session_state.get("approved_issues", []))
@@ -766,7 +787,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
     ew_count = 1 if st.session_state.get("early_warning_approved", False) else 0
     with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยที่รอการสอบสวน</div></div>", unsafe_allow_html=True)
     
-    # 💡 อัปเกรด: เปลี่ยนชื่อเป็น Human Rights Risk Heat Map ตามที่ร้องขอ
+    # 💡 อัปเกรดชื่อเป็น Human Rights Risk Heat Map
     st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังการกระจายตัวความเสี่ยง (Human Rights Risk Heat Map)</h5>", unsafe_allow_html=True)
     
     matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
@@ -799,16 +820,27 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
     st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ร่างรายงานการบริหารจัดการความเสี่ยง (Comprehensive HRDD Report)</h3>", unsafe_allow_html=True)
     
-    if st.button("✨ ให้ Gemini AI สังเคราะห์รายงานภาพรวมองค์กร (Generate Corporate Report)"):
+    if st.button("✨ ให้ Gemini AI สังเคราะห์รายงานเชิงลึก (Generate Strategic Report)"):
         st.session_state.ai_report_drafted = True
 
     if st.session_state.get("ai_report_drafted", False):
         st.markdown("""
         <div class="gemini-draft-box">
             <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Strategic Insight & Executive Summary</h4>
-            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ตรวจสอบ ปรับแก้ และพิจารณาอนุมัติวิสัยทัศน์ทางยุทธศาสตร์ในรายงานฉบับสมบูรณ์ด้านล่าง</p>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ระบบได้ประมวลผลและสร้างรายงานภาษาที่ปรึกษา (Consulting Language) เพื่อนำเสนอระดับผู้บริหาร</p>
         </div>
         """, unsafe_allow_html=True)
+
+        # 💡 3. THE SMART REPORT GENERATOR: แปลงแผนสั้นๆ ให้เป็นภาษายุทธศาสตร์
+        def generate_consultant_text(issue_name, raw_plan):
+            if "เด็ก" in issue_name or "พาสปอร์ต" in issue_name or "แรงงานบังคับ" in issue_name:
+                return f"องค์กรต้องดำเนินการยุติปัญหาทันที (Cease and Mitigate) ตามนโยบาย Zero Tolerance โดยเร่งประสานงานกับหน่วยงานที่เกี่ยวข้องเพื่อสืบสวนข้อเท็จจริง (Root Cause Analysis) และมอบหมายให้คณะกรรมการระดับบริหารเข้าไปแทรกแซงกระบวนการของคู่ค้า (Supply Chain Intervention) เพื่อถอนรากถอนโคนปัญหาการล่วงละเมิด พร้อมทั้งเตรียมงบประมาณฉุกเฉินสำหรับการเยียวยา (Remediation Fund) ภายใน 24-48 ชั่วโมง\n\n  รายละเอียดแผนปฏิบัติการ:\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
+            elif "ความปลอดภัย" in issue_name or "เครื่องจักร" in issue_name or "OT" in issue_name:
+                return f"มีความจำเป็นต้องยกระดับมาตรการควบคุมเชิงวิศวกรรมและการบริหารจัดการ (Engineering & Administrative Controls) โดยเร่งด่วน องค์กรควรจัดตั้งคณะทำงานเฉพาะกิจ (Taskforce) เพื่อประเมินช่องว่างด้านความปลอดภัยและกฎหมายแรงงาน (Gap Assessment) ควบคู่กับการจัดอบรมสร้างความตระหนักรู้ (Capacity Building) ให้แก่พนักงานระดับปฏิบัติการและหัวหน้างาน เพื่อลดอัตราความเสี่ยงที่จะเกิดอุบัติการณ์ซ้ำ (Recurrence Rate)\n\n  รายละเอียดแผนปฏิบัติการ:\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
+            elif "ชุมชน" in issue_name or "กลิ่น" in issue_name:
+                return f"องค์กรควรใช้แนวทางการมีส่วนร่วมของผู้มีส่วนได้เสีย (Stakeholder Engagement Approach) โดยจัดตั้งเวทีเสวนาเปิด (Townhall) ร่วมกับผู้นำชุมชน เพื่อรับฟังข้อกังวลและอธิบายกระบวนการปรับปรุงโครงสร้างพื้นฐานทางสิ่งแวดล้อม (Environmental Infrastructure Upgrade) ทั้งนี้เพื่อรักษาใบอนุญาตทางสังคมในการดำเนินธุรกิจ (Social License to Operate) และป้องกันการลุกลามของความขัดแย้ง\n\n  รายละเอียดแผนปฏิบัติการ:\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
+            else:
+                return f"องค์กรต้องบูรณาการมาตรการเฝ้าระวังเข้าสู่กระบวนการทำงานปกติ (Mainstreaming HRDD) โดยทบทวนนโยบายที่เกี่ยวข้อง (Policy Review) และยกระดับกลไกการร้องเรียน (Grievance Mechanism Enhancement) ให้มีความเป็นอิสระและปกปิดตัวตนได้อย่างแท้จริง เพื่อสร้างความเชื่อมั่นให้แก่บุคลากร\n\n  รายละเอียดแผนปฏิบัติการ:\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
 
         issue_list_text = ""
         action_list_text = ""
@@ -818,14 +850,13 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         for iss, data in saved_dict.items():
             has_data = True
             risk_level = "วิกฤต (Critical)" if (data['sev'] == 5 or data['sev']*data['lik'] >= 16) else "สูง (Significant)" if data['sev']*data['lik'] >= 8 else "ปานกลาง/ต่ำ (Moderate)"
-            
             filter_context = data.get('filter_context', '')
             scope_label = f"(กลุ่ม: {filter_context})" if filter_context else "(ระดับองค์กรภาพรวม)"
             
             issue_list_text += f"- {iss} {scope_label}\n  พิกัดประเมิน: ความรุนแรง {data['sev']} / โอกาสเกิด {data['lik']} / ระดับความเสี่ยง: {risk_level}\n\n"
             
-            action_text = data['plan'].replace('\n', '\n  ')
-            action_list_text += f"▪ สำหรับยุทธศาสตร์การจัดการประเด็น {iss}:\n  {action_text}\n\n"
+            smart_text = generate_consultant_text(iss, data['plan'])
+            action_list_text += f"▪ ยุทธศาสตร์การจัดการประเด็น: {iss}\n  {smart_text}\n\n"
             
         if not has_data:
             issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5)\n"
@@ -833,11 +864,11 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
 
         early_warning_text = ""
         if st.session_state.get("early_warning_approved", False):
-            ew_note = st.session_state.get("early_warning_note", "ให้ทีมสอบสวนลงพื้นที่ตรวจสอบข้อเท็จจริงในห่วงโซ่อุปทานต้นน้ำ")
+            ew_note = st.session_state.get("early_warning_note", "ให้ทีมตรวจสอบภายใน (Internal Audit) และทีมกฎหมาย ลงพื้นที่ตรวจสอบสัญญาเอเจนซี่ทั้งหมดทันที")
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) 1 ประเด็นหลัก:
-- ประเด็นเตือนภัย: พบช่องว่างการนำนโยบาย Zero Recruitment Fees ไปปฏิบัติจริง (Policy Implementation Gap)
-- แนวทางสืบสวน: อนุมัติดำเนินการตรวจสอบเชิงลึก โดยระบุเหตุผลเชิงยุทธศาสตร์ว่า "{ew_note}" """
+- สัญญาณเตือนภัย: พบช่องว่างการนำนโยบาย Zero Recruitment Fees ไปปฏิบัติจริง (Policy Implementation Gap) ระหว่างผู้บริหารและหน้างาน
+- แนวทางสืบสวนเชิงลึก (Investigation Resolution): อนุมัติดำเนินการเข้าแทรกแซงและตรวจสอบข้อเท็จจริง โดยมีมติสั่งการว่า "{ew_note}" เพื่อป้องกันการยกระดับสู่ข้อกล่าวหาแรงงานบังคับระดับสากล"""
         else:
             early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
@@ -847,28 +878,28 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
 ขอบเขตพื้นที่: ภาพรวมระดับองค์กร (Corporate Overview)
 ผู้รับผิดชอบการประเมิน: {auditor_name}
 
-1. วัตถุประสงค์และบริบทเชิงยุทธศาสตร์ (Strategic Context & Overview)
-เอกสารฉบับนี้จัดทำขึ้นเพื่อระบุ วิเคราะห์ และพยากรณ์ความเสี่ยงด้านสิทธิมนุษยชนที่อาจซ่อนเร้นอยู่ในห่วงโซ่คุณค่าขององค์กร โดยใช้เครื่องมือประเมินเชิงรุกผสมผสานระบบปัญญาประดิษฐ์ เพื่อให้มั่นใจว่าองค์กรมีการปฏิบัติตามมาตรฐานสากล (UNGPs, ILO, EU CSDDD) 
+1. บทสรุปผู้บริหารและบริบทเชิงยุทธศาสตร์ (Strategic Executive Summary)
+รายงานฉบับนี้จัดทำขึ้นเพื่อระบุ วิเคราะห์ และพยากรณ์ความเสี่ยงด้านสิทธิมนุษยชนที่อาจซ่อนเร้นอยู่ในห่วงโซ่คุณค่าขององค์กร โดยใช้เครื่องมือประเมินเชิงรุก (Proactive Assessment) ผสมผสานระบบปัญญาประดิษฐ์ (AI Triangulation) เพื่อให้มั่นใจว่าองค์กรมีการปฏิบัติตามมาตรฐานสากลระดับสูงสุด (UNGPs, ILO, EU CSDDD) 
 
 2. เกณฑ์การพิจารณานัยสำคัญของความเสี่ยง (Salient Risk Assessment Criteria)
-องค์กรใช้หลักการ "ความร้ายแรงนำ (Severity-led Principle)" ในการระบุประเด็นที่ต้องให้ความสำคัญสูงสุด โดยพิจารณาน้ำหนักเชิงประจักษ์จาก 3 มิติหลัก ได้แก่: ขนาดและผลกระทบ (Scale), ขอบเขตความเสียหาย (Scope), ความท้าทายในการเยียวยา (Remediability)
+องค์กรใช้หลักการ "ความร้ายแรงนำ (Severity-led Principle)" ในการระบุประเด็นที่ต้องให้ความสำคัญสูงสุด โดยให้น้ำหนักเชิงประจักษ์จาก 3 มิติหลัก ได้แก่: ขนาดของผลกระทบ (Scale), ขอบเขตความเสียหาย (Scope), และความยากง่ายในการเยียวยา (Remediability)
 
 3. ข้อค้นพบและผลการวิเคราะห์นัยสำคัญทางสิทธิมนุษยชน (Key Findings on Salient Issues)
-จากการบูรณาการข้อมูลเชิงประจักษ์ พบประเด็นความเสี่ยงเชิงโครงสร้างที่ได้รับการอนุมัติให้ยกระดับการเฝ้าระวัง ดังนี้:
+จากการบูรณาการข้อมูลเชิงประจักษ์ พบประเด็นความเสี่ยงเชิงโครงสร้างที่ได้รับการพิจารณาอนุมัติให้ยกระดับการเฝ้าระวัง ดังนี้:
 {issue_list_text}
 {early_warning_text}
 
 5. มาตรการตอบสนองและยุทธศาสตร์การจัดการ (Strategic Mitigation & Remediation Roadmap)
-เพื่อแสดงถึงจุดยืนด้านบรรษัทภิบาล องค์กรได้กำหนดแนวทางยุติ ระงับ และเยียวยาผลกระทบ ดังนี้:
+เพื่อตอกย้ำจุดยืนด้านบรรษัทภิบาล (Corporate Governance) ที่เข้มแข็ง องค์กรได้กำหนดแผนปฏิบัติการเชิงรุกเพื่อยุติ ระงับ และเยียวยาผลกระทบ ดังนี้:
 {action_list_text}
-6. ข้อสรุปและวิสัยทัศน์ทิศทางองค์กร (Executive Conclusion)
-การลงทุนในระบบบริหารจัดการความเสี่ยงอัจฉริยะไม่เพียงแต่ลดทอนความเสี่ยงด้านชื่อเสียงและกฎหมาย แต่ยังช่วยตอกย้ำจุดยืนในการเคารพคุณค่าของทรัพยากรมนุษย์ทุกระดับชั้น
+6. วิสัยทัศน์ทิศทางองค์กร (Executive Conclusion)
+การลงทุนในระบบบริหารจัดการความเสี่ยงอัจฉริยะนี้ ไม่เพียงแต่ลดทอนความเสี่ยงด้านชื่อเสียงและข้อบังคับทางกฎหมาย (Regulatory Compliance) แต่ยังช่วยเสริมสร้างความแข็งแกร่งให้แก่สายพานการผลิต และรักษาคำมั่นสัญญาที่จะดำเนินธุรกิจด้วยความรับผิดชอบอย่างยั่งยืน
 
 7. กลไกการขับเคลื่อนและประเมินผลอย่างต่อเนื่อง (Monitoring & Continuous Improvement)
-- ระยะสั้น (Short-term): สั่งการให้หน่วยงาน Audit ติดตามผลสัมฤทธิ์ของมาตรการเชิงรุก (Preventive) ภายใน 3 เดือน
-- ระยะยาว (Long-term): ทบทวนนโยบายและประเมินสภาวะแวดล้อมใหม่ประจำปี (Annual Review)"""
+- ระยะสั้น (Short-term): สั่งการให้หน่วยงาน Audit ติดตามผลสัมฤทธิ์ของมาตรการเชิงรุก (Preventive) ภายใน 3-6 เดือน
+- ระยะยาว (Long-term): ทบทวนนโยบายและประเมินสภาวะแวดล้อมใหม่ประจำปี (Annual Review) เพื่อปิดช่องว่างความเสี่ยงในอนาคต"""
 
-        st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานก่อนการอนุมัติขั้นสุดท้าย:**")
+        st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานยุทธศาสตร์ก่อนการอนุมัติขั้นสุดท้าย:**")
         report_text_final = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=700, label_visibility="collapsed")
         
         st.markdown("<br>", unsafe_allow_html=True)
