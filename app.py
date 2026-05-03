@@ -25,23 +25,35 @@ def connect_to_sheet():
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
 
+# --- ฟังก์ชันตรวจสอบรหัสซ้ำ (Consistency Check) ---
+def check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
+    if not resp_id or resp_id.strip() == "": 
+        return False
+    all_records = sheet.get_all_values()
+    for row in all_records:
+        # เช็คคอลัมน์ [5]=ID, [6]=Group, [7]=Dept, [8]=Gender
+        if len(row) > 8 and row[5] == resp_id:
+            if row[6] != resp_group or row[7] != resp_dept or row[8] != resp_gender:
+                return True # ขัดแย้ง! รหัสซ้ำแต่ข้อมูลบุคคลไม่ตรงกัน
+    return False # ผ่าน! รหัสใหม่ หรือ รหัสเดิมแต่เป็นคนเดียวกัน
+
 # --- ฟังก์ชันคำนวณสีไล่เฉดสี Heat Map (Gradient) ---
 def get_heat_color(s, l):
     val = s * l
     if val >= 16 or s == 5:  # RED ZONE
-        if val <= 5: return "#FCA5A5"   # แดงอ่อน
-        if val <= 10: return "#F87171"  # แดงกลาง
-        if val <= 15: return "#EF4444"  # แดงสด
-        if val <= 20: return "#DC2626"  # แดงเข้ม
-        return "#991B1B"                # แดงเข้มเดือด
+        if val <= 5: return "#FCA5A5"
+        if val <= 10: return "#F87171"
+        if val <= 15: return "#EF4444"
+        if val <= 20: return "#DC2626"
+        return "#991B1B"
     elif val >= 8:  # YELLOW ZONE
-        if val <= 9: return "#FDE047"   # เหลืองสว่าง
-        if val <= 12: return "#F59E0B"  # เหลืองทอง
-        return "#D97706"                # ทองอร่าม
+        if val <= 9: return "#FDE047"
+        if val <= 12: return "#F59E0B"
+        return "#D97706"
     else:  # GREEN ZONE
-        if val <= 2: return "#A7F3D0"   # เขียวอ่อน
-        if val <= 4: return "#34D399"   # เขียวกลาง
-        return "#059669"                # เขียวเข้มสุด
+        if val <= 2: return "#A7F3D0"
+        if val <= 4: return "#34D399"
+        return "#059669"
 
 # --- 3. ULTRA-PREMIUM STYLING & HIDE STREAMLIT MENU ---
 st.markdown("""
@@ -202,7 +214,6 @@ if not auditor_name or not location:
     st.info("📌 กรุณาระบุข้อมูล **ชื่อผู้บันทึก** และ **พื้นที่สำรวจ** ให้ครบถ้วน เพื่อเริ่มใช้งานระบบ")
     st.stop()
 
-# อัปเดตเวลาให้ตรงกับประเทศไทย (UTC+7)
 now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
 
 # ==========================================
@@ -233,9 +244,13 @@ if choice == "Tool 1: ประเมินสถานะองค์กร (Go
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             sheet = connect_to_sheet()
             if sheet:
-                detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
-                st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
+                # 💡 ตรวจสอบรหัสซ้ำ
+                if check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (กลุ่มเป้าหมาย/แผนก/เพศ ไม่ตรงกับฐานข้อมูล) กรุณาเปลี่ยนรหัสใหม่เพื่อป้องกันการสับสน")
+                else:
+                    detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
+                    st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 # ----------------- TOOL 2 -----------------
 elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker Survey)":
@@ -265,9 +280,13 @@ elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             sheet = connect_to_sheet()
             if sheet:
-                detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
-                st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
+                # 💡 ตรวจสอบรหัสซ้ำ
+                if check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (กลุ่มเป้าหมาย/แผนก/เพศ ไม่ตรงกับฐานข้อมูล) กรุณาเปลี่ยนรหัสใหม่เพื่อป้องกันการสับสน")
+                else:
+                    detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
+                    st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 # ----------------- TOOL 3 -----------------
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)":
@@ -284,8 +303,12 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence 
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             sheet = connect_to_sheet()
             if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
-                st.success("✅ บันทึกหลักฐานสำเร็จ")
+                # 💡 ตรวจสอบรหัสซ้ำ
+                if check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (กลุ่มเป้าหมาย/แผนก/เพศ ไม่ตรงกับฐานข้อมูล) กรุณาเปลี่ยนรหัสใหม่เพื่อป้องกันการสับสน")
+                else:
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
+                    st.success("✅ บันทึกหลักฐานสำเร็จ")
 
 # ----------------- TOOL 4 -----------------
 elif choice == "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)":
@@ -318,15 +341,19 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             sheet = connect_to_sheet()
             if sheet:
-                res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
-                res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
-                res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
-                res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
-                res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
-                
-                detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
-                st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
+                # 💡 ตรวจสอบรหัสซ้ำ
+                if check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (กลุ่มเป้าหมาย/แผนก/เพศ ไม่ตรงกับฐานข้อมูล) กรุณาเปลี่ยนรหัสใหม่เพื่อป้องกันการสับสน")
+                else:
+                    res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
+                    res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
+                    res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
+                    res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
+                    res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
+                    
+                    detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
+                    st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
 # ----------------- TOOL 5 -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
@@ -367,7 +394,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
     
-    # ดึงค่าตั้งต้น (ถ้าเคยเซฟแล้ว ให้ดึงค่าที่เคยเซฟมาโชว์ ถ้ายัง ให้ AI เดาค่าให้)
     def_scale, def_scope, def_remedy, def_lik = 1, 1, 1, 1
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
         saved_data = st.session_state.saved_plans_dict[save_issue]
@@ -412,7 +438,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     st.markdown(badge_html, unsafe_allow_html=True)
     
-    # ทำให้กล่องข้อความเด่นชัดและมี Label ให้เห็นว่านี่คือกล่องพิมพ์ข้อความ
     st.markdown("""
     <div class="gemini-draft-box">
         <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
@@ -422,12 +447,9 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     ai_draft = ""
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
-        # หากดึงจากที่เคย Approve แล้ว
         ai_draft = st.session_state.saved_plans_dict[save_issue]['plan']
         
-    # 💡 AUTO-HEAL: ถ้าเกิดบั๊กหรือเผลอเซฟตอนกล่องว่างเปล่า ให้ AI ร่างให้ใหม่ทันที
     if not ai_draft or ai_draft.strip() == "" or "พิมพ์แผนบรรเทาผลกระทบ" in ai_draft:
-        # ให้ AI ร่างใหม่ตามโซนสี
         if risk_zone == "GREEN":
             ai_draft = "Maintenance Plan (แผนคงสภาพ):\n- Monitoring: ระดับความเสี่ยงปกติ ให้ทำการตรวจสอบซ้ำและติดตามผลตามวงรอบอย่างน้อยปีละ 1 ครั้ง เพื่อให้มั่นใจว่าคู่ค้ายังรักษามาตรฐานไว้ได้ตลอดไป"
         elif risk_zone == "YELLOW":
@@ -453,7 +475,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             else: 
                 ai_draft = "Preventive: [ระบุมาตรการป้องกันเชิงระบบ]\nRemediation: [ระบุมาตรการเยียวยาผู้ได้รับผลกระทบเร่งด่วน]"
 
-    # ใช้ Label ให้อ่านชัดเจน แทนการ collapse
     st.markdown("**✍️ แผนการจัดการความเสี่ยง (Mitigation & Remediation Plan):**")
     plan_text = st.text_area("แผนการจัดการ", value=ai_draft, height=150, label_visibility="collapsed")
 
@@ -595,9 +616,6 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         </div>
     """, unsafe_allow_html=True)
     
-    # =========================================================
-    # 🌟 UPGRADED SECTION: Profound AI Report Generation
-    # =========================================================
     st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ร่างรายงานการบริหารจัดการความเสี่ยง (Comprehensive HRDD Report)</h3>", unsafe_allow_html=True)
     st.info("💡 ระบบปัญญาประดิษฐ์ (AI) จะสังเคราะห์และประมวลผลข้อมูลเชิงลึกทั้งหมดในรอบปี ทั้งประเด็นที่มีนัยสำคัญ (Salient) และการพยากรณ์ความเสี่ยงล่วงหน้า (Foresight) เพื่อจัดทำร่างยุทธศาสตร์ให้ผู้บริหารพิจารณา")
