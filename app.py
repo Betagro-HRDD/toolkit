@@ -14,8 +14,6 @@ st.set_page_config(page_title="Betagro Smart HRDD Toolkit", page_icon="🟢", la
 # ==========================================
 # --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบายจำลอง) ---
 # ==========================================
-# 💡 นำสรุปนโยบาย หรือ พ.ร.บ. มาพิมพ์ใส่ในนี้ได้เลยครับ! 
-# AI จะดึงข้อความในนี้ไปใช้อ้างอิงโดยอัตโนมัติ (แทนการดึงไฟล์ PDF จริงในเวอร์ชันต้นแบบ)
 LAW_KNOWLEDGE_BASE = {
     "OT": {"std": "พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | นายจ้างต้องจ่ายค่าทำงานล่วงเวลาให้ถูกต้อง", "doc": "Thai_Labor_Law.pdf"},
     "ค่าจ้าง": {"std": "พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 ว่าด้วยการคุ้มครองค่าจ้าง", "doc": "Thai_Labor_Law.pdf"},
@@ -67,7 +65,7 @@ def get_heat_color(s, l):
     elif val >= 8: return "#D97706"                
     else: return "#059669"                
 
-# --- 3. STYLING (รื้อโค้ด Modal ที่ทำให้หน้าจอค้างทิ้งทั้งหมด) ---
+# --- 3. STYLING (เพิ่ม Media Queries ให้รองรับ Mobile และ Modal ที่สมบูรณ์แบบ) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
@@ -86,10 +84,21 @@ st.markdown("""
     }
     .premium-banner::after { content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 8px; background: #F9A818; }
     
-    .logo-wrapper { border-right: 2px solid #EAEAEA; padding-right: 30px; display: flex; flex-direction: column; align-items: center; }
+    .logo-wrapper { border-right: 2px solid #EAEAEA; padding-right: 30px; display: flex; flex-direction: column; align-items: center; min-width: max-content; }
     .typography-logo { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: #D3A129; letter-spacing: 2px; margin-top: 10px; }
-    .hero-title-eng { color: #005B31 !important; font-family: 'Poppins', sans-serif !important; font-size: 21px !important; font-weight: 800 !important; margin: 0 !important; white-space: nowrap !important; }
-    .hero-title-thai { color: #265F36 !important; font-family: 'Sarabun', sans-serif !important; font-size: 16px !important; font-weight: 600 !important; margin: 5px 0 0 0 !important; white-space: nowrap !important; }
+    .hero-title-eng { color: #005B31 !important; font-family: 'Poppins', sans-serif !important; font-size: 21px !important; font-weight: 800 !important; margin: 0 !important; white-space: nowrap; }
+    .hero-title-thai { color: #265F36 !important; font-family: 'Sarabun', sans-serif !important; font-size: 16px !important; font-weight: 600 !important; margin: 5px 0 0 0 !important; white-space: nowrap; }
+    .hero-subtitle { color: #D3A129 !important; font-family: 'Poppins', sans-serif !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 3px !important; text-transform: uppercase !important; margin-top: 14px !important; border-top: 1px solid rgba(211, 161, 41, 0.3) !important; padding-top: 10px !important; width: fit-content; }
+    
+    /* 📱 MOBILE RESPONSIVE CSS */
+    @media (max-width: 768px) {
+        .premium-banner { flex-direction: column !important; text-align: center !important; padding: 25px 15px !important; gap: 15px !important; }
+        .logo-wrapper { border-right: none !important; border-bottom: 2px solid #EAEAEA !important; padding-right: 0 !important; padding-bottom: 20px !important; }
+        .hero-title-eng { white-space: normal !important; font-size: 18px !important; line-height: 1.3 !important; }
+        .hero-title-thai { white-space: normal !important; font-size: 14px !important; line-height: 1.4 !important; }
+        .hero-subtitle { margin: 10px auto 0 auto !important; }
+        .two-col-mobile { flex-direction: column !important; }
+    }
     
     .control-panel { background: #FFFFFF; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; margin-bottom: 30px; border-top: 5px solid #F9A818; }
     [data-testid="stForm"], .standalone-form { background: #FFFFFF; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); padding: 30px; }
@@ -117,13 +126,54 @@ st.markdown("""
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
 
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
-
-    /* Streamlit Native Expander Override for styling */
-    [data-testid="stExpander"] { border: 1px solid #C7D2FE !important; border-radius: 8px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important; background: #FAFAFA !important; overflow: hidden; }
-    [data-testid="stExpander"] summary { color: #4F46E5 !important; font-weight: 700 !important; font-family: 'Sarabun', sans-serif !important; background-color: #E0E7FF; padding: 10px 15px;}
-    [data-testid="stExpander"] summary:hover { background-color: #C7D2FE; }
+    .testimony-box { background-color: #FFFFFF; border-left: 4px solid #F59E0B; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;}
     
-    .testimony-box { background-color: #FFFFFF; border-left: 4px solid #F59E0B; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    /* 💡 SAFEST CSS MODALS (No freezing guaranteed) */
+    .cite-pill {
+        display: inline-flex; align-items: center; justify-content: center;
+        background-color: #E0E7FF; color: #4F46E5; border-radius: 12px;
+        padding: 4px 12px; font-size: 12px; font-weight: 800; cursor: pointer;
+        border: 1px solid #C7D2FE; transition: all 0.2s; white-space: nowrap;
+    }
+    .cite-pill:hover { background-color: #4F46E5; color: #FFFFFF; box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
+    .cite-pill.doc-pill { background-color: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+    .cite-pill.doc-pill:hover { background-color: #B45309; color: #FFFFFF; }
+
+    .modal-toggle { display: none; }
+    .modal-window {
+        position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        width: 100vw !important; height: 100vh !important; z-index: 999999 !important;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-toggle:checked ~ .modal-window { opacity: 1; pointer-events: auto; }
+    
+    .modal-backdrop { 
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+        background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+        cursor: pointer; z-index: 1; 
+    }
+    
+    .modal-content {
+        background: #F8FAFC; width: 90%; max-width: 700px; max-height: 80vh;
+        border-radius: 16px; display: flex; flex-direction: column;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s;
+        border: 1px solid #E5E7EB; z-index: 2; position: relative; overflow: hidden;
+    }
+    .modal-toggle:checked ~ .modal-window .modal-content { transform: translateY(0); }
+    
+    .modal-header {
+        background: #FFFFFF; padding: 15px 25px; border-bottom: 1px solid #E5E7EB;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-title-link { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: #111827; }
+    .close-btn { 
+        cursor: pointer; font-size: 20px; color: #9CA3AF; font-weight: bold; background: #F3F4F6; 
+        width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; 
+        border-radius: 50%; transition: 0.2s;
+    }
+    .close-btn:hover { background: #EF4444; color: white; }
+    .modal-body { padding: 30px; overflow-y: auto; background: #F3F4F6;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -264,7 +314,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
 sheet = connect_to_sheet()
 
-# 💡 โหลดข้อมูลจริงจาก Sheet มาเก็บไว้ในตัวแปร DataFrame
+# 💡 โหลดข้อมูลจริงจาก Sheet มาเก็บไว้ใน DataFrame
 df_real = pd.DataFrame()
 if sheet:
     all_records = sheet.get_all_values()
@@ -284,7 +334,6 @@ if is_tool_1_to_4:
 # ==========================================
 # --- 6. TOOLS 1-4 FORMS ---
 # ==========================================
-
 if choice.startswith("Tool 1"):
     with st.form("form_t1"):
         st.markdown("<h3 style='color:#005B31;'>Tool 1: ประเมินสถานะองค์กร (Policy Gap)</h3><hr>", unsafe_allow_html=True)
@@ -376,7 +425,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (REAL DATA + NATIVE STREAMLIT EXPANDERS) -----------------
+# ----------------- TOOL 5 (REAL DATA + NEW MODALS) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -385,7 +434,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     st.markdown("""
     <div class="filter-box">
         <h5 style="color:#D97706; margin-top:0;"><i class="fa-solid fa-filter"></i> กำหนดหน่วยการวิเคราะห์ (Unit of Analysis)</h5>
-        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">ระบบจำทำการกรองข้อมูลจริงจาก Google Sheet เพื่อประเมินความเสี่ยงตามกลุ่มผู้มีส่วนได้เสียที่คุณเลือก</p>
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">กรองฐานข้อมูลเพื่อประเมินความเสี่ยงระดับองค์กร หรือเจาะจงตามกลุ่มผู้มีส่วนได้เสีย</p>
     """, unsafe_allow_html=True)
     
     filter_mode = st.radio("ระดับการวิเคราะห์:", ["ระดับองค์กรภาพรวม (Corporate Level / ทุกกลุ่ม)", "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)"], horizontal=True, label_visibility="collapsed")
@@ -395,19 +444,16 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการดึงข้อมูลมาวิเคราะห์:", [
             "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
         ])
-        
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 💡 กรองข้อมูลจริงจาก DataFrame ที่โหลดมาจาก Sheet
     df_filtered = df_real.copy()
     if not df_real.empty:
         if custom_filter_text:
             df_filtered = df_real[df_real['กลุ่มเป้าหมาย'] == custom_filter_text]
     
     sheet_data_count = len(df_filtered)
-    
     if sheet_data_count == 0: 
-        st.warning(f"⚠️ ไม่พบข้อมูลการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet) กรุณาตรวจสอบให้แน่ใจว่ามีการลงพื้นที่เก็บข้อมูลกลุ่มนี้แล้ว")
+        st.warning(f"⚠️ ไม่พบข้อมูลการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
         st.stop()
 
     btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
@@ -417,18 +463,14 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         st.session_state.ai_scanned_issues = True
     
     selected_issue = ""
-    display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."]
-    
     if st.session_state.get("ai_scanned_issues", False):
-        # 💡 ดึงประเด็นปัญหาจริงๆ จากคอลัมน์ "ประเด็นหลัก" ใน Google Sheet
         real_issues_from_sheet = []
         if 'ประเด็นหลัก' in df_filtered.columns:
             raw_issues = df_filtered['ประเด็นหลัก'].unique().tolist()
-            # กรองเอาคำที่เป็นชื่อหมวดหมู่ทั่วไปออก ให้เหลือแต่ประเด็นความเสี่ยง
             real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "Worker Survey", "Site Observation", "Policy Gap Analysis"]]
         
         if len(real_issues_from_sheet) == 0:
-            st.info(f"✅ AI ประมวลผลข้อมูลของกลุ่มนี้แล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญจากการลงพื้นที่ครับ")
+            st.info(f"✅ AI ประมวลผลข้อมูลของกลุ่มนี้แล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญครับ")
             st.stop()
             
         ai_header = f"🤖 Gemini AI พบ {len(real_issues_from_sheet)} ประเด็นความเสี่ยง จากฐานข้อมูลจริง (กลุ่ม: {custom_filter_text if custom_filter_text else 'ทั้งหมด'}):"
@@ -444,65 +486,111 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     is_already_approved = save_issue in st.session_state.approved_issues
     scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวม"
 
-    # 💡 ดึงคำให้การจริงๆ จาก Sheet มาสร้างเป็นช่อง Evidence Support
-    real_testimonies = []
+    # 💡 THE MAGIC: เตรียมโค้ด HTML สร้างป้าย Citation และ Popup 
+    real_testimonies_html = ""
+    dynamic_modals_html = ""
+    evidence_count = 0
+
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
-        for idx, row in subset.iterrows():
+        for idx, row in subset.head(5).iterrows(): # ดึงมาโชว์แค่ 5 อันแรกกันรกลูกตา
             if str(row['รายละเอียด/คำให้การ']).strip() != "":
-                # ดึงรหัสผู้ตอบ และคำให้การมาแสดง
-                real_testimonies.append(f"<b>(ID {row['รหัสผู้ตอบ']}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark>")
+                evidence_count += 1
+                r_id = row['รหัสผู้ตอบ']
+                modal_id = f"modal-evi-{idx}"
+
+                # 1. สร้างป้ายพร้อมข้อความ
+                real_testimonies_html += f"""
+                <div class="testimony-box">
+                    <div><b>(ID {r_id}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark></div>
+                    <label for="{modal_id}" class="cite-pill" title="คลิกดูข้อมูลเต็ม">[Source {evidence_count}]</label>
+                </div>
+                """
+
+                # 2. สร้างโครงสร้างหน้าต่าง Popup (Modal) ซ่อนไว้
+                dynamic_modals_html += f"""
+                <input type="checkbox" id="{modal_id}" class="modal-toggle">
+                <div class="modal-window">
+                    <label class="modal-backdrop" for="{modal_id}"></label>
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="modal-title-link"><i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> ข้อมูลอ้างอิงรหัส: {r_id}</div>
+                            <label for="{modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
+                        </div>
+                        <div class="modal-body">
+                            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                <h4>รายละเอียดคำให้การ (Full Record)</h4>
+                                <table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
+                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">วันที่เก็บข้อมูล</td><td style="padding:10px;">{row.get('วันที่-เวลา', '-')}</td></tr>
+                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">พื้นที่สำรวจ</td><td style="padding:10px;">{row.get('พื้นที่สำรวจ', '-')}</td></tr>
+                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">{row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}</td></tr>
+                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">ประเด็นหลัก</td><td style="padding:10px;">{row.get('ประเด็นหลัก', '-')}</td></tr>
+                                    <tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การฉบับเต็ม</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">{row['รายละเอียด/คำให้การ']}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                """
     
-    # 💡 KNOWLEDGE BASE MATCHER (ดึงกฎหมายจากตัวแปรด้านบนสุด)
-    matched_law = "UNGPs | ILO Conventions | กฎหมายท้องถิ่นที่เกี่ยวข้อง"
+    # 💡 KNOWLEDGE BASE MATCHER
+    matched_law = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     matched_doc = "Standard_Guideline.pdf"
     for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
-        # ถ้า Keyword ใน ฐานข้อมูล ตรงกับชื่อประเด็นที่เลือก ให้ดึงกฎหมายมาโชว์
         if keyword in selected_issue:
             matched_law = knowledge["std"]
             matched_doc = knowledge["doc"]
             break
 
-    plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {len(real_testimonies)} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
+    std_modal_id = "modal-std-law"
+    framework_html = f"""
+    ⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {matched_law}
+    <label for="{std_modal_id}" class="cite-pill doc-pill" title="คลิกดูข้อกฎหมาย">[อ่านฉบับเต็ม]</label>
+    """
+    
+    law_modal_html = f"""
+    <input type="checkbox" id="{std_modal_id}" class="modal-toggle">
+    <div class="modal-window">
+        <label class="modal-backdrop" for="{std_modal_id}"></label>
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title-link"><i class="fa-solid fa-scale-balanced" style="color:#D97706;"></i> ฐานข้อมูลกฎหมาย: {matched_doc}</div>
+                <label for="{std_modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
+            </div>
+            <div class="modal-body">
+                 <div style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <h4 style="color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-top: 0; text-transform: uppercase;">{matched_doc.replace('.pdf','').replace('_',' ')}</h4>
+                    <p><b>ข้อกำหนดตามมาตรฐาน:</b></p>
+                    <p style="background-color: #FEF08A; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 4px solid #EAB308; font-size: 16px;">
+                        {matched_law}
+                    </p>
+                    <p style="color:#9CA3AF; font-size:12px; margin-top:30px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
+                        *เอกสารข้อกฎหมายจำลองนี้ ดึงมาจากระบบ Knowledge Base ขององค์กรอัตโนมัติ
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+
+    plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {evidence_count} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
     plain_standard = matched_law
 
-    # แสดงคำให้การ (Evidence) ที่ดึงมาจาก Sheet แบบสวยงาม
+    # นำกล่อง HTML Evidence และ Modals ทั้งหมดไป Render พร้อมกัน
     st.markdown(f"""
-    <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+    {dynamic_modals_html}
+    {law_modal_html}
+    <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
         <strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
-        <div style="font-size: 14px; margin-top: 10px; color: #444; line-height: 1.8;">
-            📌 <b>ข้อความ/คำให้การที่ AI ตรวจพบจากฐานข้อมูล:</b>
+        <div style="font-size: 14px; margin-top: 15px; color: #444; line-height: 1.8;">
+            {real_testimonies_html if real_testimonies_html else "<i>(ไม่มีคำให้การเจาะจง ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)</i>"}
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    if real_testimonies:
-        for t in real_testimonies[:5]: # โชว์แค่ 5 อันแรกเพื่อไม่ให้รกหน้าจอ
-            st.markdown(f'<div class="testimony-box">{t}</div>', unsafe_allow_html=True)
-    else:
-        st.info("ไม่มีคำให้การเจาะจง (ระบบประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)")
-    
-    # 💡 การใช้ Native Streamlit Expander แทน CSS Modals (แก้ปัญหาหน้าจอค้าง 100%)
-    with st.expander(f"📚 คลิกตรงนี้เพื่อเปิดดูเอกสารอ้างอิงและกฎหมายมาตรฐานฉบับเต็ม ({matched_doc})"):
-        st.markdown(f"""
-        <div style="background: #FFFFFF; padding: 30px; border-radius: 8px; border: 1px solid #E5E7EB;">
-            <h4 style="color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-top: 0; text-transform: uppercase;">
-                <i class="fa-solid fa-scale-balanced"></i> {matched_doc.replace('.pdf','').replace('_',' ')}
-            </h4>
-            <p><b>ข้อกำหนดตามมาตรฐานสากล:</b></p>
-            <p style="background-color: #FEF08A; padding: 10px; border-radius: 4px; font-weight: bold; border-left: 4px solid #EAB308;">
-                {matched_law}
-            </p>
-            <p style="color:#9CA3AF; font-size:12px; margin-top:30px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
-                *เอกสารและข้อกฎหมายจำลองนี้ถูกดึงมาจากระบบ Knowledge Base (บรรทัดที่ 18) ขององค์กรอัตโนมัติ<br>
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
 
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
 
-    # กำหนดค่าตั้งต้นความรุนแรงตาม Keyword
     def_scale, def_sco, def_rem, def_lik = 3, 3, 3, 3
     if "แรงงาน" in selected_issue or "พาสปอร์ต" in selected_issue or "เด็ก" in selected_issue: def_scale = 5
     if "ชุมชน" in selected_issue: def_sco = 5
@@ -558,8 +646,8 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
         </div>
-        <div style="background: #FFFFFF; padding: 12px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 15px 0; font-size: 14px; color: #005B31; line-height: 1.8;">
-            ⚖️ มาตรฐานที่เชื่อมโยง: {matched_law}
+        <div style="background: #FFFFFF; padding: 15px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 15px 0; font-size: 14px; color: #005B31; line-height: 1.8;">
+            {framework_html}
         </div>
     </div>
     <div style="background: #FAFAFA; border: 1px solid #D2E3FC; border-top: none; padding: 25px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; margin-bottom: 30px;">
