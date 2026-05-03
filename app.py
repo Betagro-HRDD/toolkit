@@ -13,7 +13,7 @@ import random
 st.set_page_config(page_title="Betagro Smart HRDD Toolkit", page_icon="🟢", layout="centered")
 
 # --- 2. CONNECT ENGINE ---
-@st.cache_resource(ttl=600) # ช่วยให้ไม่ต้องโหลดชีตใหม่ทุกครั้งที่คลิก (เร็วขึ้น)
+@st.cache_resource(ttl=60) # อัปเดตข้อมูลไวขึ้นเป็น 1 นาที
 def connect_to_sheet():
     try:
         creds_info = st.secrets["gcp_service_account"]
@@ -23,7 +23,7 @@ def connect_to_sheet():
         credentials = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(credentials)
         SHEET_ID = "1YUkrlk_RlvskDluFoAdTQ7KRYRxYhi8ZqNdw13X7JxY"
-        return client.open_by_key(SHEET_ID).get_worksheet(0)
+        return client.open_by_key(SHEET_ID).get_worksheet(0) # แก้เป็น Index ของชีตที่คุณเก็บ Data
     except Exception as e:
         st.error(f"❌ การเชื่อมต่อล้มเหลว: {e}")
         return None
@@ -65,7 +65,6 @@ st.markdown("""
     
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
-    a.header-anchor { display: none !important; }
     
     .premium-banner {
         background: #FFFFFF; border-radius: 24px; padding: 30px 40px;
@@ -89,22 +88,18 @@ st.markdown("""
         font-weight: 700 !important; padding: 12px 24px !important; border: none !important;
         box-shadow: 0 8px 20px rgba(0, 91, 49, 0.2) !important; transition: all 0.3s ease; width: 100%; font-size: 16px !important;
     }
-    [data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover { background: #004222 !important; transform: translateY(-2px) !important; box-shadow: 0 12px 25px rgba(0, 91, 49, 0.3) !important; }
-
+    
     .salient-badge { padding: 15px; border-radius: 12px; font-weight: 700; text-align: center; display: block; margin-top: 15px; border: 1px solid transparent;}
     .gemini-draft-box { background: linear-gradient(135deg, #F0F4FF 0%, #FFFFFF 100%); border-left: 6px solid #4285F4; padding: 25px; border-radius: 12px; margin-top: 20px; border: 1px solid #D2E3FC; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.05);}
     .gemini-title { color: #1967D2; font-family: 'Poppins', sans-serif; font-weight: 700; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;}
     
     .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
     .heat-cell { height: 60px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 18px; transition: 0.3s; position: relative;}
-    .matrix-bubble { width: 34px; height: 34px; background: #FFFFFF; border-radius: 50%; color: #333; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 16px;}
-    .matrix-bubble:hover { transform: scale(1.2); }
     
     .dash-card { background: #FFFFFF; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #EAEAEA; text-align: center; }
     .dash-number { font-size: 36px; font-family: 'Poppins', sans-serif; font-weight: 800; color: #005B31; line-height: 1; margin: 10px 0; }
     .dash-label { font-size: 14px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-    /* 💡 RE-ADDED RADAR PULSE CSS */
     .radar-pulse {
         width: 80px; height: 80px; background: rgba(220, 38, 38, 0.15); border-radius: 50%;
         display: flex; align-items: center; justify-content: center;
@@ -113,10 +108,9 @@ st.markdown("""
     .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
 
-    .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
 
-    /* 💡 PERFECTED NOTEBOOK LM INTERACTIVE CITATION & MODAL SYSTEM */
+    /* 💡 NOTEBOOK LM INTERACTIVE CITATION & MODAL SYSTEM (FIXED BACKDROP) */
     .cite-pill {
         display: inline-flex; align-items: center; justify-content: center;
         background-color: #E0E7FF; color: #4F46E5; border-radius: 12px;
@@ -124,11 +118,11 @@ st.markdown("""
         margin: 0 4px; border: 1px solid #C7D2FE; transition: all 0.2s;
     }
     .cite-pill:hover { background-color: #4F46E5; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
-    
     .cite-pill.doc-pill { background-color: #FEF3C7; color: #B45309; border-color: #FDE68A; }
-    .cite-pill.doc-pill:hover { background-color: #B45309; color: #FFFFFF; box-shadow: 0 4px 8px rgba(180, 83, 9, 0.3); }
+    .cite-pill.doc-pill:hover { background-color: #B45309; color: #FFFFFF; }
 
     .modal-toggle { display: none; }
+    
     .modal-window {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
         z-index: 999999; display: flex; align-items: center; justify-content: center;
@@ -174,18 +168,22 @@ st.markdown("""
     .mock-pdf { font-family: 'Sarabun', serif; color: #333; line-height: 1.8; font-size: 16px; }
     .mock-pdf h4 { text-align: center; border-bottom: 2px solid #111827; padding-bottom: 15px; margin-bottom: 20px; font-family: 'Poppins', sans-serif; font-weight: 800; text-transform: uppercase;}
     .mock-pdf mark { background-color: #FEF08A; padding: 2px 6px; border-radius: 4px; font-weight: 700; border-bottom: 2px solid #EAB308;}
+    
+    .mock-csv { width: 100%; border-collapse: collapse; font-family: 'Sarabun', sans-serif; font-size: 14px;}
+    .mock-csv th { background: #F8FAFC; color: #4B5563; padding: 12px; text-align: left; border: 1px solid #E5E7EB; border-bottom: 2px solid #D1D5DB; }
+    .mock-csv td { padding: 12px; border: 1px solid #E5E7EB; color: #374151;}
+    .mock-csv .alert-row td { background-color: #FEF2F2; }
+    .mock-csv .alert-cell { color: #DC2626; font-weight: 800; background: #FEE2E2; text-align: center; border: 2px solid #F87171;}
     </style>
     """, unsafe_allow_html=True)
 
 # ==========================================
 # --- 3.1 🔐 ENTERPRISE SSO & WHITELIST AUTHENTICATION ---
 # ==========================================
-if "user_db" not in st.session_state:
-    st.session_state.user_db = {}
-if "current_user" not in st.session_state:
-    st.session_state.current_user = None
+if "user_db" not in st.session_state: st.session_state.user_db = {}
+if "current_user" not in st.session_state: st.session_state.current_user = None
 
-WHITELIST = ["admin@betagro.com", "somchai@betagro.com", "auditor1@betagro.com", "auditor2@betagro.com"]
+WHITELIST = ["admin@betagro.com", "somchai@betagro.com", "auditor1@betagro.com", "auditor2@betagro.com", "investor@betagro.com"]
 
 def check_password():
     if st.session_state.current_user is not None:
@@ -306,19 +304,19 @@ if is_tool_1_to_4:
     st.info("📌 กรุณาระบุพื้นที่และรหัสอ้างอิงรายบุคคล เพื่อความแม่นยำในการเก็บข้อมูลเข้าฐานข้อมูล")
     
     col_r_loc, col_r_id = st.columns([2, 1])
-    with col_r_loc: location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี (อาคาร B)")
-    with col_r_id: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002")
+    with col_r_loc: location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี")
+    with col_r_id: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น T01, M01")
 
     col_r1, col_r2, col_r3 = st.columns(3)
-    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "พนักงานบริษัท", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)"])
+    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"])
     with col_r2: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
-    with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
+    with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ชาย", "หญิง", "ไม่ระบุ"])
 else:
-    location = "ภาพรวมทุกพื้นที่ (Corporate)"
+    location = "ภาพรวมองค์กร"
     resp_id = "N/A"
-    resp_group = "ภาพรวม (All Groups)"
-    resp_dept = "ภาพรวม (All Depts)"
-    resp_gender = "ภาพรวม"
+    resp_group = "N/A"
+    resp_dept = "N/A"
+    resp_gender = "N/A"
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -361,12 +359,9 @@ if choice == "Tool 1: ประเมินสถานะองค์กร (Go
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             if sheet:
-                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น")
-                else:
-                    detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
-                    st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
+                detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
+                st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 # ----------------- TOOL 2 -----------------
 elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker Survey)":
@@ -394,19 +389,16 @@ elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             if sheet:
-                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้ว")
-                else:
-                    detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
-                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
-                    st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
+                detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
+                st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 # ----------------- TOOL 3 -----------------
 elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)":
     with st.form("form_t3"):
         st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก</h3><hr>", unsafe_allow_html=True)
         st.markdown("**🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)**")
-        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา/ค่านายหน้า (Recruitment Fees)", "ความเข้าใจในสัญญาจ้าง", "สภาพที่พักอาศัย/โรงอาหาร", "กลไกการร้องเรียน", "การเลือกปฏิบัติ"], label_visibility="collapsed")
+        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา/ค่านายหน้า", "ความเข้าใจในสัญญาจ้าง", "สภาพที่พักอาศัย/โรงอาหาร", "กลไกการร้องเรียน", "การเลือกปฏิบัติ", "ชั่วโมงการทำงาน", "ความรู้/อบรม"], label_visibility="collapsed")
         
         st.markdown("<br>**✍️ บันทึกคำให้การ (Testimony)**", unsafe_allow_html=True)
         testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=150)
@@ -414,11 +406,8 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             if sheet:
-                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้ว")
-                else:
-                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
-                    st.success("✅ บันทึกหลักฐานสำเร็จ")
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
+                st.success("✅ บันทึกหลักฐานสำเร็จ")
 
 # ----------------- TOOL 4 -----------------
 elif choice == "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)":
@@ -449,59 +438,61 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             if sheet:
-                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้ว")
-                else:
-                    res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
-                    res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
-                    res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
-                    res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
-                    res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
-                    detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
-                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
-                    st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
+                res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
+                res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
+                res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
+                res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
+                res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
+                detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
+                st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 -----------------
+
+# ----------------- TOOL 5 (THE DATA-DRIVEN UPDATE) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Issue-Based)</h3>", unsafe_allow_html=True)
     
-    # 💡 THE UPGRADE: เปลี่ยนหน่วยวิเคราะห์เป็น Corporate vs Group ตามหลักการเป๊ะๆ
     st.markdown("""
     <div class="filter-box">
         <h5 style="color:#D97706; margin-top:0;"><i class="fa-solid fa-filter"></i> กำหนดหน่วยการวิเคราะห์ (Unit of Analysis)</h5>
-        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">กรองฐานข้อมูลเพื่อประเมินความเสี่ยงจำเพาะตามระดับกลุ่มผู้มีส่วนได้เสีย</p>
+        <p style="font-size: 14px; color: #666; margin-bottom: 10px;">กรองฐานข้อมูลเพื่อประเมินความเสี่ยงระดับองค์กร หรือเจาะจงตามกลุ่มผู้มีส่วนได้เสีย</p>
     """, unsafe_allow_html=True)
     
     filter_mode = st.radio("ระดับการวิเคราะห์:", ["ระดับองค์กรภาพรวม (Corporate Level / ทุกกลุ่ม)", "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)"], horizontal=True, label_visibility="collapsed")
     custom_filter_text = ""
     
     if filter_mode == "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)":
-        custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการดึงข้อมูลมาวิเคราะห์:", ["ฝ่ายบริหาร", "พนักงานบริษัท", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)"])
+        custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการดึงข้อมูลมาวิเคราะห์:", [
+            "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
+        ])
         
     st.markdown("</div>", unsafe_allow_html=True)
 
-    # 💡 อัปเกรดความสมจริง: สั่งให้ไปนับ Data จริงใน Google Sheet
+    # 💡 ระบบดึงและนับจำนวน Data จริงๆ จาก Google Sheet
     sheet_data_count = 0
+    raw_data = []
     if sheet:
         all_records = sheet.get_all_values()
-        if custom_filter_text:
-            sheet_data_count = len([row for row in all_records if len(row) > 6 and row[6] == custom_filter_text])
-        else:
-            sheet_data_count = len(all_records) - 1 # หัก Header
-            
-        if sheet_data_count <= 0: sheet_data_count = 135 # Fallback ถ้าชีตยังไม่มีข้อมูล ให้ Mock เป็น 135
-    else:
-        sheet_data_count = 135
+        if len(all_records) > 1:
+            raw_data = all_records[1:] # ตัด Header ทิ้ง
+            if custom_filter_text:
+                filtered_data = [row for row in raw_data if len(row) > 6 and row[6] == custom_filter_text]
+                sheet_data_count = len(filtered_data)
+            else:
+                sheet_data_count = len(raw_data)
+                
+    if sheet_data_count == 0: 
+        st.warning(f"⚠️ ไม่พบข้อมูลของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูลปัจจุบัน กรุณาตรวจสอบอีกครั้ง")
+        st.stop()
 
-    btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากข้อมูลภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
+    btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
     
     st.markdown("<h5 style='color: #005B31; margin-top: 20px;'><i class='fa-solid fa-wand-magic-sparkles'></i> 1. สกัดประเด็นความเสี่ยงจากฐานข้อมูล</h5>", unsafe_allow_html=True)
     if st.button(btn_text):
         st.session_state.ai_scanned_issues = True
     
-    # 💡 อัปเกรด: เตรียมฐานข้อมูลความเสี่ยงทั้ง 10 ประเด็น
     all_possible_issues = [
         "[สิทธิแรงงาน] พนักงานร้องเรียนเรื่องการจ่ายเงิน OT ไม่ครบ/ล่าช้า",
         "[แรงงานบังคับ] พบกลุ่มแรงงานข้ามชาติถูกยึดพาสปอร์ตโดยเอเจนซี่",
@@ -518,13 +509,13 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     selected_issue = ""
     if st.session_state.get("ai_scanned_issues", False):
         if filter_mode != "ระดับองค์กรภาพรวม (Corporate Level / ทุกกลุ่ม)":
-            # 💡 สุ่มดึงประเด็นตามกลุ่มที่เลือก เพื่อความสมจริง (และจะสุ่มได้เลขเดิมเสมอตามชื่อกลุ่ม)
-            ai_header = f"🤖 Gemini AI พบประเด็นความเสี่ยง (การวิเคราะห์เฉพาะกลุ่ม: {custom_filter_text}):"
+            ai_header = f"🤖 Gemini AI พบประเด็นที่ต้องจัดทำแผน (การวิเคราะห์เฉพาะกลุ่ม: {custom_filter_text}):"
             random.seed(sum(ord(c) for c in custom_filter_text)) 
-            sampled_issues = random.sample(all_possible_issues, random.randint(1, 3))
+            num_issues = random.randint(1, 3) 
+            sampled_issues = random.sample(all_possible_issues, num_issues)
             display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + sampled_issues
         else:
-            ai_header = "🤖 Gemini AI พบ 10 ประเด็นยุทธศาสตร์ที่ต้องจัดทำแผน (วิเคราะห์จากภาพรวมระดับองค์กร):"
+            ai_header = f"🤖 Gemini AI พบ 10 ประเด็นยุทธศาสตร์ที่ต้องจัดทำแผน (วิเคราะห์จากภาพรวมองค์กรทั้งหมด):"
             display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + all_possible_issues
             
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
@@ -533,7 +524,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
     is_already_approved = save_issue in st.session_state.approved_issues
 
-    # 💡 อัปเกรด: ฟังก์ชันตัวช่วยสร้าง URL สำหรับสร้าง Modal เอกสารทุกรูปแบบ
     def create_mock_doc_url(title, content):
         html_content = f"""
         <html><head><meta charset="utf-8"><title>{title}</title>
@@ -550,12 +540,12 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         b64 = base64.b64encode(html_content.encode('utf-8')).decode('utf-8')
         return f"data:text/html;base64,{b64}"
 
-    # เตรียม Data ฐานราก (10 ข้อยกตัวอย่าง)
     scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมทุกกลุ่ม"
     
+    # ฐานข้อมูลแผนจัดการ
     db_dict = {
         "OT": {
-            "evidence": f"Tool 2: จาก {scope_text} ระบุปัญหาในข้อ 1.1\nTool 3: สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน",
+            "evidence": f"Tool 2: จาก {scope_text} ระบุปัญหาการจ่ายเงินล่าช้า\nTool 3: สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน",
             "standard": "พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)",
             "sev": 3, "lik": 4, "rem": 2, "sco": 4,
             "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2 (Survey):</i> จาก{scope_text} พบปัญหาการจ่ายค่าจ้างล่าช้า <label for='m-ot1' class='cite-pill'>[Source 1]</label><br>- <i>Tool 3 (Interview):</i> สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้า <label for='m-ot2' class='cite-pill'>[Source 2]</label>",
@@ -584,7 +574,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             "evidence": f"Tool 4: ตรวจพบสายพานลำเลียงไม่มี Guard\nTool 2: จาก {scope_text} ให้คะแนนความปลอดภัยเฉลี่ยต่ำ",
             "standard": "ISO 45001 | พ.ร.บ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน",
             "sev": 4, "lik": 4, "rem": 2, "sco": 2,
-            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 4 (Observation):</i> ตรวจพบสายพานลำเลียงไม่มี Guard <label for='m-m1' class='cite-pill'>[Source 1]</label><br>- <i>Tool 2:</i> ให้คะแนนความปลอดภัยต่ำ",
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 4 (Observation):</i> ตรวจพบสายพานลำเลียงไม่มี Guard <label for='m-m1' class='cite-pill'>[Source 1]</label><br>- <i>Tool 2:</i> จาก{scope_text} ให้คะแนนความปลอดภัยต่ำ",
             "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> ISO 45001 | พ.ร.บ. ความปลอดภัย อาชีวอนามัยฯ <label for='m-iso' class='cite-pill doc-pill'>[Doc 1]</label>",
             "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: เพิ่มความถี่ในการทำ Safety Patrol และซ่อมบำรุงโครงสร้างเครื่องจักร\n- Timeline: ติดตามผลการปรับปรุงภายใน 1-3 เดือน",
             "plan_r": "Preventive: กำหนดรอบตรวจสอบความปลอดภัยประจำสัปดาห์อย่างเคร่งครัด\nRemediation: หยุดการทำงานจุดเสี่ยงทันที ติดตั้ง Guard ป้องกัน และรับผิดชอบค่ารักษาพยาบาล (ถ้ามี)",
@@ -606,11 +596,61 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             "evidence": f"Tool 3: ชุมชนรอบข้างร้องเรียนกลิ่นเหม็น\nTool 4: ระบบบำบัดน้ำเสียไม่เต็มประสิทธิภาพ",
             "standard": "พ.ร.บ. ส่งเสริมและรักษาคุณภาพสิ่งแวดล้อมแห่งชาติ | UNGPs",
             "sev": 3, "lik": 4, "rem": 4, "sco": 5,
-            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 3:</i> ตัวแทนชุมชนร้องเรียนเรื่องกลิ่นเหม็นช่วงเวลากลางคืน <label for='m-e1' class='cite-pill'>[Source 1]</label><br>- <i>Tool 4:</i> ระบบบำบัดน้ำเสียทำงานไม่เต็มประสิทธิภาพ",
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 3:</i> จาก{scope_text}ร้องเรียนเรื่องกลิ่นเหม็นช่วงเวลากลางคืน <label for='m-e1' class='cite-pill'>[Source 1]</label><br>- <i>Tool 4:</i> ระบบบำบัดน้ำเสียทำงานไม่เต็มประสิทธิภาพ",
             "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> พ.ร.บ. ส่งเสริมและรักษาคุณภาพสิ่งแวดล้อมฯ <label for='m-law-env' class='cite-pill doc-pill'>[Doc 1]</label>",
             "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: ตรวจสอบและซ่อมบำรุงระบบบำบัดน้ำเสีย/อากาศ ให้ได้ตามมาตรฐาน ISO 14001\n- Timeline: ดำเนินการให้แล้วเสร็จภายใน 3 เดือน",
             "plan_r": "Preventive: อนุมัติงบประมาณฉุกเฉินปรับปรุงระบบบำบัดมลพิษให้ได้มาตรฐานทันที\nRemediation: จัดตั้งกลไกเจรจาร่วมกับตัวแทนชุมชน เพื่อรับฟังปัญหาและเยียวยาผู้ได้รับผลกระทบทางสุขภาพ",
             "modals": f"""<input type="checkbox" id="m-e1" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-e1"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-file-pdf" style="color:#EF4444;"></i> Comm_Feedback.pdf</a><label for="m-e1" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('Community Log', '<h2>Community Log</h2><p><mark>ได้รับข้อร้องเรียนจากหมู่บ้านเรื่องกลิ่นเหม็นช่วง 22:00 - 02:00 น.</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>"""
+        },
+        "เลือกปฏิบัติ": {
+            "evidence": f"Tool 2: จาก {scope_text} ให้คะแนนด้านความเท่าเทียมต่ำมาก\nTool 1: โครงสร้างการจ่ายโบนัสแยกตามสัญชาติชัดเจน",
+            "standard": "ILO Convention No. 111 (Discrimination) | UNGPs Principle 12",
+            "sev": 4, "lik": 3, "rem": 3, "sco": 4,
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2:</i> จาก{scope_text} ให้คะแนนด้านความเท่าเทียมต่ำมาก <label for='m-disc1' class='cite-pill'>[Source 1]</label><br>- <i>Tool 1:</i> โครงสร้างการจ่ายโบนัสแยกตามสัญชาติชัดเจน",
+            "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> ILO Conv. 111 <label for='m-i111' class='cite-pill doc-pill'>[Doc 1]</label> | UNGPs",
+            "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: จัดอบรมด้าน Diversity & Inclusion ให้หัวหน้างานทุกระดับ\n- Timeline: ประเมินความพึงพอใจซ้ำใน 6 เดือน",
+            "plan_r": "Preventive: ปรับปรุงโครงสร้างสวัสดิการให้เป็นธรรม และเปิดช่องทางร้องเรียนอิสระ (Whistleblowing)\nRemediation: ตั้งกรรมการสอบสวนข้อเท็จจริง และเยียวยาผู้ถูกกระทำอย่างเป็นธรรม",
+            "modals": f"""<input type="checkbox" id="m-disc1" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-disc1"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-file-csv" style="color:#10B981;"></i> DB_Tool2_Survey.csv</a><label for="m-disc1" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><div class="mock-doc-wrapper"><table class="mock-csv"><tr><th>ID</th><th>Dept</th><th>Q3.1 Equality</th></tr><tr class="alert-row"><td>M05</td><td>ฝ่ายผลิต</td><td class="alert-cell">1 (ไม่จริงเลย)</td></tr></table></div></div></div></div>"""
+        },
+        "สวัสดิการ": {
+            "evidence": f"Tool 4: หอพักพนักงานมีพื้นที่น้อยกว่า 3 ตร.ม./คน\nTool 3: จาก {scope_text} ร้องเรียนเรื่องความสะอาดและแออัด",
+            "standard": "กฎกระทรวงว่าด้วยการจัดสวัสดิการในสถานประกอบกิจการ | ILO Workers' Housing Recommendation (No. 115)",
+            "sev": 3, "lik": 4, "rem": 2, "sco": 5,
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 4:</i> หอพักพนักงานมีพื้นที่น้อยกว่ามาตรฐาน <label for='m-wel1' class='cite-pill'>[Source 1]</label>",
+            "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> กฎกระทรวงว่าด้วยสวัสดิการฯ <label for='m-law-wel' class='cite-pill doc-pill'>[Doc 1]</label>",
+            "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: ทำความสะอาดฉีดพ่นยาฆ่าเชื้อ และซ่อมแซมสิ่งอำนวยความสะดวกพื้นฐาน\n- Timeline: ดำเนินการภายใน 1 เดือน",
+            "plan_r": "Preventive: จัดหาหอพักสำรองเพื่อลดความแออัด (De-densification) ให้ได้ตามมาตรฐานสากล\nRemediation: งดหักค่าที่พักจากพนักงานจนกว่าจะปรับปรุงเสร็จสิ้น",
+            "modals": f"""<input type="checkbox" id="m-wel1" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-wel1"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6;"></i> Dorm_Audit.jpg</a><label for="m-wel1" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body" style="text-align:center;"><div class="mock-doc-wrapper"><img src="https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800" style="width:100%;"><p style="color:#DC2626; font-weight:bold; margin-top:10px;">สภาพหอพักแรงงานค่อนข้างแออัด</p></div></div></div></div>"""
+        },
+        "สมาคม": {
+            "evidence": f"Tool 3: จาก {scope_text} ระบุว่าหัวหน้างานขัดขวางการเลือกตั้ง คกก. สวัสดิการ\nTool 1: ไม่มีนโยบายชัดเจนเรื่องเสรีภาพการสมาคม",
+            "standard": "ILO Convention No. 87 & 98 (Freedom of Association) | พ.ร.บ. แรงงานสัมพันธ์ พ.ศ. 2518",
+            "sev": 4, "lik": 4, "rem": 3, "sco": 2,
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 3:</i> จาก{scope_text} ระบุว่ามีการขัดขวางการจัดตั้งกลุ่ม <label for='m-uni1' class='cite-pill'>[Source 1]</label>",
+            "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> ILO Conv. 87 & 98 <label for='m-i87' class='cite-pill doc-pill'>[Doc 1]</label>",
+            "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: สื่อสารสิทธิพื้นฐานด้านการสมาคมให้พนักงานทุกคนทราบ\n- Timeline: จัดตั้ง คกก. สวัสดิการ ภายใน 3 เดือน",
+            "plan_r": "Preventive: จัดให้มีการเลือกตั้งผู้แทนพนักงานอย่างโปร่งใส โดยมีบุคคลที่สาม (Third-party) ร่วมสังเกตการณ์\nRemediation: ยกเลิกคำสั่งลงโทษหรือโยกย้ายพนักงานที่เป็นแกนนำจัดตั้งกลุ่ม (ถ้ามี)",
+            "modals": f"""<input type="checkbox" id="m-uni1" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-uni1"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-file-pdf" style="color:#EF4444;"></i> Transcript_Union.pdf</a><label for="m-uni1" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('Union', '<h2>Transcript</h2><p>พนักงาน: <mark>หัวหน้าขู่ว่าถ้าใครลงชื่อตั้งสหภาพจะโดนตัดโบนัสครับ</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>"""
+        },
+        "ชั่วโมง": {
+            "evidence": f"Tool 1: ตรวจสอบ Time Attendance พบการทำงานเกิน 60 ชม./สัปดาห์ ติดต่อกัน\nTool 3: จาก {scope_text} ระบุว่ารู้สึกเหนื่อยล้า",
+            "standard": "พ.ร.บ. คุ้มครองแรงงาน (ชั่วโมงการทำงานและวันหยุด) | RBA Code of Conduct",
+            "sev": 3, "lik": 4, "rem": 2, "sco": 4,
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 1:</i> ตรวจสอบ Time Attendance พบการทำงานเกิน 60 ชม./สัปดาห์ <label for='m-hr1' class='cite-pill'>[Source 1]</label>",
+            "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> พ.ร.บ. คุ้มครองแรงงาน <label for='m-law-hr' class='cite-pill doc-pill'>[Doc 1]</label> | RBA",
+            "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: กำหนดเพดาน OT ในระบบสแกนนิ้ว ไม่ให้เกินข้อกำหนดกฎหมาย\n- Timeline: บังคับใช้ในรอบบิลถัดไป",
+            "plan_r": "Preventive: ตั้งระบบแจ้งเตือน (Alert) ในซอฟต์แวร์ HR เมื่อพนักงานทำงานใกล้ถึงลิมิตสูงสุด\nRemediation: จัดสรรกำลังพล (Manpower) ใหม่และให้วันหยุดชดเชยพิเศษแก่พนักงานที่ทำงานหนักเกินเกณฑ์",
+            "modals": f"""<input type="checkbox" id="m-hr1" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-hr1"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-file-csv" style="color:#10B981;"></i> Time_Attendance.csv</a><label for="m-hr1" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><div class="mock-doc-wrapper"><table class="mock-csv"><tr><th>ID</th><th>Total Hours (Week)</th></tr><tr class="alert-row"><td>088</td><td class="alert-cell">68 Hrs</td></tr></table></div></div></div></div>"""
+        },
+        "ร้องเรียน": {
+            "evidence": f"Tool 2: จาก {scope_text} กว่า 60% ไม่ทราบช่องทางการร้องเรียนแบบปกปิดตัวตน\nTool 4: กล่องรับความคิดเห็นอยู่ในจุดที่คนพลุกพล่าน",
+            "standard": "UNGPs Principle 29 (Non-Retaliation) | กลไกรับเรื่องร้องเรียนที่เข้าถึงได้",
+            "sev": 4, "lik": 4, "rem": 3, "sco": 3,
+            "html_evi": f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2:</i> จาก{scope_text} ไม่ทราบช่องทางการร้องเรียนที่ปลอดภัย <label for='m-gr1' class='cite-pill'>[Source 1]</label>",
+            "html_std": "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> UNGPs Principle 29 <label for='m-ungp' class='cite-pill doc-pill'>[Doc 1]</label>",
+            "plan_y": "Preventive Action (แผนป้องกันเชิงรุก):\n- Proactive Measures: ประชาสัมพันธ์ช่องทางสายด่วน (Hotline) ที่เข้าถึงได้หลายภาษา\n- Timeline: ภายใน 1 เดือน",
+            "plan_r": "Preventive: ย้ายกล่องรับความคิดเห็นไปยังจุดที่ปลอดภัย (Blind Spot) และจัดตั้งคณะกรรมการจากภายนอก (Third-party) มารับเรื่อง\nRemediation: ออกจดหมายรับรองนโยบายไม่เอาผิดผู้ร้องเรียน (Non-Retaliation Policy) แจกให้พนักงานทุกคน",
+            "modals": f"""<input type="checkbox" id="m-gr1" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-gr1"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-file-csv" style="color:#10B981;"></i> DB_Tool2_Survey.csv</a><label for="m-gr1" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><div class="mock-doc-wrapper"><table class="mock-csv"><tr><th>ID</th><th>Q3.2 Know Grievance Channel</th></tr><tr class="alert-row"><td>012</td><td class="alert-cell">2 (ไม่ค่อยจริง)</td></tr></table></div></div></div></div>"""
         }
     }
 
@@ -621,10 +661,14 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     <input type="checkbox" id="m-i29" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-i29"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB;"></i> ILO_Conv_29.pdf</a><label for="m-i29" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('ILO 29', '<h2>ILO Convention No. 29</h2><p><mark>The retention of identity documents is widely recognised as a key indicator of forced labour</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
     <input type="checkbox" id="m-i138" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-i138"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB;"></i> ILO_Conv_138.pdf</a><label for="m-i138" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('ILO 138', '<h2>ILO Convention No. 138</h2><p><mark>Minimum Age for admission to employment or work</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
     <input type="checkbox" id="m-iso" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-iso"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-shield" style="color:#2563EB;"></i> ISO_45001.pdf</a><label for="m-iso" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('ISO 45001', '<h2>ISO 45001</h2><p><mark>Occupational health and safety management systems</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
+    <input type="checkbox" id="m-i111" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-i111"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB;"></i> ILO_Conv_111.pdf</a><label for="m-i111" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('ILO 111', '<h2>ILO Convention No. 111</h2><p><mark>Discrimination (Employment and Occupation)</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
+    <input type="checkbox" id="m-i87" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-i87"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB;"></i> ILO_Conv_87_98.pdf</a><label for="m-i87" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('ILO 87', '<h2>ILO Convention No. 87 & 98</h2><p><mark>Freedom of Association and Protection of the Right to Organise</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
+    <input type="checkbox" id="m-ungp" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-ungp"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB;"></i> UNGPs.pdf</a><label for="m-ungp" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('UNGPs', '<h2>UNGPs</h2><p><mark>Principle 29: Accessible Grievance Mechanism and Non-Retaliation</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
     <input type="checkbox" id="m-law-env" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-law-env"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-book" style="color:#D97706;"></i> Thai_Env_Law.pdf</a><label for="m-law-env" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('Env Law', '<h2>พ.ร.บ. ส่งเสริมและรักษาคุณภาพสิ่งแวดล้อม</h2><p><mark>ควบคุมการปล่อยมลพิษทางอากาศและน้ำ</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
+    <input type="checkbox" id="m-law-wel" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-law-wel"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-book" style="color:#D97706;"></i> Thai_Welfare_Law.pdf</a><label for="m-law-wel" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('Welfare', '<h2>กฎกระทรวงว่าด้วยการจัดสวัสดิการฯ</h2><p><mark>มาตรฐานหอพักและน้ำดื่มน้ำใช้</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
+    <input type="checkbox" id="m-law-hr" class="modal-toggle"><div class="modal-window"><label class="modal-backdrop" for="m-law-hr"></label><div class="modal-content"><div class="modal-header"><a href="#" class="modal-title-link"><i class="fa-solid fa-book" style="color:#D97706;"></i> Thai_Labor_Law_Hours.pdf</a><label for="m-law-hr" class="close-btn"><i class="fa-solid fa-xmark"></i></label></div><div class="modal-body"><iframe src="{create_mock_doc_url('Hours', '<h2>พ.ร.บ. คุ้มครองแรงงาน</h2><p><mark>ชั่วโมงการทำงานและการบังคับทำล่วงเวลา</mark></p>')}" style="width:100%;height:300px;border:none;"></iframe></div></div></div>
     """
 
-    # 💡 Matching the selected issue
     current_key = next((k for k in db_dict.keys() if k in selected_issue), None)
     
     if current_key:
@@ -649,7 +693,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
         saved_data = st.session_state.saved_plans_dict[save_issue]
         def_scale, def_lik = saved_data.get('sev', def_scale), saved_data.get('lik', def_lik)
-        def_sco, def_rem = def_scale, def_scale
+        def_sco, def_rem = saved_data.get('sco', def_sco), saved_data.get('rem', def_rem)
 
     if selected_issue and "เลือกประเด็น" not in selected_issue and "(ไม่พบ" not in selected_issue:
         st.markdown(f"""
@@ -740,14 +784,16 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             db_risk_level = "Salient" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Evidence: {final_evidence} | Standard: {final_standard} | Plan: {final_plan}"
             
-            macro_group = f"ข้อมูลระบุกลุ่มเป้าหมาย ({custom_filter_text})" if custom_filter_text else "ภาพรวม (All Groups)"
+            macro_group = f"ข้อมูลระบุกลุ่มเป้าหมาย ({custom_filter_text})" if custom_filter_text else "ภาพรวมระดับองค์กร (Corporate Level)"
             
-            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", macro_group, "ภาพรวม", "ภาพรวม", save_issue, detail, sev_max, likelihood, score, db_risk_level]
+            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", macro_group, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
             
             st.session_state.saved_plans_dict[save_issue] = {
                 'plan': final_plan, 
                 'sev': sev_max, 
                 'lik': likelihood,
+                'sco': scope,
+                'rem': remedy,
                 'evidence': final_evidence,
                 'standard': final_standard,
                 'filter_context': custom_filter_text 
@@ -822,7 +868,7 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
         if sheet:
             decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
             detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
-            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", "Issue-Based", "ภาพรวม (All Groups)", "ภาพรวม", "ภาพรวม", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
+            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร (Corporate Level)", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
             
             st.session_state.early_warning_approved = True if "ยืนยัน" in t6_decision else False
             st.session_state.early_warning_note = t6_note
@@ -832,17 +878,21 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
 
 # ----------------- TOOL 7 (Executive Dashboard & AI Report) -----------------
 elif choice == "Tool 7: แดชบอร์ดและรายงานสรุป (Dashboard & Report)":
-    # 💡 อัปเกรด: Tool 7 ดึงข้อมูลจากที่ Tool 5 อนุมัติเท่านั้น ไม่ต้องให้มี Slicing วิเคราะห์ใหม่ให้งง
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: Executive Dashboard & Comprehensive Report</h3><p style='color:#666;'>สรุปผลประเมินนัยสำคัญของความเสี่ยง (Salient Risk) ระดับองค์กร</p><hr>", unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     
-    sheet_data_count = 135
+    # 💡 อัปเกรด: แสดงยอดตามจำนวนแถว Tool 1-4 จริง
+    sheet_data_count = 0
     if sheet:
-        sheet_data_count = len(sheet.get_all_values()) - 1
-        if sheet_data_count <= 0: sheet_data_count = 135
-
+        all_records = sheet.get_all_values()
+        if len(all_records) > 1:
+            raw_data = [row for row in all_records[1:] if row[4] in ["Tool 1", "Tool 2", "Tool 3", "Tool 4"]]
+            sheet_data_count = len(raw_data)
+            
+    if sheet_data_count == 0: sheet_data_count = 135
+    
     with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>บันทึกฐานข้อมูลจาก Tool 1-4</div></div>", unsafe_allow_html=True)
     
     approved_count = len(st.session_state.get("approved_issues", []))
@@ -903,7 +953,11 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         for iss, data in saved_dict.items():
             has_data = True
             risk_level = "วิกฤต (Critical)" if (data['sev'] == 5 or data['sev']*data['lik'] >= 16) else "สูง (Significant)" if data['sev']*data['lik'] >= 8 else "ปานกลาง/ต่ำ (Moderate)"
-            issue_list_text += f"- {iss}\n  (พิกัดประเมิน: ความรุนแรง {data['sev']} / โอกาสเกิด {data['lik']} / ระดับความเสี่ยง: {risk_level})\n"
+            
+            filter_context = data.get('filter_context', '')
+            scope_label = f"(กลุ่ม: {filter_context})" if filter_context else "(ระดับองค์กรภาพรวม)"
+            
+            issue_list_text += f"- {iss} {scope_label}\n  พิกัดประเมิน: ความรุนแรง {data['sev']} / โอกาสเกิด {data['lik']} / ระดับความเสี่ยง: {risk_level}\n\n"
             
             action_text = data['plan'].replace('\n', '\n  ')
             action_list_text += f"▪ สำหรับยุทธศาสตร์การจัดการประเด็น {iss}:\n  {action_text}\n\n"
