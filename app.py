@@ -26,37 +26,33 @@ def connect_to_sheet():
         return None
 
 # --- ฟังก์ชันตรวจสอบรหัสซ้ำ (Consistency Check) ---
-# 💡 อัปเกรดล่าสุด: รหัสต้องเป็น "หนึ่งเดียวทั้งระบบ (Global Unique ID)" 
-# ถ้ารหัสซ้ำ ข้อมูลทุกฟิลด์ (พื้นที่, กลุ่ม, แผนก, เพศ) ต้องเป๊ะ 100% ห้ามเพี้ยนแม้แต่นิดเดียว
 def check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
     if not resp_id or resp_id.strip() == "": 
         return False
     all_records = sheet.get_all_values()
     for row in all_records:
-        # เช็คคอลัมน์ [3]=Location, [5]=ID, [6]=Group, [7]=Dept, [8]=Gender
         if len(row) > 8 and row[5] == resp_id:
-            # ถ้ารหัสตรงกัน แต่ข้อมูลอื่นๆ ไม่ตรงเลยแม้แต่อย่างเดียว = ถือว่าเป็นคนละคน! บล็อกทันที
             if row[3] != location or row[6] != resp_group or row[7] != resp_dept or row[8] != resp_gender:
-                return True # ขัดแย้ง! รหัสถูกใช้ไปแล้วกับคนอื่น
-    return False # ผ่าน! รหัสใหม่ หรือ รหัสเดิมและข้อมูลทุกอย่างเป๊ะ 100%
+                return True 
+    return False 
 
 # --- ฟังก์ชันคำนวณสีไล่เฉดสี Heat Map (Gradient) ---
 def get_heat_color(s, l):
     val = s * l
-    if val >= 16 or s == 5:  # RED ZONE
-        if val <= 5: return "#FCA5A5"   # แดงอ่อน
-        if val <= 10: return "#F87171"  # แดงกลาง
-        if val <= 15: return "#EF4444"  # แดงสด
-        if val <= 20: return "#DC2626"  # แดงเข้ม
-        return "#991B1B"                # แดงเข้มเดือด
-    elif val >= 8:  # YELLOW ZONE
-        if val <= 9: return "#FDE047"   # เหลืองสว่าง
-        if val <= 12: return "#F59E0B"  # เหลืองทอง
-        return "#D97706"                # ทองอร่าม
-    else:  # GREEN ZONE
-        if val <= 2: return "#A7F3D0"   # เขียวอ่อน
-        if val <= 4: return "#34D399"   # เขียวกลาง
-        return "#059669"                # เขียวเข้มสุด
+    if val >= 16 or s == 5:  
+        if val <= 5: return "#FCA5A5"   
+        if val <= 10: return "#F87171"  
+        if val <= 15: return "#EF4444"  
+        if val <= 20: return "#DC2626"  
+        return "#991B1B"                
+    elif val >= 8:  
+        if val <= 9: return "#FDE047"   
+        if val <= 12: return "#F59E0B"  
+        return "#D97706"                
+    else:  
+        if val <= 2: return "#A7F3D0"   
+        if val <= 4: return "#34D399"   
+        return "#059669"                
 
 # --- 3. ULTRA-PREMIUM STYLING & HIDE STREAMLIT MENU ---
 st.markdown("""
@@ -164,7 +160,7 @@ if "approved_issues" not in st.session_state: st.session_state.approved_issues =
 if "saved_plans_dict" not in st.session_state: st.session_state.saved_plans_dict = {}
 
 # ==========================================
-# --- 4. TOP-DOWN UI (เนื้อหาหลักหลัง Login) ---
+# --- 4. DYNAMIC UI (ปรับแต่งตามบริบท) ---
 # ==========================================
 st.markdown("""
     <div class="premium-banner">
@@ -187,31 +183,19 @@ st.markdown("""
 
 st.markdown('<div class="control-panel">', unsafe_allow_html=True)
 
-# --- ส่วนที่ 1: ข้อมูลโครงการ (ผู้ทำหน้าที่ออดิท) ---
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-folder-open'></i> 1. ข้อมูลโครงการ (Project Info)</h4>", unsafe_allow_html=True)
-col_p1, col_p2 = st.columns(2)
+# --- 1. ข้อมูลโครงการและพื้นที่ (แสดงตลอดเวลา) ---
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-folder-open'></i> 1. ข้อมูลโครงการและพื้นที่ประเมิน</h4>", unsafe_allow_html=True)
+col_p1, col_p2, col_p3 = st.columns(3)
 with col_p1: audit_cycle = st.selectbox("รอบการประเมิน (Audit Cycle) *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
-with col_p2: auditor_name = st.text_input("ชื่อผู้บันทึกข้อมูล (Auditor) *", placeholder="เช่น สมชาย ใจดี")
-
-# --- ส่วนที่ 2: ข้อมูลพื้นที่และผู้ให้ข้อมูล (จัดกลุ่มใหม่ตามหลักสถาปัตยกรรมข้อมูล) ---
-st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลพื้นที่และผู้ให้ข้อมูล (Location & Respondent)</h4>", unsafe_allow_html=True)
-
-col_r_loc, col_r_id = st.columns([2, 1])
-with col_r_loc: 
-    location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี (อาคาร B)")
-    st.caption("📍 ระบุชื่อหน่วยงาน/โซนให้ชัดเจน (ตามหลัก PDPA ห้ามระบุที่อยู่ส่วนบุคคล)")
-with col_r_id: 
-    resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002")
-
-col_r1, col_r2, col_r3 = st.columns(3)
-with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
-with col_r2: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
-with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
+with col_p2: auditor_name = st.text_input("ชื่อผู้ใช้งาน (Auditor/Executive) *", placeholder="เช่น สมชาย ใจดี")
+with col_p3: 
+    location = st.text_input("พื้นที่ (Location/Site) *", placeholder="ระบุหน่วยงาน หรือพิมพ์ 'ภาพรวมองค์กร'")
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
-st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-screwdriver-wrench'></i> 3. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
-choice = st.selectbox("เลือกแบบฟอร์มด้านล่างนี้:", [
+
+# --- 2. เลือกเครื่องมือ (ย้ายขึ้นมาให้เลือกก่อน) ---
+st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-screwdriver-wrench'></i> 2. เลือกเครื่องมือปฏิบัติงาน</h4>", unsafe_allow_html=True)
+choice = st.selectbox("เลือกฟังก์ชันหรือรายงานที่ต้องการ:", [
     "Tool 1: ประเมินสถานะองค์กร (Governance & Policy Gap)",
     "Tool 2: แบบสอบถามหน้างาน (Worker Survey)",
     "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)",
@@ -220,10 +204,31 @@ choice = st.selectbox("เลือกแบบฟอร์มด้านล่
     "Tool 6: ระบบเตือนภัยล่วงหน้า (AI Triangulation & Early Warning)",
     "Tool 7: แดชบอร์ดและรายงานสรุป (Dashboard & Report)"
 ], label_visibility="collapsed")
+
+is_tool_1_to_4 = choice.startswith("Tool 1") or choice.startswith("Tool 2") or choice.startswith("Tool 3") or choice.startswith("Tool 4")
+
+# --- 3. ข้อมูลผู้ให้ข้อมูล (DYNAMIC: โชว์เฉพาะ Tool 1-4 เท่านั้น!) ---
+if is_tool_1_to_4:
+    st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 3. ข้อมูลผู้ให้ข้อมูล (Respondent Info)</h4>", unsafe_allow_html=True)
+    st.info("📌 เนื่องจากเป็นการเก็บข้อมูลรายบุคคล กรุณาระบุรหัสอ้างอิงและแผนกเพื่อความแม่นยำในการวิเคราะห์ผล")
+    
+    col_r1, col_r2, col_r3, col_r4 = st.columns(4)
+    with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002")
+    with col_r2: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
+    with col_r3: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
+    with col_r4: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
+else:
+    # 💡 ถ้าเป็น Tool 5-7 (ผู้บริหารใช้งาน) จะไม่โชว์ช่องให้กรอก แต่จะตั้งค่า Default ป้องกัน Error ให้ระบบ
+    resp_id = "N/A"
+    resp_group = "ภาพรวม (All Groups)"
+    resp_dept = "ภาพรวม (All Depts)"
+    resp_gender = "ภาพรวม"
+
 st.markdown('</div>', unsafe_allow_html=True)
 
 if not auditor_name or not location:
-    st.info("📌 กรุณาระบุข้อมูล **ชื่อผู้บันทึก** และ **พื้นที่สำรวจ** ด้านบนให้ครบถ้วน เพื่อเริ่มใช้งานระบบ")
+    st.info("📌 กรุณาระบุข้อมูล **ชื่อผู้ใช้งาน** และ **พื้นที่** ให้ครบถ้วน เพื่อเริ่มทำงาน")
     st.stop()
 
 now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
@@ -233,18 +238,15 @@ now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
 # ==========================================
 sheet = connect_to_sheet()
 
-is_tool_1_to_4 = choice.startswith("Tool 1") or choice.startswith("Tool 2") or choice.startswith("Tool 3") or choice.startswith("Tool 4")
-
 if is_tool_1_to_4:
     if not resp_id or not resp_dept:
-        st.warning("⚠️ กรุณากรอก **รหัสอ้างอิง (ID)** และ **แผนก/ส่วนงาน** ด้านบนให้ครบถ้วน เพื่อปลดล็อกแบบฟอร์มการประเมิน")
+        st.warning("⚠️ กรุณากรอก **รหัสอ้างอิง (ID)** และ **แผนก/ส่วนงาน** ให้ครบถ้วน เพื่อทำแบบประเมิน")
         st.stop()
     elif sheet:
         with st.spinner("กำลังตรวจสอบความถูกต้องของรหัสอ้างอิง..."):
-            # 💡 ระบบเช็ครหัสซ้ำทันที (Fail Fast) ถ้ารหัสซ้ำ ข้อมูลทุกฟิลด์ต้องเหมือนเดิม 100%
             if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                st.error(f"❌ ไม่อนุญาตให้ทำรายการ: รหัสอ้างอิง '{resp_id}' นี้ถูกใช้งานไปแล้วกับบุคคลอื่นในระบบ!")
-                st.info("💡 **สาเหตุ:** พบรหัสนี้ในฐานข้อมูลแล้ว แต่ข้อมูล (พื้นที่, กลุ่มเป้าหมาย, แผนก หรือ เพศ) ไม่ตรงกับข้อมูลเดิม\n\n**คำแนะนำ:** หากเป็นคนละคนกัน กรุณาตั้งรหัสอ้างอิงใหม่ (เช่น 002, 003) เพื่อไม่ให้ข้อมูลสับสนตีกัน")
+                st.error(f"❌ ไม่อนุญาตให้ทำรายการ: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น!")
+                st.info("💡 **สาเหตุ:** พบรหัสนี้ในฐานข้อมูลแล้ว แต่ข้อมูล (กลุ่มเป้าหมาย, แผนก หรือ เพศ) ไม่ตรงกับข้อมูลเดิม\n\n**คำแนะนำ:** หากเป็นคนละคนกัน กรุณาตั้งรหัสอ้างอิงใหม่ เพื่อไม่ให้ข้อมูลสับสนตีกัน")
                 st.stop() 
 
 # ==========================================
@@ -410,7 +412,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
     is_already_approved = save_issue in st.session_state.approved_issues
 
-    # 💡 อัปเกรด: เพิ่มระบบ Citation สำหรับ Evidence Base
     evidence_base = ""
     framework_citation = ""
     
@@ -485,7 +486,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     st.markdown(badge_html, unsafe_allow_html=True)
     
-    # 💡 อัปเกรด: แสดง Framework Citation ในกล่อง AI Draft
     st.markdown(f"""
     <div class="gemini-draft-box">
         <div style="display: flex; justify-content: space-between; align-items: start;">
@@ -540,7 +540,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             db_risk_level = "Salient" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
             
-            # 💡 อัปเกรด: บังคับให้ Tool 5 บันทึกเป็นข้อมูลระดับ "ภาพรวม" เพื่อไม่ให้สับสนกับรายบุคคล
             macro_group = "ภาพรวม (All Groups)"
             macro_dept = "ภาพรวม (All Depts)"
             macro_gender = "ภาพรวม"
@@ -621,7 +620,6 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
             decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
             detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
             
-            # 💡 อัปเกรด: บังคับให้ Tool 6 บันทึกเป็นข้อมูลระดับ "ภาพรวม" เช่นเดียวกัน
             macro_group = "ภาพรวม (All Groups)"
             macro_dept = "ภาพรวม (All Depts)"
             macro_gender = "ภาพรวม"
@@ -679,9 +677,6 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         </div>
     """, unsafe_allow_html=True)
     
-    # =========================================================
-    # 🌟 UPGRADED SECTION: Profound AI Report Generation
-    # =========================================================
     st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ร่างรายงานการบริหารจัดการความเสี่ยง (Comprehensive HRDD Report)</h3>", unsafe_allow_html=True)
     st.info("💡 ระบบปัญญาประดิษฐ์ (AI) จะสังเคราะห์และประมวลผลข้อมูลเชิงลึกทั้งหมดในรอบปี ทั้งประเด็นที่มีนัยสำคัญ (Salient) และการพยากรณ์ความเสี่ยงล่วงหน้า (Foresight) เพื่อจัดทำร่างยุทธศาสตร์ให้ผู้บริหารพิจารณา")
