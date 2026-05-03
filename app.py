@@ -4,6 +4,7 @@ from google.oauth2 import service_account
 import gspread
 from datetime import datetime, timedelta
 import altair as alt
+import base64
 
 # ==========================================
 # --- 1. SETTING UP THE PAGE (ต้องอยู่บนสุดเสมอ) ---
@@ -112,7 +113,7 @@ st.markdown("""
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
 
-    /* 💡 NOTEBOOK LM INTERACTIVE CITATION & MODAL SYSTEM (FIXED Z-INDEX & HITBOX) */
+    /* 💡 NOTEBOOK LM INTERACTIVE CITATION & MODAL SYSTEM */
     .cite-pill {
         display: inline-flex; align-items: center; justify-content: center;
         background-color: #E0E7FF; color: #4F46E5; border-radius: 12px;
@@ -122,25 +123,19 @@ st.markdown("""
     .cite-pill:hover { background-color: #4F46E5; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
 
     .modal-toggle { display: none; }
-    
-    /* The main wrapper of the modal */
     .modal-window {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
         z-index: 999999; display: flex; align-items: center; justify-content: center;
         opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
-    
-    /* When checkbox is checked, make modal visible and clickable */
     .modal-toggle:checked ~ .modal-window { opacity: 1; pointer-events: auto; }
     
-    /* The dark blurred background - clicking this will uncheck the toggle */
     .modal-backdrop { 
         position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
         background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
         cursor: pointer; z-index: 1; 
     }
     
-    /* The white content box */
     .modal-content {
         background: #F8FAFC; width: 85%; max-width: 900px; max-height: 85vh;
         border-radius: 16px; display: flex; flex-direction: column;
@@ -169,7 +164,6 @@ st.markdown("""
     
     .modal-body { padding: 30px; overflow-y: auto; background: #F3F4F6;}
     
-    /* Document Styles inside Modal */
     .mock-doc-wrapper { background: #FFFFFF; padding: 40px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 4px; border: 1px solid #E5E7EB; margin: 0 auto; max-width: 800px;}
     .mock-pdf { font-family: 'Sarabun', serif; color: #333; line-height: 1.8; font-size: 16px; }
     .mock-pdf h4 { text-align: center; border-bottom: 2px solid #111827; padding-bottom: 15px; margin-bottom: 20px; font-family: 'Poppins', sans-serif; font-weight: 800; text-transform: uppercase;}
@@ -186,13 +180,11 @@ st.markdown("""
 # ==========================================
 # --- 3.1 🔐 ENTERPRISE SSO & WHITELIST AUTHENTICATION ---
 # ==========================================
-# 💡 Mockup Database สำหรับเก็บรหัสผ่าน
 if "user_db" not in st.session_state:
     st.session_state.user_db = {}
 if "current_user" not in st.session_state:
     st.session_state.current_user = None
 
-# 💡 กำหนด Whitelist (เฉพาะอีเมลในนี้เท่านั้นที่เข้าใช้งานได้)
 WHITELIST = ["admin@betagro.com", "somchai@betagro.com", "auditor1@betagro.com", "auditor2@betagro.com"]
 
 def check_password():
@@ -219,10 +211,8 @@ def check_password():
             
             email = st.text_input("Corporate Email (อีเมลองค์กร)", placeholder="เช่น admin@betagro.com")
             
-            # เช็คว่ากรอกอีเมลมาหรือยัง
             if email:
                 if email in WHITELIST:
-                    # ถ้าอยู่ใน Whitelist และยังไม่เคยตั้งรหัสผ่าน (First-time user)
                     if email not in st.session_state.user_db:
                         st.info("👋 ยินดีต้อนรับผู้ใช้งานใหม่! เนื่องจากคุณเพิ่งเข้าสู่ระบบครั้งแรก กรุณาตั้งรหัสผ่านสำหรับบัญชีของคุณเพื่อความปลอดภัย")
                         new_pwd = st.text_input("ตั้งรหัสผ่านใหม่ (New Password)", type="password")
@@ -235,7 +225,6 @@ def check_password():
                                 st.rerun()
                             else:
                                 st.error("❌ รหัสผ่านไม่ตรงกัน หรือเว้นว่าง กรุณาลองใหม่")
-                    # ถ้าเคยตั้งรหัสผ่านแล้ว
                     else:
                         pwd = st.text_input("รหัสผ่าน (Password)", type="password", placeholder="Enter Password...")
                         if st.form_submit_button("LOGIN"):
@@ -246,7 +235,7 @@ def check_password():
                                 st.error("❌ รหัสผ่านไม่ถูกต้อง")
                 else:
                     st.error("❌ Access Denied. อีเมลนี้ไม่ได้รับสิทธิ์การเข้าถึง (Not in Whitelist) กรุณาติดต่อ Admin")
-                    st.form_submit_button("LOGIN") # ใส่ปุ่มหลอกไว้กัน Form error
+                    st.form_submit_button("LOGIN") 
             else:
                 st.form_submit_button("ตรวจสอบสิทธิ์")
                 st.caption("💡 อีเมลทดสอบระบบ: admin@betagro.com, somchai@betagro.com")
@@ -286,7 +275,6 @@ st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>
 col_p1, col_p2 = st.columns(2)
 with col_p1: audit_cycle = st.selectbox("รอบการประเมิน (Audit Cycle) *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
 with col_p2: 
-    # 💡 อัปเกรด: ดึงชื่อผู้ใช้งานจากอีเมลที่ Login มาแสดงแบบอัตโนมัติ (Read-only)
     st.text_input("ผู้ใช้งานระบบ (System User)", value=st.session_state.current_user, disabled=True)
     auditor_name = st.session_state.current_user
 
@@ -341,33 +329,131 @@ if is_tool_1_to_4:
                 st.stop() 
 
 # ==========================================
-# --- 6. TOOLS LOGIC ---
+# --- 6. TOOLS LOGIC (RESTORED FULL FORMS) ---
 # ==========================================
 
-# ----------------- TOOL 1-4 (ย่อส่วนให้กระชับ) -----------------
-if choice.startswith("Tool 1"):
+# ----------------- TOOL 1 -----------------
+if choice == "Tool 1: ประเมินสถานะองค์กร (Governance & Policy Gap)":
     with st.form("form_t1"):
-        st.markdown("### Tool 1: ประเมินสถานะองค์กร", unsafe_allow_html=True)
-        q1_1 = st.radio("1.1 มีนโยบายลายลักษณ์อักษร?", ["ใช่", "ไม่ใช่"], horizontal=True)
-        if st.form_submit_button("บันทึก"): st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
+        st.markdown("<h3 style='color:#005B31;'>Tool 1: ประเมินสถานะองค์กร (Policy Gap)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**หมวด A: การกำกับดูแลและนโยบาย**")
+        q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' ที่เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, ชุมชน, สิ่งแวดล้อม) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        st.markdown("**หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)**")
+        q2_1 = st.radio("2.1 มีการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) ประจำปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q2_2 = st.radio("2.2 มีระบบการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        st.markdown("**หมวด C: กลไกการร้องเรียนและการเยียวยา (Grievance & Remediation)**")
+        q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัย เป็นความลับ และเข้าถึงได้ง่ายหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q3_2 = st.radio("3.2 มีขั้นตอนการเยียวยา (Remediation) แก่ผู้ได้รับผลกระทบเมื่อเกิดการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
+            if sheet:
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                else:
+                    detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
+                    st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
-elif choice.startswith("Tool 2"):
+# ----------------- TOOL 2 -----------------
+elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker Survey)":
     with st.form("form_t2"):
-        st.markdown("### Tool 2: แบบสอบถามหน้างาน", unsafe_allow_html=True)
-        s1_1 = st.select_slider("1.1 จ่ายค่าจ้างตรงเวลา", options=[1,2,3,4,5], value=3)
-        if st.form_submit_button("บันทึก"): st.success("✅ บันทึกข้อมูล Tool 2 เรียบร้อย")
+        st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน</h3>", unsafe_allow_html=True)
+        st.info("💡 ระดับคะแนน: 1 = ไม่จริงเลย/ไม่เคยปฏิบัติ | 5 = เป็นความจริงที่สุด/ปฏิบัติเสมอ")
+        st.markdown("<hr>", unsafe_allow_html=True)
 
-elif choice.startswith("Tool 3"):
+        st.markdown("**หมวดที่ 1: สภาพการจ้างและค่าจ้าง (Wages & Employment)**")
+        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามที่ตกลงไว้", options=[1,2,3,4,5], value=3)
+        s1_2 = st.select_slider("1.2 ท่านเป็นผู้เก็บเอกสารประจำตัว (เช่น พาสปอร์ต, บัตร ปชช.) ไว้เอง", options=[1,2,3,4,5], value=3)
+        s1_3 = st.select_slider("1.3 การทำล่วงเวลา (OT) ของท่าน เกิดจากความสมัครใจ ไม่ได้ถูกบังคับ", options=[1,2,3,4,5], value=3)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        
+        st.markdown("**หมวดที่ 2: ความปลอดภัยและสุขอนามัย (Occupational Health & Safety)**")
+        s2_1 = st.select_slider("2.1 บริษัทจัดเตรียมอุปกรณ์ป้องกันอันตราย (PPE) ให้เพียงพอและฟรี", options=[1,2,3,4,5], value=3)
+        s2_2 = st.select_slider("2.2 สภาพแวดล้อมการทำงานของท่าน (แสง, เสียง, อากาศ) ปลอดภัยต่อสุขภาพ", options=[1,2,3,4,5], value=3)
+        s2_3 = st.select_slider("2.3 โรงอาหารและที่พักอาศัย (ถ้ามี) สะอาดและถูกสุขลักษณะ", options=[1,2,3,4,5], value=3)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+
+        st.markdown("**หมวดที่ 3: การปฏิบัติต่อพนักงานและการร้องเรียน (Fair Treatment & Grievance)**")
+        s3_1 = st.select_slider("3.1 หัวหน้างานปฏิบัติต่อพนักงานทุกคนอย่างเท่าเทียม ไม่เลือกปฏิบัติ", options=[1,2,3,4,5], value=3)
+        s3_2 = st.select_slider("3.2 หากมีปัญหาหรือถูกเอาเปรียบ ท่านทราบช่องทางและกล้าร้องเรียน", options=[1,2,3,4,5], value=3)
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
+            if sheet:
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้ว")
+                else:
+                    detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
+                    st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
+
+# ----------------- TOOL 3 -----------------
+elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)":
     with st.form("form_t3"):
-        st.markdown("### Tool 3: สัมภาษณ์เชิงลึก", unsafe_allow_html=True)
-        testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=100)
-        if st.form_submit_button("บันทึก"): st.success("✅ บันทึกข้อมูล Tool 3 เรียบร้อย")
+        st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)**")
+        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา/ค่านายหน้า (Recruitment Fees)", "ความเข้าใจในสัญญาจ้าง", "สภาพที่พักอาศัย/โรงอาหาร", "กลไกการร้องเรียน", "การเลือกปฏิบัติ"], label_visibility="collapsed")
+        
+        st.markdown("<br>**✍️ บันทึกคำให้การ (Testimony)**", unsafe_allow_html=True)
+        testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=150)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
+            if sheet:
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้ว")
+                else:
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
+                    st.success("✅ บันทึกหลักฐานสำเร็จ")
 
-elif choice.startswith("Tool 4"):
+# ----------------- TOOL 4 -----------------
+elif choice == "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)":
     with st.form("form_t4"):
-        st.markdown("### Tool 4: บันทึกการสังเกตการณ์", unsafe_allow_html=True)
-        o1 = st.radio("1. พบประกาศช่องทางร้องเรียน", ["พบ", "ไม่พบ"], horizontal=True)
-        if st.form_submit_button("บันทึก"): st.success("✅ บันทึกข้อมูล Tool 4 เรียบร้อย")
+        st.markdown("<h3 style='color:#005B31;'>Tool 4: บันทึกการสังเกตการณ์</h3><hr>", unsafe_allow_html=True)
+        st.info("📌 ประเมินสิ่งที่พบเห็นจริงหน้างาน และสามารถบันทึกข้อสังเกตเพิ่มเติมในแต่ละข้อได้ทันที")
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        o1 = st.radio("1. มีการติดประกาศนโยบายและช่องทางร้องเรียนในพื้นที่ที่พนักงานมองเห็นได้ชัดเจน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o1 = st.text_input("บันทึกเพิ่มเติมข้อ 1:", key="n1", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 1 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o2 = st.radio("2. ทางหนีไฟ อุปกรณ์ดับเพลิง ไม่มีสิ่งกีดขวางและพร้อมใช้งาน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o2 = st.text_input("บันทึกเพิ่มเติมข้อ 2:", key="n2", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 2 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกัน (PPE) ถูกต้อง", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 3 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o4 = st.radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 4 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o5 = st.radio("5. ตู้ยาสามัญประจำโรงงานมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o5 = st.text_input("บันทึกเพิ่มเติมข้อ 5:", key="n5", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 5 (ถ้ามี)...")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
+            if sheet:
+                if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้ว")
+                else:
+                    res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
+                    res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
+                    res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
+                    res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
+                    res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
+                    detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
+                    st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
+
 
 # ----------------- TOOL 5 (THE NOTEBOOK LM UPDATE) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
@@ -399,7 +485,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         ai_header = f"🤖 Gemini AI พบประเด็นที่ต้องจัดทำแผน (วิเคราะห์เฉพาะกลุ่ม: {custom_filter_text}):" if custom_filter_text else "🤖 Gemini AI พบ 10 ประเด็นยุทธศาสตร์ที่ต้องจัดทำแผน (วิเคราะห์จากภาพรวมทั้งหมด):"
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
         
-        # 💡 อัปเกรด: เพิ่มรายการให้ครบ 10 ตัวเลือก
         selected_issue = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", [
             "เลือกประเด็นความเสี่ยงเพื่อจัดการ...",
             "[สิทธิแรงงาน] 1. พนักงานร้องเรียนเรื่องการจ่ายเงิน OT ไม่ครบ/ล่าช้า",
@@ -421,21 +506,52 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     framework_citation = ""
     modal_html = "" 
     
+    # 💡 อัปเกรด: แยกข้อความ Plain Text สำหรับใส่ในกล่อง Edit เพื่อไม่ให้มี HTML Tag รบกวน
+    plain_evidence = ""
+    plain_standard = ""
+    
     scope_text = f"เฉพาะกลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมพนักงาน"
     
-    # 💡 THE NOTEBOOK LM MAGIC: แก้ลิงก์เป็น URL เอกสารตัวอย่าง และแก้ระบบคลิกพื้นหลัง
-    dummy_pdf_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+    # ฟังก์ชันจำลอง URL ให้เหมือนลิงก์เปิดไฟล์เอกสารจริงๆ (Base64 Data URI)
+    def create_mock_doc_url(title, content):
+        html_content = f"""
+        <html><head><meta charset="utf-8"><title>{title}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+            body {{ font-family: 'Sarabun', sans-serif; background-color: #E5E7EB; padding: 40px; color: #1F2937; line-height: 1.6; }}
+            .page {{ background-color: #FFFFFF; max-width: 800px; margin: 0 auto; padding: 60px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; border-top: 10px solid #005B31;}}
+            h2 {{ color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; text-transform: uppercase; font-size: 24px; }}
+            .metadata {{ color: #6B7280; font-size: 14px; margin-bottom: 30px; }}
+            mark {{ background-color: #FEF08A; padding: 2px 4px; border-radius: 2px; font-weight: bold; border-bottom: 2px solid #EAB308; }}
+        </style>
+        </head><body><div class="page">{content}</div></body></html>
+        """
+        b64 = base64.b64encode(html_content.encode('utf-8')).decode('utf-8')
+        return f"data:text/html;base64,{b64}"
     
     if "OT" in selected_issue or "โอที" in selected_issue: 
+        plain_evidence = f"Tool 2: จาก {scope_text} ระบุคะแนน 1-2 ในข้อ 1.1\nTool 3: สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน"
+        plain_standard = "พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)"
+        
+        ot_transcript = f"""
+        <h2>CONFIDENTIAL AUDIT TRANSCRIPT</h2>
+        <div class="metadata"><p><b>Date:</b> {now}</p><p><b>Subject:</b> สัมภาษณ์กลุ่มพนักงาน (ID 045, 088)</p></div>
+        <p><b>Interviewer:</b> สวัสดีครับ วันนี้อยากให้เล่าถึงสภาพการทำงานทั่วๆ ไป รวมถึงเรื่องการรับเงินเดือนและค่าล่วงเวลาครับ มีปัญหาอะไรไหม?</p>
+        <p><b>Respondent (ID 045):</b> ช่วงแรกๆ ก็ดีครับ แต่ช่วงสามเดือนที่ผ่านมานี้ ผมและเพื่อนๆ ในไลน์ผลิตเดียวกันเริ่มเจอปัญหาครับ คือเงินเดือนหลักเข้าตรงตามปกติ แต่ <mark>พวกเราได้เงิน OT ช้าไป 2 สัปดาห์ตลอดเลยครับ</mark> พอไปถามหัวหน้า เขาก็บอกว่าระบบคำนวณรวน</p>
+        <p><b>Respondent (ID 088):</b> จริงครับ ปกติต้องได้ทุกสิ้นเดือน แต่กลายเป็นว่าได้เฉพาะเงินเดือนหลัก ส่วน <mark>เงินล่วงเวลาถูกปัดไปรวมกับงวดหน้าแทน ทำให้หมุนเงินส่งกลับบ้านไม่ทัน</mark></p>
+        <p><b>Interviewer:</b> แล้วได้ลองแจ้งไปทางฝ่ายบุคคล (HR) หรือยังครับ?</p>
+        <p><b>Respondent (ID 045):</b> ไม่กล้าครับ กลัวจะมีปัญหากับหัวหน้างาน...</p>
+        """
+        mock_pdf_url = create_mock_doc_url("Transcript_ID045_088.pdf", ot_transcript)
+        
         evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
         - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ระบุคะแนน 1-2 ในข้อ 1.1 
         <label for="modal-csv-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์ข้อมูล">[Source 1]</label><br>
         - <i>Tool 3 (Interview):</i> สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน 
         <label for="modal-pdf-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์เอกสาร">[Source 2]</label>"""
-        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)"
+        framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
         
         modal_html = f"""
-        <!-- Modal 1: CSV File -->
         <input type="checkbox" id="modal-csv-ot" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-csv-ot"></label>
@@ -459,20 +575,19 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                 </div>
             </div>
         </div>
-        <!-- Modal 2: PDF Transcript -->
         <input type="checkbox" id="modal-pdf-ot" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-pdf-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{dummy_pdf_url}" target="_blank" class="modal-title-link" title="เปิดไฟล์เอกสารต้นฉบับในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{mock_pdf_url}" target="_blank" class="modal-title-link" title="เปิดไฟล์เอกสารต้นฉบับในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
                     <div class="mock-doc-wrapper mock-pdf">
                         <h4>CONFIDENTIAL AUDIT TRANSCRIPT</h4>
                         <p><b>Interviewer:</b> คุณบอกว่ามีปัญหาเรื่องการจ่ายเงินเดือน ช่วยอธิบายเพิ่มเติมได้ไหมครับ?</p>
-                        <p><b>Respondent (ID 045):</b> ใช่ครับ ช่วงสามเดือนที่ผ่านมานี้ ผมและเพื่อนๆ ในไลน์ผลิตเดียวกัน <mark>พวกเราได้เงิน OT ช้าไป 2 สัปดาห์ตลอดเลยครับ</mark> พอไปถามหัวหน้า เขาก็บอกว่าระบบคำนวณรวน</p>
+                        <p><b>Respondent (ID 045):</b> ใช่ครับ ช่วงสามเดือนที่ผ่านมานี้ ผมและเพื่อนๆ ในไลน์ผลิตเดียวกัน <mark>พวกเราได้เงิน OT ช้าไป 2 สัปดาห์ตลอดเลยครับ</mark></p>
                         <p><b>Respondent (ID 088):</b> จริงครับ ปกติต้องได้ทุกสิ้นเดือน แต่กลายเป็นว่าได้เฉพาะเงินเดือนหลัก ส่วน <mark>เงินล่วงเวลาถูกปัดไปรวมกับงวดหน้าแทน ทำให้หมุนเงินส่งกลับบ้านไม่ทัน</mark></p>
                     </div>
                 </div>
@@ -481,23 +596,32 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         """
 
     elif "พาสปอร์ต" in selected_issue: 
-        evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
-        - <i>Tool 4 (Observation):</i> พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่ 
-        <label for="modal-img-safe" class="cite-pill" title="คลิกเพื่อดูรูปถ่ายหลักฐาน">[Source 1]</label><br>
-        - <i>Tool 3 (Interview):</i> จาก{scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต 
-        <label for="modal-pdf-passport" class="cite-pill" title="คลิกเพื่อดูไฮไลต์เอกสาร">[Source 2]</label>"""
-        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> หลักการ Employer Pays Principle (EPP) | ILO Forced Labour Convention (No. 29)"
+        plain_evidence = f"Tool 4: พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่\nTool 3: จาก {scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต"
+        plain_standard = "หลักการ Employer Pays Principle (EPP) | ILO Forced Labour Convention (No. 29)"
         
+        pass_transcript = f"""
+        <h2>CONFIDENTIAL AUDIT TRANSCRIPT</h2>
+        <div class="metadata"><p><b>Date:</b> {now}</p><p><b>Subject:</b> สัมภาษณ์แรงงานข้ามชาติ (Grp 1)</p></div>
+        <p><b>Interviewer:</b> เอกสารประจำตัวของพวกคุณ ตอนนี้ใครเป็นคนเก็บไว้ครับ?</p>
+        <p><b>Respondent (Grp1):</b> พวกเราไม่ได้ถือไว้เองเลยครับ <mark>ตั้งแต่ข้ามฝั่งมาถึงโรงงาน เอเจนซี่ก็ขอยึดพาสปอร์ตและบัตรเวิร์คเพอร์มิตไปเก็บไว้ในตู้เซฟของเขา</mark> เขาบอกว่ากลัวพวกเราทำหาย</p>
+        <p><b>Interviewer:</b> แล้วถ้ามีธุระต้องใช้เอกสาร สามารถขอเบิกได้ไหม?</p>
+        <p><b>Respondent (Grp1):</b> <mark>ขอเบิกยากมากครับ ต้องมีข้ออ้างที่จำเป็นจริงๆ และบางครั้งโดนด่าด้วย</mark> ทำให้พวกเราไม่กล้าออกไปไหนไกลจากโรงงานเลยครับ</p>
+        """
+        mock_pdf_url = create_mock_doc_url("Transcript_Migrant_Grp1.pdf", pass_transcript)
         img_url = "https://images.unsplash.com/photo-1614036417651-1d4b68e0d37d?auto=format&fit=crop&q=80&w=800"
         
+        evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
+        - <i>Tool 4 (Observation):</i> พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่ <label for="modal-img-safe" class="cite-pill">[Source 1]</label><br>
+        - <i>Tool 3 (Interview):</i> จาก{scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต <label for="modal-pdf-passport" class="cite-pill">[Source 2]</label>"""
+        framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
+        
         modal_html = f"""
-        <!-- Modal 1: Image -->
         <input type="checkbox" id="modal-img-safe" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-img-safe"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{img_url}" target="_blank" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{img_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-safe" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
@@ -508,22 +632,20 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                 </div>
             </div>
         </div>
-        <!-- Modal 2: PDF Transcript -->
         <input type="checkbox" id="modal-pdf-passport" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-pdf-passport"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{dummy_pdf_url}" target="_blank" class="modal-title-link" title="เปิดไฟล์เอกสารต้นฉบับในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{mock_pdf_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-passport" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
                     <div class="mock-doc-wrapper mock-pdf">
                         <h4>CONFIDENTIAL AUDIT TRANSCRIPT</h4>
                         <p><b>Interviewer:</b> เอกสารประจำตัวของพวกคุณ ตอนนี้ใครเป็นคนเก็บไว้ครับ?</p>
-                        <p><b>Respondent (Grp1):</b> พวกเราไม่ได้ถือไว้เองเลยครับ <mark>ตั้งแต่ข้ามฝั่งมาถึงโรงงาน เอเจนซี่ก็ขอยึดพาสปอร์ตและบัตรเวิร์คเพอร์มิตไปเก็บไว้ในตู้เซฟของเขา</mark> เขาบอกว่ากลัวพวกเราทำหาย</p>
-                        <p><b>Interviewer:</b> แล้วถ้ามีธุระต้องใช้เอกสาร สามารถขอเบิกได้ไหม?</p>
-                        <p><b>Respondent (Grp1):</b> <mark>ขอเบิกยากมากครับ ต้องมีข้ออ้างที่จำเป็นจริงๆ และบางครั้งโดนด่าด้วย</mark> ทำให้พวกเราไม่กล้าออกไปไหนไกลจากโรงงานเลยครับ</p>
+                        <p><b>Respondent (Grp1):</b> พวกเราไม่ได้ถือไว้เองเลยครับ <mark>ตั้งแต่ข้ามฝั่งมาถึงโรงงาน เอเจนซี่ก็ขอยึดพาสปอร์ตและบัตรเวิร์คเพอร์มิตไปเก็บไว้ในตู้เซฟของเขา</mark></p>
+                        <p><b>Respondent (Grp1):</b> <mark>ขอเบิกยากมากครับ ต้องมีข้ออ้างที่จำเป็นจริงๆ และบางครั้งโดนด่าด้วย</mark></p>
                     </div>
                 </div>
             </div>
@@ -531,20 +653,22 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         """
 
     elif "เครื่องจักร" in selected_issue: 
-        evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
-        - <i>Tool 4 (Observation):</i> ตรวจพบสายพานลำเลียง โซนปฏิบัติงานไม่มี Guard 
-        <label for="modal-img-machine" class="cite-pill">[Source 1]</label><br>
-        - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ให้คะแนนความปลอดภัยเฉลี่ยต่ำ"""
-        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> ISO 45001 | พ.ร.บ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. 2554"
-        
+        plain_evidence = f"Tool 4: ตรวจพบสายพานลำเลียง โซนปฏิบัติงานไม่มี Guard\nTool 2: จาก {scope_text} ให้คะแนนความปลอดภัยเฉลี่ยต่ำ"
+        plain_standard = "ISO 45001 | พ.ร.บ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. 2554"
         img_url = "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800"
+        
+        evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
+        - <i>Tool 4 (Observation):</i> ตรวจพบสายพานลำเลียง โซนปฏิบัติงานไม่มี Guard <label for="modal-img-machine" class="cite-pill">[Source 1]</label><br>
+        - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ให้คะแนนความปลอดภัยเฉลี่ยต่ำ"""
+        framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
+        
         modal_html = f"""
         <input type="checkbox" id="modal-img-machine" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-img-machine"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{img_url}" target="_blank" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{img_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-machine" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
@@ -556,14 +680,11 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             </div>
         </div>
         """
-    elif "เลือกปฏิบัติ" in selected_issue or "เด็ก" in selected_issue or "ชุมชน" in selected_issue or "สวัสดิการ" in selected_issue or "สมาคม" in selected_issue or "ชั่วโมง" in selected_issue or "ร้องเรียน" in selected_issue:
-        # สำหรับประเด็นอื่นๆ ที่เหลือ โชว์ข้อความ Evidence ปกติ
-        evidence_base = f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2 & 3:</i> ระบบวิเคราะห์พบสัญญาณความเสี่ยงจากข้อมูล {scope_text} โปรดตรวจสอบหลักฐานเพิ่มเติม"
-        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> UNGPs | ILO Conventions | กฎหมายแรงงานท้องถิ่น"
-        
-    elif "เลือกประเด็น" not in selected_issue:
-        evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> รอการระบุหลักฐานเชิงประจักษ์โดย Auditor"
-        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> รอการวิเคราะห์จากระบบ"
+    else:
+        plain_evidence = f"Tool 2 & 3: ระบบวิเคราะห์พบสัญญาณความเสี่ยงจากข้อมูล {scope_text} โปรดตรวจสอบหลักฐานเพิ่มเติม"
+        plain_standard = "UNGPs | ILO Conventions | กฎหมายแรงงานท้องถิ่น"
+        evidence_base = f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2 & 3:</i> ระบบวิเคราะห์พบสัญญาณความเสี่ยงจากข้อมูล {scope_text}"
+        framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
 
     if selected_issue and "เลือกประเด็น" not in selected_issue:
         st.markdown(f"""
@@ -622,14 +743,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     st.markdown(badge_html, unsafe_allow_html=True)
     
-    ai_evidence = ""
-    ai_standard = framework_citation
     ai_plan = ""
-
-    if "OT" in selected_issue or "โอที" in selected_issue: ai_evidence = f"Tool 2: จาก {scope_text} ระบุคะแนน 1-2 ในข้อ 1.1\nTool 3: สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน"
-    elif "พาสปอร์ต" in selected_issue: ai_evidence = f"Tool 4: พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่\nTool 3: จาก {scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต"
-    elif "เครื่องจักร" in selected_issue: ai_evidence = f"Tool 4: ตรวจพบสายพานลำเลียง โซนปฏิบัติงานไม่มี Guard\nTool 2: จาก {scope_text} ให้คะแนนความปลอดภัยเฉลี่ยต่ำ"
-    else: ai_evidence = "รอการระบุหลักฐาน"
 
     if risk_zone == "GREEN":
         ai_plan = "Maintenance Plan (แผนคงสภาพ):\n- Monitoring: ระดับความเสี่ยงปกติ ให้ทำการตรวจสอบซ้ำ"
@@ -643,14 +757,14 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         elif "เครื่องจักร" in selected_issue: ai_plan = "Preventive: กำหนดรอบตรวจสอบความปลอดภัย (Safety Patrol) ประจำสัปดาห์อย่างเคร่งครัด\nRemediation: หยุดการทำงานจุดเสี่ยงทันที แจก PPE ใหม่ และรับผิดชอบค่าพยาบาล"
         else: ai_plan = "Preventive: [ระบุมาตรการป้องกันเชิงระบบ]\nRemediation: [ระบุมาตรการเยียวยาเร่งด่วน]"
 
-    edit_evidence = ai_evidence
-    edit_standard = ai_standard
+    edit_evidence = plain_evidence
+    edit_standard = plain_standard
     edit_plan = ai_plan
 
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
         saved_data = st.session_state.saved_plans_dict[save_issue]
-        edit_evidence = saved_data.get('evidence', ai_evidence)
-        edit_standard = saved_data.get('standard', ai_standard)
+        edit_evidence = saved_data.get('evidence', plain_evidence)
+        edit_standard = saved_data.get('standard', plain_standard)
         edit_plan = saved_data.get('plan', ai_plan)
         if not edit_plan or edit_plan.strip() == "": edit_plan = ai_plan
 
@@ -710,7 +824,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                 if row_to_update != -1:
                     try:
                         sheet.update(f"A{row_to_update}:O{row_to_update}", [new_row_data])
-                        st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว (ไม่เกิดบรรทัดซ้ำในระบบ)")
+                        st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว")
                     except TypeError:
                         sheet.update(values=[new_row_data], range_name=f"A{row_to_update}:O{row_to_update}")
                         st.success(f"🔄 **อัปเดตข้อมูลสำเร็จ:** ทับข้อมูลเดิมของประเด็น '{save_issue}' เรียบร้อยแล้ว")
