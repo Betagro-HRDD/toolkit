@@ -192,7 +192,7 @@ with col_p3: location = st.text_input("พื้นที่สำรวจ (Loc
 st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลผู้ให้ข้อมูล (Respondent Info)</h4>", unsafe_allow_html=True)
 col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002 (สำหรับ Tool 1-4)")
+with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002")
 with col_r2: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 with col_r3: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
 with col_r4: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
