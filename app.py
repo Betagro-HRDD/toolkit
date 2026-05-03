@@ -41,19 +41,19 @@ def check_id_conflict(sheet, resp_id, resp_group, resp_dept, resp_gender):
 def get_heat_color(s, l):
     val = s * l
     if val >= 16 or s == 5:  # RED ZONE
-        if val <= 5: return "#FCA5A5"
-        if val <= 10: return "#F87171"
-        if val <= 15: return "#EF4444"
-        if val <= 20: return "#DC2626"
-        return "#991B1B"
+        if val <= 5: return "#FCA5A5"   # แดงอ่อน
+        if val <= 10: return "#F87171"  # แดงกลาง
+        if val <= 15: return "#EF4444"  # แดงสด
+        if val <= 20: return "#DC2626"  # แดงเข้ม
+        return "#991B1B"                # แดงเข้มเดือด
     elif val >= 8:  # YELLOW ZONE
-        if val <= 9: return "#FDE047"
-        if val <= 12: return "#F59E0B"
-        return "#D97706"
+        if val <= 9: return "#FDE047"   # เหลืองสว่าง
+        if val <= 12: return "#F59E0B"  # เหลืองทอง
+        return "#D97706"                # ทองอร่าม
     else:  # GREEN ZONE
-        if val <= 2: return "#A7F3D0"
-        if val <= 4: return "#34D399"
-        return "#059669"
+        if val <= 2: return "#A7F3D0"   # เขียวอ่อน
+        if val <= 4: return "#34D399"   # เขียวกลาง
+        return "#059669"                # เขียวเข้มสุด
 
 # --- 3. ULTRA-PREMIUM STYLING & HIDE STREAMLIT MENU ---
 st.markdown("""
@@ -192,7 +192,7 @@ with col_p3: location = st.text_input("พื้นที่สำรวจ (Loc
 st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลผู้ให้ข้อมูล (Respondent Info)</h4>", unsafe_allow_html=True)
 col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID)", placeholder="เช่น EMP-001 (สำหรับ Tool 1-4)")
+with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID)", placeholder="เช่น 001, 002 (สำหรับ Tool 1-4)")
 with col_r2: resp_group = st.selectbox("กลุ่มเป้าหมาย", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
 with col_r3: resp_dept = st.text_input("แผนก/ส่วนงาน", placeholder="เช่น ฝ่ายตัดแต่ง")
 with col_r4: resp_gender = st.selectbox("เพศ (Gender)", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
@@ -538,7 +538,7 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     with c_left:
         st.success("📋 **ข้อมูลเชิงนโยบาย (Tool 1: Management)**\n\nผู้แทนฝ่ายบริหารระบุว่า:\n\n*\"บริษัทมีการบังคับใช้นโยบาย Zero Recruitment Fees โดยเด็ดขาด ครอบคลุมการออกค่าใช้จ่ายในการเดินทางและทำเอกสารให้พนักงานข้ามชาติทั้งหมด\"*")
     with c_right:
-        st.error("🗣️ **ข้อมูลเชิงประจักษ์ (Tool 3: Worker Testimony)**\n\nผู้ให้ข้อมูล (EMP-012, 018) ระบุว่า:\n\n*\"พวกเราต้องจ่ายเงินสดให้เอเจนซี่ฝั่งพม่าไปคนละ 15,000 บาท เป็นค่าจัดการเอกสารและค่านายหน้า ก่อนที่จะเข้ามาทำงานในโรงงาน...\"*")
+        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: ID 012, 018)**\n\nคำให้การพนักงาน:\n\n*\"พวกเราต้องจ่ายเงินสดให้เอเจนซี่ฝั่งพม่าไปคนละ 15,000 บาท เป็นค่าจัดการเอกสารและค่านายหน้า ก่อนที่จะเข้ามาทำงานในโรงงาน...\"*")
 
     st.markdown("""
     <div class="gemini-draft-box" style="margin-top: 20px;">
@@ -616,6 +616,9 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         </div>
     """, unsafe_allow_html=True)
     
+    # =========================================================
+    # 🌟 UPGRADED SECTION: Profound AI Report Generation
+    # =========================================================
     st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ร่างรายงานการบริหารจัดการความเสี่ยง (Comprehensive HRDD Report)</h3>", unsafe_allow_html=True)
     st.info("💡 ระบบปัญญาประดิษฐ์ (AI) จะสังเคราะห์และประมวลผลข้อมูลเชิงลึกทั้งหมดในรอบปี ทั้งประเด็นที่มีนัยสำคัญ (Salient) และการพยากรณ์ความเสี่ยงล่วงหน้า (Foresight) เพื่อจัดทำร่างยุทธศาสตร์ให้ผู้บริหารพิจารณา")
@@ -687,7 +690,7 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
 - ระยะยาว (Long-term): ทบทวนนโยบายและประเมินสภาวะแวดล้อมใหม่ประจำปี (Annual Review) พร้อมบูรณาการกระบวนการรับฟังเสียงจากผู้มีส่วนได้เสีย (Stakeholder Inclusivity) อย่างต่อเนื่อง"""
 
         st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานก่อนการอนุมัติขั้นสุดท้าย:**")
-        report_text = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=600, label_visibility="collapsed")
+        report_text = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=700, label_visibility="collapsed")
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
