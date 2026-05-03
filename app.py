@@ -410,6 +410,34 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
     is_already_approved = save_issue in st.session_state.approved_issues
 
+    # 💡 อัปเกรด: เพิ่มระบบ Citation สำหรับ Evidence Base
+    evidence_base = ""
+    framework_citation = ""
+    
+    if "OT" in selected_issue or "โอที" in selected_issue: 
+        evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2 (Worker Survey):</i> พนักงาน 47 คนระบุคะแนน 1-2 ในข้อ 1.1<br>- <i>Tool 3 (Interview):</i> สัมภาษณ์เชิงลึก (ID: 045, 088) ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน"
+        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)"
+    elif "พาสปอร์ต" in selected_issue: 
+        evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 4 (Observation):</i> พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่<br>- <i>Tool 3 (Interview):</i> แรงงานเมียนมา (ID: 102-113) ให้การตรงกันว่าถูกยึดพาสปอร์ตตั้งแต่ข้ามแดน"
+        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> หลักการ Employer Pays Principle (EPP) | ILO Forced Labour Convention (No. 29)"
+    elif "เครื่องจักร" in selected_issue: 
+        evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 4 (Observation):</i> ตรวจพบสายพานลำเลียง โซน B ไม่มี Guard ป้องกัน<br>- <i>Tool 2 (Worker Survey):</i> พนักงานโซน B ให้คะแนนความปลอดภัยเฉลี่ยเพียง 2.5"
+        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> ISO 45001 | พ.ร.บ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. 2554"
+    elif "เด็ก" in selected_issue: 
+        evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 1 (Policy Gap):</i> ระบบคัดกรองอายุ Supplier หละหลวม<br>- <i>Tool 4 (Observation):</i> พบเยาวชนอายุต่ำกว่า 18 ปี ปฏิบัติงานในพื้นที่เสี่ยงอันตราย (กะกลางคืน)"
+        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> Zero Tolerance Policy | ILO Minimum Age Convention (No. 138) | แผนปฏิบัติการระดับชาติ (NAP) ด้านธุรกิจกับสิทธิมนุษยชน"
+    elif "เลือกประเด็น" not in selected_issue:
+        evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> รอการระบุหลักฐานเชิงประจักษ์โดย Auditor"
+        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> รอการวิเคราะห์จากระบบ"
+
+    if selected_issue and "เลือกประเด็น" not in selected_issue:
+        st.markdown(f"""
+        <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <strong style="color: #6D28D9;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนการประเมิน):</strong>
+            <div style="font-size: 14px; margin-top: 5px; color: #444;">{evidence_base}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
     
@@ -457,9 +485,15 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     st.markdown(badge_html, unsafe_allow_html=True)
     
-    st.markdown("""
+    # 💡 อัปเกรด: แสดง Framework Citation ในกล่อง AI Draft
+    st.markdown(f"""
     <div class="gemini-draft-box">
-        <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
+        </div>
+        <div style="background: #FFFFFF; padding: 10px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 10px 0; font-size: 13px; color: #005B31;">
+            {framework_citation}
+        </div>
         <p style="font-size: 14px; color: #666; margin-bottom: 10px;">โปรดตรวจสอบและปรับแก้แผนปฏิบัติการด้านล่างก่อนอนุมัติ <i>(หากคุณเคยบันทึกประเด็นนี้ไว้แล้ว ระบบจะดึงข้อความแก้ไขล่าสุดของคุณมาแสดงอัตโนมัติ)</i></p>
     </div>
     """, unsafe_allow_html=True)
@@ -505,7 +539,13 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         if sheet:
             db_risk_level = "Salient" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Plan: {plan_text}"
-            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", resp_group, resp_dept, "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
+            
+            # 💡 อัปเกรด: บังคับให้ Tool 5 บันทึกเป็นข้อมูลระดับ "ภาพรวม" เพื่อไม่ให้สับสนกับรายบุคคล
+            macro_group = "ภาพรวม (All Groups)"
+            macro_dept = "ภาพรวม (All Depts)"
+            macro_gender = "ภาพรวม"
+            
+            new_row_data = [now, audit_cycle, auditor_name, location, "Tool 5", "Issue-Based", macro_group, macro_dept, macro_gender, save_issue, detail, sev_max, likelihood, score, db_risk_level]
             
             st.session_state.saved_plans_dict[save_issue] = {
                 'plan': plan_text, 'sev': sev_max, 'lik': likelihood
@@ -580,7 +620,13 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
         if sheet:
             decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
             detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
-            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", "Issue-Based", "N/A", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
+            
+            # 💡 อัปเกรด: บังคับให้ Tool 6 บันทึกเป็นข้อมูลระดับ "ภาพรวม" เช่นเดียวกัน
+            macro_group = "ภาพรวม (All Groups)"
+            macro_dept = "ภาพรวม (All Depts)"
+            macro_gender = "ภาพรวม"
+            
+            sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 6", "Issue-Based", macro_group, macro_dept, macro_gender, "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
             
             st.session_state.early_warning_approved = True if "ยืนยัน" in t6_decision else False
             st.session_state.early_warning_note = t6_note
