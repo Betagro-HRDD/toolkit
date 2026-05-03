@@ -101,7 +101,6 @@ st.markdown("""
     .typography-logo { font-family: 'Poppins', sans-serif; font-size: 26px; font-weight: 800; color: #D3A129; letter-spacing: 2px; margin-top: 10px; }
     .hero-title-eng { color: #005B31 !important; font-family: 'Poppins', sans-serif !important; font-size: 21px !important; font-weight: 800 !important; margin: 0 !important; white-space: nowrap; }
     .hero-title-thai { color: #265F36 !important; font-family: 'Sarabun', sans-serif !important; font-size: 16px !important; font-weight: 600 !important; margin: 5px 0 0 0 !important; white-space: nowrap; }
-    .hero-subtitle { color: #D3A129 !important; font-family: 'Poppins', sans-serif !important; font-size: 11px !important; font-weight: 700 !important; letter-spacing: 3px !important; text-transform: uppercase !important; margin-top: 14px !important; border-top: 1px solid rgba(211, 161, 41, 0.3) !important; padding-top: 10px !important; width: fit-content; }
     
     .control-panel { background: #FFFFFF; padding: 30px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); border: 1px solid #EAEAEA; margin-bottom: 30px; border-top: 5px solid #F9A818; }
     [data-testid="stForm"], .standalone-form { background: #FFFFFF; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); padding: 30px; }
@@ -131,22 +130,10 @@ st.markdown("""
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
     .testimony-box { background-color: #FFFFFF; border-left: 4px solid #F59E0B; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;}
     
-    .cite-pill { display: inline-flex; align-items: center; justify-content: center; background-color: #E0E7FF; color: #4F46E5; border-radius: 12px; padding: 4px 12px; font-size: 12px; font-weight: 800; cursor: pointer; border: 1px solid #C7D2FE; transition: all 0.2s; white-space: nowrap; }
-    .cite-pill:hover { background-color: #4F46E5; color: #FFFFFF; box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
-    .cite-pill.doc-pill { background-color: #FEF3C7; color: #B45309; border-color: #FDE68A; }
-    .cite-pill.doc-pill:hover { background-color: #B45309; color: #FFFFFF; }
-
-    .modal-toggle { display: none; }
-    .modal-window { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; z-index: 999999 !important; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .modal-toggle:checked ~ .modal-window { opacity: 1; pointer-events: auto; }
-    .modal-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px); cursor: pointer; z-index: 1; }
-    .modal-content { background: #F8FAFC; width: 90%; max-width: 700px; max-height: 80vh; border-radius: 16px; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s; border: 1px solid #E5E7EB; z-index: 2; position: relative; overflow: hidden; }
-    .modal-toggle:checked ~ .modal-window .modal-content { transform: translateY(0); }
-    .modal-header { background: #FFFFFF; padding: 15px 25px; border-bottom: 1px solid #E5E7EB; display: flex; justify-content: space-between; align-items: center; }
-    .modal-title-link { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: #111827; }
-    .close-btn { cursor: pointer; font-size: 20px; color: #9CA3AF; font-weight: bold; background: #F3F4F6; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
-    .close-btn:hover { background: #EF4444; color: white; }
-    .modal-body { padding: 30px; overflow-y: auto; background: #F3F4F6;}
+    /* Streamlit Native Expander Override for styling */
+    [data-testid="stExpander"] { border: 1px solid #C7D2FE !important; border-radius: 8px !important; box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important; background: #FAFAFA !important; overflow: hidden; }
+    [data-testid="stExpander"] summary { color: #4F46E5 !important; font-weight: 700 !important; font-family: 'Sarabun', sans-serif !important; background-color: #E0E7FF; padding: 10px 15px;}
+    [data-testid="stExpander"] summary:hover { background-color: #C7D2FE; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -398,7 +385,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 -----------------
+# ----------------- TOOL 5 (REAL DATA) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -419,7 +406,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
         ])
 
-    # 💡 THE N-COUNT FIX: กรองเฉพาะแถวข้อมูลดิบ Tool 1-4 ก่อนนับ เพื่อไม่ให้ N เพิ่มเวลาเรากดบันทึก Tool 5
+    # 💡 THE N-COUNT FIX: กรองข้อมูลให้ดึงเฉพาะแถวที่เป็นแบบสอบถามและ Audit เท่านั้น ไม่เอาแถวสรุปรายงานมานับ!
     raw_data_only_df = pd.DataFrame()
     if not df_real.empty:
         raw_data_only_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
@@ -436,7 +423,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     sheet_data_count = len(df_filtered)
     if sheet_data_count == 0: 
-        st.warning(f"⚠️ ไม่พบข้อมูลการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
+        st.warning(f"⚠️ ไม่พบข้อมูลดิบของการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
         st.stop()
 
     btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
@@ -469,46 +456,15 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     is_already_approved = save_issue in st.session_state.approved_issues
     scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวม"
 
-    real_testimonies_html = ""
-    dynamic_modals_html = ""
-    evidence_count = 0
-
+    # ดึงคำให้การจาก Sheet
+    real_testimonies = []
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
         for idx, row in subset.head(5).iterrows(): 
             if str(row['รายละเอียด/คำให้การ']).strip() != "":
-                evidence_count += 1
-                r_id = row['รหัสผู้ตอบ']
-                modal_id = f"modal-evi-{idx}"
-
-                real_testimonies_html += f"""<div class="testimony-box">
-<div><b>(ID {r_id}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark></div>
-<label for="{modal_id}" class="cite-pill" title="คลิกดูข้อมูลเต็ม">[Source {evidence_count}]</label>
-</div>"""
-
-                dynamic_modals_html += f"""<input type="checkbox" id="{modal_id}" class="modal-toggle">
-<div class="modal-window">
-<label class="modal-backdrop" for="{modal_id}"></label>
-<div class="modal-content">
-<div class="modal-header">
-<div class="modal-title-link"><i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> ข้อมูลอ้างอิงรหัส: {r_id}</div>
-<label for="{modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
-</div>
-<div class="modal-body">
-<div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
-<h4>รายละเอียดคำให้การ (Full Record)</h4>
-<table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
-<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">วันที่เก็บข้อมูล</td><td style="padding:10px;">{row.get('วันที่-เวลา', '-')}</td></tr>
-<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">พื้นที่สำรวจ</td><td style="padding:10px;">{row.get('พื้นที่สำรวจ', '-')}</td></tr>
-<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">{row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}</td></tr>
-<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">ประเด็นหลัก</td><td style="padding:10px;">{row.get('ประเด็นหลัก', '-')}</td></tr>
-<tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การฉบับเต็ม</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">{row['รายละเอียด/คำให้การ']}</td></tr>
-</table>
-</div>
-</div>
-</div>
-</div>"""
+                real_testimonies.append(f"<b>(ID {row['รหัสผู้ตอบ']}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark>")
     
+    # 💡 KNOWLEDGE BASE MATCHER (ดึงกฎหมายจากตัวแปรด้านบนสุด)
     matched_law = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     matched_doc = "Standard_Guideline.pdf"
     for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
@@ -517,44 +473,40 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             matched_doc = knowledge["doc"]
             break
 
-    std_modal_id = "modal-std-law"
-    
-    law_modal_html = f"""<input type="checkbox" id="{std_modal_id}" class="modal-toggle">
-<div class="modal-window">
-<label class="modal-backdrop" for="{std_modal_id}"></label>
-<div class="modal-content">
-<div class="modal-header">
-<div class="modal-title-link"><i class="fa-solid fa-scale-balanced" style="color:#D97706;"></i> ฐานข้อมูลกฎหมาย: {matched_doc}</div>
-<label for="{std_modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
-</div>
-<div class="modal-body">
-<div style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb;">
-<h4 style="color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-top: 0; text-transform: uppercase;">{matched_doc.replace('.pdf','').replace('_',' ')}</h4>
-<p><b>ข้อกำหนดตามมาตรฐาน:</b></p>
-<p style="background-color: #FEF08A; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 4px solid #EAB308; font-size: 16px;">
-{matched_law}
-</p>
-<p style="color:#9CA3AF; font-size:12px; margin-top:30px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
-*เอกสารข้อกฎหมายนี้ ดึงมาจากระบบ Knowledge Base ขององค์กรอัตโนมัติ
-</p>
-</div>
-</div>
-</div>
-</div>"""
-
-    plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {evidence_count} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
+    plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {len(real_testimonies)} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
     plain_standard = matched_law
 
     st.markdown(f"""
-{dynamic_modals_html}
-{law_modal_html}
-<div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-<strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
-<div style="font-size: 14px; margin-top: 15px; color: #444; line-height: 1.8;">
-{real_testimonies_html if real_testimonies_html else "<i>(ไม่มีคำให้การเจาะจง ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)</i>"}
-</div>
-</div>
+    <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 5px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+        <strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
+        <div style="font-size: 14px; margin-top: 10px; color: #444; line-height: 1.8;">
+            📌 <b>ข้อความ/คำให้การที่ AI ตรวจพบจากฐานข้อมูล:</b>
+        </div>
+    </div>
     """, unsafe_allow_html=True)
+    
+    if real_testimonies:
+        for t in real_testimonies[:5]: 
+            st.markdown(f'<div class="testimony-box">{t}</div>', unsafe_allow_html=True)
+    else:
+        st.info("ไม่มีคำให้การเจาะจง (ระบบประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)")
+    
+    # 💡 การใช้ Native Streamlit Expander สำหรับ Citation
+    with st.expander(f"📚 เปิดดูเอกสารอ้างอิงและกฎหมายมาตรฐานฉบับเต็ม ({matched_doc})"):
+        st.markdown(f"""
+        <div style="background: #FFFFFF; padding: 30px; border-radius: 8px; border: 1px solid #E5E7EB;">
+            <h4 style="color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-top: 0; text-transform: uppercase;">
+                <i class="fa-solid fa-scale-balanced"></i> {matched_doc.replace('.pdf','').replace('_',' ')}
+            </h4>
+            <p><b>ข้อกำหนดตามมาตรฐาน:</b></p>
+            <p style="background-color: #FEF08A; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 4px solid #EAB308; font-size: 16px;">
+                {matched_law}
+            </p>
+            <p style="color:#9CA3AF; font-size:12px; margin-top:30px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
+                *เอกสารและข้อกฎหมายนี้ ดึงมาจากระบบ Knowledge Base ขององค์กรอัตโนมัติ
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
@@ -616,7 +568,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         </div>
         <div style="background: #FFFFFF; padding: 15px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 15px 0; font-size: 14px; color: #005B31; line-height: 1.8;">
             ⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {matched_law}
-            <label for="{std_modal_id}" class="cite-pill doc-pill" title="คลิกดูข้อกฎหมาย">[อ่านฉบับเต็ม]</label>
         </div>
     </div>
     <div style="background: #FAFAFA; border: 1px solid #D2E3FC; border-top: none; padding: 25px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; margin-bottom: 30px;">
@@ -677,26 +628,18 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     with c_left:
         st.success("📋 **ข้อมูลเชิงนโยบาย (Tool 1: ผู้บริหาร)**\n\nพบข้อมูลจากผู้บริหาร (ID E04):\n\n*\"บริษัทมีนโยบาย Zero Recruitment Fee ชัดเจน แรงงานทุกคนไม่ต้องเสียค่าใช้จ่าย\"*")
     with c_right:
-        t6_modal_html = """<input type="checkbox" id="modal-t6-evi" class="modal-toggle">
-<div class="modal-window">
-<label class="modal-backdrop" for="modal-t6-evi"></label>
-<div class="modal-content">
-<div class="modal-header">
-<div class="modal-title-link"><i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> ข้อมูลอ้างอิงรหัส: M06, M07</div>
-<label for="modal-t6-evi" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
-</div>
-<div class="modal-body">
-<div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
-<h4>รายละเอียดคำให้การ (Full Record)</h4>
-<table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
-<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">แรงงานข้ามชาติ (Migrant Workers)</td></tr>
-<tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การ M06</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">เอเจนซี่เก็บพาสปอร์ตกับเวิร์คเพอร์มิตไว้ครับ บอกว่ากลัวพวกเราทำหาย</td></tr>
-<tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การ M07</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">ก่อนมาทำงานต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาทครับ ตอนนี้ยังใช้หนี้ไม่หมดเลย</td></tr>
-</table>
-</div></div></div></div>"""
-        
-        st.markdown(t6_modal_html, unsafe_allow_html=True)
-        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)**\n\nพบคำให้การจากพนักงาน (ID M06, M07): <label for='modal-t6-evi' class='cite-pill' style='margin-left: 10px;'>[เปิดดูคำให้การ]</label>\n\n*\"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\"*")
+        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)**\n\nพบคำให้การจากพนักงาน (ID M06, M07):\n\n*\"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\"*")
+        with st.expander("📚 เปิดดูบันทึกคำให้การฉบับเต็ม (Evidence Record)"):
+            st.markdown("""
+            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+            <h4>รายละเอียดคำให้การ (Full Record)</h4>
+            <table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
+            <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">แรงงานข้ามชาติ (Migrant Workers)</td></tr>
+            <tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การ M06</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">เอเจนซี่เก็บพาสปอร์ตกับเวิร์คเพอร์มิตไว้ครับ บอกว่ากลัวพวกเราทำหาย</td></tr>
+            <tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การ M07</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">ก่อนมาทำงานต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาทครับ ตอนนี้ยังใช้หนี้ไม่หมดเลย</td></tr>
+            </table>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.markdown("""
     <div class="gemini-draft-box" style="margin-top: 20px;">
@@ -791,6 +734,19 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
         </div>
         """, unsafe_allow_html=True)
 
+        # 💡 THE SMART REPORT GENERATOR: ปรับภาษาให้มีความเป็นยุทธศาสตร์ (Strategic) ตามไฟล์ที่คุณอัปโหลด!
+        def generate_deep_consultant_text(issue_name, raw_plan, severity, likelihood):
+            score = severity * likelihood
+            if severity == 5 or score >= 16:
+                analysis = f"การวิเคราะห์เชิงลึก (Deep-dive Analysis): ประเด็น {issue_name} จัดอยู่ในระดับ 'วิกฤต (Critical)' ซึ่งมีนัยยะสำคัญต่อความเสี่ยงด้านการปฏิบัติตามกฎหมายสากล (Regulatory Non-compliance) และอาจส่งผลกระทบโดยตรงต่อเสถียรภาพของห่วงโซ่อุปทาน (Supply Chain Disruption) องค์กรจำเป็นต้องใช้มาตรการแทรกแซงขั้นสูงสุด (Executive Intervention)"
+            elif score >= 8:
+                analysis = f"การวิเคราะห์เชิงลึก (Deep-dive Analysis): ประเด็น {issue_name} เป็นความเสี่ยงระดับ 'มีนัยสำคัญ (Significant)' ที่สะท้อนถึงช่องว่างในการบริหารจัดการเชิงปฏิบัติการ (Operational Blind-spots) หากละเลยอาจลุกลามเป็นความท้าทายระดับโครงสร้าง"
+            else:
+                analysis = f"การวิเคราะห์เชิงลึก (Deep-dive Analysis): ประเด็น {issue_name} อยู่ในเกณฑ์ 'เฝ้าระวัง (Moderate/Minor)' ซึ่งระบบยังคงสามารถควบคุมสถานการณ์ได้ตามมาตรฐาน (Under Control) แต่ต้องอาศัยการประเมินซ้ำตามวงรอบ"
+            
+            strategy = f"ยุทธศาสตร์การจัดการ (Strategic Mitigation):\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
+            return f"{analysis}\n  {strategy}"
+
         issue_list_text = ""
         action_list_text = ""
         saved_dict = st.session_state.get("saved_plans_dict", {})
@@ -805,8 +761,8 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
             
             issue_list_text += f"- ประเด็น: {iss}\n  ({scope_label})\n  การประเมิน: ความรุนแรง (Severity) ระดับ {data['sev']} | โอกาสเกิด (Likelihood) ระดับ {data['lik']}\n  การจัดระดับความเสี่ยง: {risk_level}\n\n"
             
-            action_text = data['plan'].replace('\n', '\n  ')
-            action_list_text += f"▪ ยุทธศาสตร์การจัดการประเด็น: {iss}\n  {action_text}\n\n"
+            smart_text = generate_deep_consultant_text(iss, data['plan'], data['sev'], data['lik'])
+            action_list_text += f"▪ {iss}\n  {smart_text}\n\n"
             
         if not has_data:
             issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5)\n"
@@ -818,41 +774,45 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) 1 ประเด็นหลัก:
 - สัญญาณเตือนภัย: พบช่องว่างการนำนโยบาย Zero Recruitment Fees ไปปฏิบัติจริง (Policy Implementation Gap) ระหว่างระดับบริหารและกลุ่มแรงงานข้ามชาติ
-- แนวทางสืบสวนเชิงลึก (Investigation Resolution): อนุมัติดำเนินการตรวจสอบข้อเท็จจริง โดยมีมติสั่งการเชิงยุทธศาสตร์ว่า "{ew_note}" เพื่อตัดไฟแต่ต้นลมก่อนยกระดับเป็นข้อกล่าวหา Forced Labor"""
+- แนวทางสืบสวนเชิงลึก (Investigation Resolution): อนุมัติดำเนินการตรวจสอบข้อเท็จจริง โดยมีมติสั่งการเชิงยุทธศาสตร์ว่า "{ew_note}" เพื่อป้องกันการยกระดับสู่ข้อกล่าวหาแรงงานบังคับระดับสากล"""
         else:
             early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
 
-        # 💡 THE SMART REPORT GENERATOR: ปรับปรุงตามเอกสาร Word ต้นฉบับที่คุณแนบมา!
+        # 💡 THE SMART REPORT TEMPLATE: ใช้โครงสร้างเดียวกับไฟล์ Word ที่คุณแนบมา!
         report_mockup = f"""รายงานผลวิเคราะห์ความเสี่ยงด้านสิทธิมนุษยชนเชิงกลยุทธ์ (Strategic HRDD Risk Report)
 รอบการประเมิน: {audit_cycle}
-ขอบเขตพื้นที่: ภาพรวมระดับองค์กรและห่วงโซ่คุณค่า
+ขอบเขตพื้นที่: ภาพรวมระดับองค์กรและห่วงโซ่คุณค่า (Corporate & Value Chain Overview)
 ผู้รับผิดชอบการประเมิน: {auditor_name}
 
-สรุปสถานะความเสี่ยงที่มีนัยสำคัญของเครือเบทาโกร โดยการประมวลผลข้อมูลด้วยระเบียบวิธีวิจัยแบบผสานวิธีที่เสริมพลังด้วยปัญญาประดิษฐ์ (AI-Augmented Mixed Methods Research) ระหว่างรายงานผลการดำเนินงานย้อนหลัง และข้อมูลภาคสนามจากผู้มีส่วนได้เสีย {sheet_data_count} ราย ผ่านนวัตกรรมจากโครงการวิจัยยกระดับมาตรฐานสิทธิมนุษยชนอัจฉริยะ เพื่อสร้างระบบนิเวศแห่งความไว้วางใจและการบริหารความเสี่ยงตลอดห่วงโซ่คุณค่าตามมาตรฐานสากล
+บทสรุปผู้บริหาร (Executive Summary)
+สถานะความเสี่ยงที่มีนัยสำคัญขององค์กร ถูกประมวลผลด้วยระเบียบวิธีวิจัยแบบผสานวิธีที่เสริมพลังด้วยปัญญาประดิษฐ์ (AI-Augmented Mixed Methods Research) โดยนำรายงานผลการดำเนินงานย้อนหลัง มาวิเคราะห์ร่วมกับข้อมูลภาคสนามจากผู้มีส่วนได้เสียจำนวน {sheet_data_count} ราย ผ่านนวัตกรรม "ระบบประเมินความเสี่ยงสิทธิมนุษยชนอัจฉริยะ" เพื่อสร้างระบบนิเวศแห่งความไว้วางใจ และยกระดับการบริหารความเสี่ยงตลอดห่วงโซ่คุณค่าให้สอดคล้องกับบริบทความยั่งยืนระดับโลก
 
 1. วัตถุประสงค์และภาพรวม (Objectives & Overview)
-เครือเบทาโกรดำเนินการตรวจสอบสถานะสิทธิมนุษยชนอย่างรอบด้าน (HRDD) เพื่อระบุ ป้องกัน และบรรเทาผลกระทบเชิงลบต่อผู้มีส่วนได้เสียตลอดห่วงโซ่คุณค่า โดยมุ่งเน้นการเปลี่ยนผ่านจากกระบวนการตรวจประเมินทั่วไป (Compliance-based) สู่การประเมินเชิงลึกที่ใช้เครื่องมือคำนวณผลกระทบเชิงประจักษ์ (Quantitative Impact Assessment) เพื่อตอบโจทย์กฎระเบียบการค้าระดับโลก เช่น EU CSDDD และรักษาอันดับความยั่งยืนระดับ AAA
+องค์กรดำเนินการตรวจสอบสถานะสิทธิมนุษยชนอย่างรอบด้าน (HRDD) เพื่อระบุ ป้องกัน และบรรเทาผลกระทบเชิงลบต่อผู้มีส่วนได้เสียตลอดห่วงโซ่คุณค่า โดยมุ่งเน้นการเปลี่ยนผ่านจากกระบวนการตรวจประเมินแบบดั้งเดิม (Compliance-based) สู่การประเมินเชิงลึกที่ใช้ "เครื่องมือคำนวณผลกระทบเชิงประจักษ์ (Quantitative Impact Assessment)" เพื่อตอบสนองต่อกฎระเบียบการค้าระดับโลก อาทิ EU CSDDD, มาตรฐาน OECD (2023) และรักษาความเป็นผู้นำด้านความยั่งยืนระดับ AAA
 
 2. เกณฑ์การประเมินความเสี่ยง (Assessment Criteria)
-รายงานฉบับนี้ใช้ระบบ 5x5 Risk Matrix ตามมาตรฐาน SET 2567 และมาตรฐานสากล (UNGPs, OECD, EU CSDDD) ภายใต้หลักการ "ความร้ายแรงนำ (Severity-led Rule)"
+รายงานฉบับนี้ใช้โครงสร้างการประเมินความเสี่ยง (5x5 Risk Matrix) ตามมาตรฐาน SET 2567 และกรอบการทำงานระดับสากล (UNGPs) ภายใต้หลักการ "ความร้ายแรงนำ (Severity-led Rule)" ซึ่งให้น้ำหนักสูงสุดกับประเด็นที่กระทบต่อศักดิ์ศรีความเป็นมนุษย์เหนือความเสี่ยงทางธุรกิจ
 
 3. ข้อค้นพบและผลการวิเคราะห์นัยสำคัญทางสิทธิมนุษยชน (Key Findings on Salient Issues)
-จากการบูรณาการข้อมูลผ่านแบบสอบถามพนักงานและหลักฐานเชิงประจักษ์ พบประเด็นความเสี่ยงเชิงโครงสร้างที่ได้รับการอนุมัติให้ยกระดับการเฝ้าระวัง ดังนี้:
+จากการให้ AI บูรณาการข้อมูลแบบสามเส้า (Triangulation) ระหว่างนโยบาย, แบบสอบถาม และคำให้การเชิงลึก พบประเด็นความเสี่ยงระดับโครงสร้างที่ได้รับการอนุมัติให้ยกระดับการจัดการเป็นกรณีพิเศษ ดังนี้:
+
 {issue_list_text}
 {early_warning_text}
 
 5. มาตรการและการตอบสนองเชิงยุทธศาสตร์ (Strategic Mitigation & Remediation Roadmap)
-เพื่อให้บรรลุแนวคิด "BETAGRO SUSTAINABLE life" บริษัทได้กำหนดแผนปฏิบัติการสำหรับประเด็นความเสี่ยงข้างต้น ดังนี้:
+เพื่อให้บรรลุพันธกิจความยั่งยืน (Sustainable Life) องค์กรได้กำหนดแผนปฏิบัติการเชิงลึกสำหรับประเด็นความเสี่ยงข้างต้น ดังนี้:
+
 {action_list_text}
-นอกจากยุทธศาสตร์รายประเด็นข้างต้น องค์กรได้กำหนดมาตรการระดับโครงสร้าง (Systemic Measures) ดังนี้:
-- การจัดการทันที (Immediate Action): พัฒนาระบบร้องเรียนดิจิทัล (Smart Grievance) ที่รองรับหลายภาษาและเชื่อมโยงทั่วภูมิภาคภายใน 3 ปี
-- การใช้ปัญญาประดิษฐ์เฝ้าระวัง (AI-Driven Monitoring): ใช้ระบบ RiskSearch360° และ AI วิเคราะห์ความรู้สึก (Sentiment Analysis) เพื่อตรวจจับสัญญาณความกังวลของกลุ่มเปราะบางที่ไม่ปรากฏในเอกสารตรวจสอบทั่วไป
-- การยกระดับคู่ค้า (Supplier Engagement): ขยายผลการทำ HRDD ครอบคลุมธุรกิจที่มีความเสี่ยงสูงตลอดห่วงโซ่คุณค่า 100% ภายในปี 2571
-- หลักการความร้ายแรงนำ (Severity-led Rule): คงมาตรการ Zero Accident และระบบความปลอดภัย (PSM) อย่างเข้มงวด แม้สถิติการเกิดต่ำ
+[มาตรการระดับโครงสร้างองค์กร (Systemic Corporate Measures)]
+เพื่อป้องกันการเกิดซ้ำ (Zero Recurrence) องค์กรได้ประกาศกรอบยุทธศาสตร์ระยะยาวเพิ่มเติม ได้แก่:
+1. การจัดการทันที (Immediate Action): พัฒนาระบบร้องเรียนดิจิทัล (Smart Grievance) ที่รองรับหลายภาษาและเชื่อมโยงทั่วภูมิภาคภายใน 3 ปี เพื่ออุดช่องว่างความเสี่ยงระดับวิกฤต
+2. การใช้ปัญญาประดิษฐ์เฝ้าระวัง (AI-Driven Monitoring): ขับเคลื่อนระบบ RiskSearch360° และ AI วิเคราะห์อารมณ์ความรู้สึก (Sentiment Analysis) เพื่อตรวจจับสัญญาณความกังวลของกลุ่มเปราะบางที่ไม่ปรากฏในเอกสารตรวจสอบทั่วไป
+3. การยกระดับคู่ค้า (Supplier Engagement): ขยายผลการทำ HRDD แบบ 100% ครอบคลุมธุรกิจที่มีความเสี่ยงสูงตลอดห่วงโซ่คุณค่า ภายในปี 2571
+4. หลักการความร้ายแรงนำ (Severity-led Rule): คงมาตรการ Zero Accident และระบบการจัดการความปลอดภัยกระบวนการผลิต (PSM) อย่างเข้มงวด แม้ในประเด็นที่สถิติการเกิดต่ำ เพื่อป้องกันความเสียหายระดับที่ไม่อาจเยียวยาได้
 
 6. ข้อสรุปเชิงยุทธศาสตร์ (Executive Conclusion)
-เบทาโกรได้ปรับเปลี่ยนมุมมองความเสี่ยงจาก "ความเสี่ยงต่อธุรกิจ (Risk to Business)" ไปสู่ "ความเสี่ยงต่อผู้คน (Risk to People)" อย่างแท้จริง การประยุกต์ใช้ AI ในกระบวนการ HRDD ทำให้องค์กรสามารถดักจับความเสี่ยงที่มองไม่เห็น (Invisible Risks) และยกระดับคุณภาพชีวิตของผู้มีส่วนได้เสียตลอดห่วงโซ่อุปทานได้อย่างยั่งยืน"""
+องค์กรได้พิสูจน์ให้เห็นถึงการยกระดับกระบวนทัศน์จากการมอง "ความเสี่ยงต่อธุรกิจ (Risk to Business)" ไปสู่การปกป้อง "ความเสี่ยงต่อผู้คน (Risk to People)" อย่างแท้จริง การบูรณาการเทคโนโลยี AI เข้ากับกระบวนการ HRDD ทำให้องค์กรสามารถดักจับความเสี่ยงที่มองไม่เห็น (Invisible Risks) เพิ่มขีดความสามารถในการตรวจสอบย้อนกลับ (Traceability) และยกระดับคุณภาพชีวิตของผู้มีส่วนได้เสียตลอดห่วงโซ่อุปทาน อันเป็นรากฐานสำคัญของการเติบโตอย่างยั่งยืนในเวทีโลก"""
 
         st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานยุทธศาสตร์ก่อนการอนุมัติขั้นสุดท้าย:**")
         report_text_final = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=800, label_visibility="collapsed")
