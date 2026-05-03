@@ -5,6 +5,7 @@ import gspread
 from datetime import datetime, timedelta
 import altair as alt
 import base64
+import random
 
 # ==========================================
 # --- 1. SETTING UP THE PAGE (ต้องอยู่บนสุดเสมอ) ---
@@ -102,14 +103,6 @@ st.markdown("""
     .dash-number { font-size: 36px; font-family: 'Poppins', sans-serif; font-weight: 800; color: #005B31; line-height: 1; margin: 10px 0; }
     .dash-label { font-size: 14px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
 
-    .radar-pulse {
-        width: 80px; height: 80px; background: rgba(220, 38, 38, 0.15); border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        animation: pulse 2s infinite; margin: 0 auto 20px auto;
-    }
-    .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
-    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
-    
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
 
@@ -121,6 +114,9 @@ st.markdown("""
         margin: 0 4px; border: 1px solid #C7D2FE; transition: all 0.2s;
     }
     .cite-pill:hover { background-color: #4F46E5; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
+    
+    .cite-pill.doc-pill { background-color: #FEF3C7; color: #B45309; border-color: #FDE68A; }
+    .cite-pill.doc-pill:hover { background-color: #B45309; color: #FFFFFF; box-shadow: 0 4px 8px rgba(180, 83, 9, 0.3); }
 
     .modal-toggle { display: none; }
     .modal-window {
@@ -227,7 +223,15 @@ def check_password():
                                 st.error("❌ รหัสผ่านไม่ตรงกัน หรือเว้นว่าง กรุณาลองใหม่")
                     else:
                         pwd = st.text_input("รหัสผ่าน (Password)", type="password", placeholder="Enter Password...")
-                        if st.form_submit_button("LOGIN"):
+                        
+                        # 💡 อัปเกรด: ปุ่มกด "ลืมรหัสผ่าน" ควบคู่ปุ่ม Login
+                        c_btn1, c_btn2 = st.columns(2)
+                        with c_btn1: btn_login = st.form_submit_button("LOGIN", use_container_width=True)
+                        with c_btn2: btn_forgot = st.form_submit_button("ลืมรหัสผ่าน?", use_container_width=True)
+                        
+                        if btn_forgot:
+                            st.success("📩 ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลองค์กรของคุณเรียบร้อยแล้ว (โปรดตรวจสอบใน Inbox)")
+                        elif btn_login:
                             if pwd == st.session_state.user_db[email]:
                                 st.session_state.current_user = email
                                 st.rerun()
@@ -329,7 +333,7 @@ if is_tool_1_to_4:
                 st.stop() 
 
 # ==========================================
-# --- 6. TOOLS LOGIC (RESTORED FULL FORMS) ---
+# --- 6. TOOLS LOGIC ---
 # ==========================================
 
 # ----------------- TOOL 1 -----------------
@@ -480,39 +484,52 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     if st.button(btn_text):
         st.session_state.ai_scanned_issues = True
     
+    # 💡 อัปเกรด: จำลองการดึงประเด็นตามจำนวนข้อมูล (Data Slicing Realism)
+    all_possible_issues = [
+        "[สิทธิแรงงาน] พนักงานร้องเรียนเรื่องการจ่ายเงิน OT ไม่ครบ/ล่าช้า",
+        "[แรงงานบังคับ] พบกลุ่มแรงงานข้ามชาติถูกยึดพาสปอร์ตโดยเอเจนซี่",
+        "[อาชีวอนามัย] พบเครื่องจักรโซนปฏิบัติงานไม่มีฝาครอบป้องกันอันตราย",
+        "[แรงงานเด็ก] พบการจ้างงานเยาวชนอายุต่ำกว่า 18 ปี ในพื้นที่อันตราย",
+        "[การเลือกปฏิบัติ] ความเหลื่อมล้ำในการจ่ายค่าจ้างระหว่างแรงงานไทยและข้ามชาติ",
+        "[ผลกระทบชุมชน] มลพิษทางกลิ่นและเสียงส่งผลกระทบต่อชุมชนรอบโรงงาน",
+        "[สวัสดิการ] สภาพหอพักแรงงานแออัดและไม่ถูกสุขลักษณะ",
+        "[เสรีภาพการสมาคม] การกีดกันไม่ให้พนักงานรวมกลุ่มจัดตั้งคณะกรรมการสวัสดิการ",
+        "[ชั่วโมงการทำงาน] พนักงานต้องทำงานติดต่อกันเกิน 60 ชั่วโมง/สัปดาห์",
+        "[กลไกร้องเรียน] พนักงานไม่กล้าร้องเรียนเนื่องจากระบบไม่ปกปิดตัวตน"
+    ]
+    
     selected_issue = ""
     if st.session_state.get("ai_scanned_issues", False):
-        ai_header = f"🤖 Gemini AI พบประเด็นที่ต้องจัดทำแผน (วิเคราะห์เฉพาะกลุ่ม: {custom_filter_text}):" if custom_filter_text else "🤖 Gemini AI พบ 10 ประเด็นยุทธศาสตร์ที่ต้องจัดทำแผน (วิเคราะห์จากภาพรวมทั้งหมด):"
+        if filter_mode != "วิเคราะห์ภาพรวมทั้งหมด (Macro Level / 135 Records)":
+            # 💡 แก้ไขข้อความ และสุ่มดึงประเด็น 1-3 ข้อ ตามรหัสที่กรอกมา
+            ai_header = f"🤖 Gemini AI พบประเด็นที่ต้องจัดทำแผน (การวิเคราะห์เฉพาะ):"
+            seed_val = sum(ord(c) for c in custom_filter_text) if custom_filter_text else 0
+            random.seed(seed_val) # ให้ล็อกค่าสุ่มตามตัวอักษร พิมพ์ "007" จะได้ปัญหาชุดเดิมเสมอ
+            num_issues = random.randint(1, 3) if custom_filter_text else 0
+            
+            if num_issues > 0:
+                sampled_issues = random.sample(all_possible_issues, num_issues)
+                display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + sampled_issues
+            else:
+                display_list = ["(ไม่พบประเด็นความเสี่ยงจากเงื่อนไขนี้)"]
+        else:
+            ai_header = "🤖 Gemini AI พบ 10 ประเด็นยุทธศาสตร์ที่ต้องจัดทำแผน (วิเคราะห์จากภาพรวมทั้งหมด):"
+            display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + all_possible_issues
+            
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
-        
-        selected_issue = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", [
-            "เลือกประเด็นความเสี่ยงเพื่อจัดการ...",
-            "[สิทธิแรงงาน] 1. พนักงานร้องเรียนเรื่องการจ่ายเงิน OT ไม่ครบ/ล่าช้า",
-            "[แรงงานบังคับ] 2. พบกลุ่มแรงงานข้ามชาติถูกยึดพาสปอร์ตโดยเอเจนซี่",
-            "[อาชีวอนามัย] 3. พบเครื่องจักรโซนปฏิบัติงานไม่มีฝาครอบป้องกันอันตราย",
-            "[แรงงานเด็ก] 4. พบการจ้างงานเยาวชนอายุต่ำกว่า 18 ปี ในพื้นที่อันตราย",
-            "[การเลือกปฏิบัติ] 5. ความเหลื่อมล้ำในการจ่ายค่าจ้างระหว่างแรงงานไทยและข้ามชาติ",
-            "[ผลกระทบชุมชน] 6. มลพิษทางกลิ่นและเสียงส่งผลกระทบต่อชุมชนรอบโรงงาน",
-            "[สวัสดิการ] 7. สภาพหอพักแรงงานแออัดและไม่ถูกสุขลักษณะ",
-            "[เสรีภาพการสมาคม] 8. การกีดกันไม่ให้พนักงานรวมกลุ่มจัดตั้งคณะกรรมการสวัสดิการ",
-            "[ชั่วโมงการทำงาน] 9. พนักงานต้องทำงานติดต่อกันเกิน 60 ชั่วโมง/สัปดาห์",
-            "[กลไกร้องเรียน] 10. พนักงานไม่กล้าร้องเรียนเนื่องจากระบบไม่ปกปิดตัวตน"
-        ])
+        selected_issue = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", display_list)
 
-    save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
+    save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue and "(ไม่พบ" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
     is_already_approved = save_issue in st.session_state.approved_issues
 
     evidence_base = ""
     framework_citation = ""
     modal_html = "" 
-    
-    # 💡 อัปเกรด: แยกข้อความ Plain Text สำหรับใส่ในกล่อง Edit เพื่อไม่ให้มี HTML Tag รบกวน
     plain_evidence = ""
     plain_standard = ""
     
-    scope_text = f"เฉพาะกลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมพนักงาน"
+    scope_text = f"ข้อมูลระบุเฉพาะ ({custom_filter_text})" if custom_filter_text else "ภาพรวมพนักงาน 135 คน"
     
-    # ฟังก์ชันจำลอง URL ให้เหมือนลิงก์เปิดไฟล์เอกสารจริงๆ (Base64 Data URI)
     def create_mock_doc_url(title, content):
         html_content = f"""
         <html><head><meta charset="utf-8"><title>{title}</title>
@@ -520,7 +537,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <style>
             body {{ font-family: 'Sarabun', sans-serif; background-color: #E5E7EB; padding: 40px; color: #1F2937; line-height: 1.6; }}
             .page {{ background-color: #FFFFFF; max-width: 800px; margin: 0 auto; padding: 60px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 4px; border-top: 10px solid #005B31;}}
-            h2 {{ color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; text-transform: uppercase; font-size: 24px; }}
+            h2 {{ color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; text-transform: uppercase; font-size: 24px; margin-top:0; }}
             .metadata {{ color: #6B7280; font-size: 14px; margin-bottom: 30px; }}
             mark {{ background-color: #FEF08A; padding: 2px 4px; border-radius: 2px; font-weight: bold; border-bottom: 2px solid #EAB308; }}
         </style>
@@ -528,47 +545,56 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         """
         b64 = base64.b64encode(html_content.encode('utf-8')).decode('utf-8')
         return f"data:text/html;base64,{b64}"
+
+    # 💡 อัปเกรด: สร้าง Modal สำหรับอ้างอิงมาตรฐานกฎหมาย (Standard Modals)
+    law70_content = "<h2>พ.ร.บ. คุ้มครองแรงงาน พ.ศ. 2541</h2><p><b>มาตรา 70</b> ให้นายจ้างจ่ายค่าจ้าง ค่าล่วงเวลา ค่าทำงานในวันหยุด และค่าล่วงเวลาในวันหยุดให้ถูกต้องและตามกำหนดเวลาดังต่อไปนี้...</p><p>(1) <mark>ในกรณีที่มีการคำนวณค่าจ้างเป็นรายเดือน ให้นายจ้างจ่ายค่าจ้างไม่น้อยกว่าเดือนละหนึ่งครั้ง</mark> เว้นแต่จะมีการตกลงกันเป็นอย่างอื่นที่เป็นประโยชน์แก่ลูกจ้าง</p>"
+    law70_url = create_mock_doc_url("Thai_Labor_Law_Sec70.pdf", law70_content)
+    
+    ilo95_content = "<h2>ILO Convention No. 95 (Protection of Wages)</h2><p><b>Article 12</b></p><p>1. Wages shall be paid regularly. Except where other appropriate arrangements exist which ensure the payment of wages at regular intervals, the intervals for the payment of wages shall be prescribed by national laws or regulations or fixed by collective agreement or arbitration award.</p><p>2. <mark>Upon the termination of a contract of employment, a final settlement of all wages due shall be effected in accordance with national laws...</mark></p>"
+    ilo95_url = create_mock_doc_url("ILO_Convention_95.pdf", ilo95_content)
+    
+    ilo29_content = "<h2>ILO Convention No. 29 (Forced Labour)</h2><p><b>Article 2</b></p><p>1. For the purposes of this Convention, the term forced or compulsory labour shall mean all work or service which is exacted from any person under the menace of any penalty and for which the said person has not offered himself voluntarily.</p><p><b>Observation on Document Retention:</b> <mark>The retention of identity documents is widely recognised as a key indicator of forced labour</mark>, as it restricts the worker's freedom of movement and their ability to leave their employment.</p>"
+    ilo29_url = create_mock_doc_url("ILO_Convention_29.pdf", ilo29_content)
     
     if "OT" in selected_issue or "โอที" in selected_issue: 
-        plain_evidence = f"Tool 2: จาก {scope_text} ระบุคะแนน 1-2 ในข้อ 1.1\nTool 3: สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน"
+        plain_evidence = f"Tool 2: จาก {scope_text} ระบุปัญหาในข้อ 1.1\nTool 3: สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน"
         plain_standard = "พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)"
         
         ot_transcript = f"""
         <h2>CONFIDENTIAL AUDIT TRANSCRIPT</h2>
-        <div class="metadata"><p><b>Date:</b> {now}</p><p><b>Subject:</b> สัมภาษณ์กลุ่มพนักงาน (ID 045, 088)</p></div>
+        <div class="metadata"><p><b>Date:</b> {now}</p><p><b>Subject:</b> สัมภาษณ์กลุ่มพนักงาน</p></div>
         <p><b>Interviewer:</b> สวัสดีครับ วันนี้อยากให้เล่าถึงสภาพการทำงานทั่วๆ ไป รวมถึงเรื่องการรับเงินเดือนและค่าล่วงเวลาครับ มีปัญหาอะไรไหม?</p>
-        <p><b>Respondent (ID 045):</b> ช่วงแรกๆ ก็ดีครับ แต่ช่วงสามเดือนที่ผ่านมานี้ ผมและเพื่อนๆ ในไลน์ผลิตเดียวกันเริ่มเจอปัญหาครับ คือเงินเดือนหลักเข้าตรงตามปกติ แต่ <mark>พวกเราได้เงิน OT ช้าไป 2 สัปดาห์ตลอดเลยครับ</mark> พอไปถามหัวหน้า เขาก็บอกว่าระบบคำนวณรวน</p>
-        <p><b>Respondent (ID 088):</b> จริงครับ ปกติต้องได้ทุกสิ้นเดือน แต่กลายเป็นว่าได้เฉพาะเงินเดือนหลัก ส่วน <mark>เงินล่วงเวลาถูกปัดไปรวมกับงวดหน้าแทน ทำให้หมุนเงินส่งกลับบ้านไม่ทัน</mark></p>
-        <p><b>Interviewer:</b> แล้วได้ลองแจ้งไปทางฝ่ายบุคคล (HR) หรือยังครับ?</p>
-        <p><b>Respondent (ID 045):</b> ไม่กล้าครับ กลัวจะมีปัญหากับหัวหน้างาน...</p>
+        <p><b>Respondent:</b> ช่วงสามเดือนที่ผ่านมานี้ ผมและเพื่อนๆ ในไลน์ผลิตเดียวกันเริ่มเจอปัญหาครับ คือเงินเดือนหลักเข้าตรงตามปกติ แต่ <mark>พวกเราได้เงิน OT ช้าไป 2 สัปดาห์ตลอดเลยครับ</mark></p>
+        <p><b>Respondent:</b> จริงครับ <mark>เงินล่วงเวลาถูกปัดไปรวมกับงวดหน้าแทน ทำให้หมุนเงินส่งกลับบ้านไม่ทัน</mark></p>
         """
-        mock_pdf_url = create_mock_doc_url("Transcript_ID045_088.pdf", ot_transcript)
+        mock_pdf_url = create_mock_doc_url("Transcript_Record_OT.pdf", ot_transcript)
         
         evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
-        - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ระบุคะแนน 1-2 ในข้อ 1.1 
+        - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} พบปัญหาการจ่ายค่าจ้างล่าช้า 
         <label for="modal-csv-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์ข้อมูล">[Source 1]</label><br>
-        - <i>Tool 3 (Interview):</i> สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน 
+        - <i>Tool 3 (Interview):</i> สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้า 
         <label for="modal-pdf-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์เอกสาร">[Source 2]</label>"""
-        framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
+        
+        framework_citation = f"""⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> 
+        พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 <label for="modal-law-70" class="cite-pill doc-pill" title="คลิกอ่านกฎหมาย">[Doc 1]</label> | 
+        ILO Convention No. 95 <label for="modal-ilo-95" class="cite-pill doc-pill" title="คลิกอ่านมาตรฐานสากล">[Doc 2]</label>"""
         
         modal_html = f"""
+        <!-- EVIDENCE MODALS -->
         <input type="checkbox" id="modal-csv-ot" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-csv-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing" target="_blank" class="modal-title-link" title="เปิดไฟล์ตารางข้อมูลจริงในแท็บใหม่"><i class="fa-solid fa-file-csv" style="color:#10B981; font-size: 20px;"></i> DB_Tool2_Survey.csv <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing" target="_blank" class="modal-title-link"><i class="fa-solid fa-file-csv" style="color:#10B981; font-size: 20px;"></i> DB_Tool2_Survey.csv <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-csv-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
                     <div class="mock-doc-wrapper">
-                        <h4 style="margin-bottom: 15px; color:#4B5563;">Data Preview (Row 45 - 50)</h4>
+                        <h4 style="margin-bottom: 15px; color:#4B5563;">Data Preview (Subset from {scope_text})</h4>
                         <table class="mock-csv">
                             <tr><th>ID</th><th>Dept</th><th>Q1.1 Wage Promptness</th><th>Q1.2 Document Kept</th><th>Q1.3 Vol. OT</th></tr>
                             <tr class="alert-row"><td>045</td><td>ฝ่ายตัดแต่ง</td><td class="alert-cell">1 (ไม่จริงเลย)</td><td>4</td><td>2</td></tr>
-                            <tr class="alert-row"><td>046</td><td>ฝ่ายตัดแต่ง</td><td class="alert-cell">2 (ไม่ค่อยจริง)</td><td>5</td><td>3</td></tr>
-                            <tr><td>047</td><td>คลังสินค้า</td><td>5 (จริงที่สุด)</td><td>4</td><td>4</td></tr>
-                            <tr class="alert-row"><td>048</td><td>ฝ่ายตัดแต่ง</td><td class="alert-cell">1 (ไม่จริงเลย)</td><td>5</td><td>3</td></tr>
                             <tr class="alert-row"><td>088</td><td>ฝ่ายแพ็ค</td><td class="alert-cell">1 (ไม่จริงเลย)</td><td>4</td><td>2</td></tr>
                         </table>
                     </div>
@@ -580,40 +606,57 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <label class="modal-backdrop" for="modal-pdf-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{mock_pdf_url}" target="_blank" class="modal-title-link" title="เปิดไฟล์เอกสารต้นฉบับในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{mock_pdf_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Record_OT.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
-                <div class="modal-body">
-                    <div class="mock-doc-wrapper mock-pdf">
-                        <h4>CONFIDENTIAL AUDIT TRANSCRIPT</h4>
-                        <p><b>Interviewer:</b> คุณบอกว่ามีปัญหาเรื่องการจ่ายเงินเดือน ช่วยอธิบายเพิ่มเติมได้ไหมครับ?</p>
-                        <p><b>Respondent (ID 045):</b> ใช่ครับ ช่วงสามเดือนที่ผ่านมานี้ ผมและเพื่อนๆ ในไลน์ผลิตเดียวกัน <mark>พวกเราได้เงิน OT ช้าไป 2 สัปดาห์ตลอดเลยครับ</mark></p>
-                        <p><b>Respondent (ID 088):</b> จริงครับ ปกติต้องได้ทุกสิ้นเดือน แต่กลายเป็นว่าได้เฉพาะเงินเดือนหลัก ส่วน <mark>เงินล่วงเวลาถูกปัดไปรวมกับงวดหน้าแทน ทำให้หมุนเงินส่งกลับบ้านไม่ทัน</mark></p>
-                    </div>
+                <div class="modal-body"><iframe src="{mock_pdf_url}" style="width:100%; height:500px; border:none; border-radius:8px;"></iframe></div>
+            </div>
+        </div>
+        <!-- STANDARD MODALS -->
+        <input type="checkbox" id="modal-law-70" class="modal-toggle">
+        <div class="modal-window">
+            <label class="modal-backdrop" for="modal-law-70"></label>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a href="{law70_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-book" style="color:#D97706; font-size: 20px;"></i> Thai_Labor_Law_Sec70.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <label for="modal-law-70" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
+                <div class="modal-body"><iframe src="{law70_url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe></div>
+            </div>
+        </div>
+        <input type="checkbox" id="modal-ilo-95" class="modal-toggle">
+        <div class="modal-window">
+            <label class="modal-backdrop" for="modal-ilo-95"></label>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a href="{ilo95_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB; font-size: 20px;"></i> ILO_Convention_95.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <label for="modal-ilo-95" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
+                </div>
+                <div class="modal-body"><iframe src="{ilo95_url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe></div>
             </div>
         </div>
         """
 
     elif "พาสปอร์ต" in selected_issue: 
-        plain_evidence = f"Tool 4: พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่\nTool 3: จาก {scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต"
+        plain_evidence = f"Tool 4: พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่\nTool 3: จาก {scope_text} ยืนยันว่าถูกยึดพาสปอร์ต"
         plain_standard = "หลักการ Employer Pays Principle (EPP) | ILO Forced Labour Convention (No. 29)"
         
         pass_transcript = f"""
         <h2>CONFIDENTIAL AUDIT TRANSCRIPT</h2>
-        <div class="metadata"><p><b>Date:</b> {now}</p><p><b>Subject:</b> สัมภาษณ์แรงงานข้ามชาติ (Grp 1)</p></div>
+        <div class="metadata"><p><b>Date:</b> {now}</p></div>
         <p><b>Interviewer:</b> เอกสารประจำตัวของพวกคุณ ตอนนี้ใครเป็นคนเก็บไว้ครับ?</p>
-        <p><b>Respondent (Grp1):</b> พวกเราไม่ได้ถือไว้เองเลยครับ <mark>ตั้งแต่ข้ามฝั่งมาถึงโรงงาน เอเจนซี่ก็ขอยึดพาสปอร์ตและบัตรเวิร์คเพอร์มิตไปเก็บไว้ในตู้เซฟของเขา</mark> เขาบอกว่ากลัวพวกเราทำหาย</p>
-        <p><b>Interviewer:</b> แล้วถ้ามีธุระต้องใช้เอกสาร สามารถขอเบิกได้ไหม?</p>
-        <p><b>Respondent (Grp1):</b> <mark>ขอเบิกยากมากครับ ต้องมีข้ออ้างที่จำเป็นจริงๆ และบางครั้งโดนด่าด้วย</mark> ทำให้พวกเราไม่กล้าออกไปไหนไกลจากโรงงานเลยครับ</p>
+        <p><b>Respondent:</b> <mark>ตั้งแต่ข้ามฝั่งมาถึงโรงงาน เอเจนซี่ก็ขอยึดพาสปอร์ตและบัตรเวิร์คเพอร์มิตไปเก็บไว้ในตู้เซฟของเขา</mark></p>
+        <p><b>Respondent:</b> <mark>ขอเบิกยากมากครับ ต้องมีข้ออ้างที่จำเป็นจริงๆ และบางครั้งโดนด่าด้วย</mark></p>
         """
-        mock_pdf_url = create_mock_doc_url("Transcript_Migrant_Grp1.pdf", pass_transcript)
+        mock_pdf_url = create_mock_doc_url("Transcript_Migrant_Record.pdf", pass_transcript)
         img_url = "https://images.unsplash.com/photo-1614036417651-1d4b68e0d37d?auto=format&fit=crop&q=80&w=800"
         
         evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
         - <i>Tool 4 (Observation):</i> พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่ <label for="modal-img-safe" class="cite-pill">[Source 1]</label><br>
-        - <i>Tool 3 (Interview):</i> จาก{scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต <label for="modal-pdf-passport" class="cite-pill">[Source 2]</label>"""
-        framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
+        - <i>Tool 3 (Interview):</i> จาก{scope_text} ยืนยันว่าถูกยึดพาสปอร์ต <label for="modal-pdf-passport" class="cite-pill">[Source 2]</label>"""
+        
+        framework_citation = f"""⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> 
+        หลักการ Employer Pays Principle (EPP) | ILO Forced Labour Conv. No. 29 <label for="modal-ilo-29" class="cite-pill doc-pill">[Doc 1]</label>"""
         
         modal_html = f"""
         <input type="checkbox" id="modal-img-safe" class="modal-toggle">
@@ -621,7 +664,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <label class="modal-backdrop" for="modal-img-safe"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{img_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{img_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-safe" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
@@ -637,17 +680,22 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <label class="modal-backdrop" for="modal-pdf-passport"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{mock_pdf_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{mock_pdf_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Record.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-passport" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
-                <div class="modal-body">
-                    <div class="mock-doc-wrapper mock-pdf">
-                        <h4>CONFIDENTIAL AUDIT TRANSCRIPT</h4>
-                        <p><b>Interviewer:</b> เอกสารประจำตัวของพวกคุณ ตอนนี้ใครเป็นคนเก็บไว้ครับ?</p>
-                        <p><b>Respondent (Grp1):</b> พวกเราไม่ได้ถือไว้เองเลยครับ <mark>ตั้งแต่ข้ามฝั่งมาถึงโรงงาน เอเจนซี่ก็ขอยึดพาสปอร์ตและบัตรเวิร์คเพอร์มิตไปเก็บไว้ในตู้เซฟของเขา</mark></p>
-                        <p><b>Respondent (Grp1):</b> <mark>ขอเบิกยากมากครับ ต้องมีข้ออ้างที่จำเป็นจริงๆ และบางครั้งโดนด่าด้วย</mark></p>
-                    </div>
+                <div class="modal-body"><iframe src="{mock_pdf_url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe></div>
+            </div>
+        </div>
+        <!-- STANDARD MODALS -->
+        <input type="checkbox" id="modal-ilo-29" class="modal-toggle">
+        <div class="modal-window">
+            <label class="modal-backdrop" for="modal-ilo-29"></label>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <a href="{ilo29_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-globe" style="color:#2563EB; font-size: 20px;"></i> ILO_Convention_29.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <label for="modal-ilo-29" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
+                <div class="modal-body"><iframe src="{ilo29_url}" style="width:100%; height:400px; border:none; border-radius:8px;"></iframe></div>
             </div>
         </div>
         """
@@ -668,7 +716,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <label class="modal-backdrop" for="modal-img-machine"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="{img_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{img_url}" target="_blank" class="modal-title-link"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_Machine.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-machine" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
@@ -686,7 +734,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         evidence_base = f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2 & 3:</i> ระบบวิเคราะห์พบสัญญาณความเสี่ยงจากข้อมูล {scope_text}"
         framework_citation = f"⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {plain_standard}"
 
-    if selected_issue and "เลือกประเด็น" not in selected_issue:
+    if selected_issue and "เลือกประเด็น" not in selected_issue and "(ไม่พบ" not in selected_issue:
         st.markdown(f"""
         {modal_html}
         <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
@@ -694,6 +742,9 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <div style="font-size: 14px; margin-top: 10px; color: #444; line-height: 1.8;">{evidence_base}</div>
         </div>
         """, unsafe_allow_html=True)
+
+    if "(ไม่พบ" in selected_issue:
+        st.stop() # หยุดทำงานถ้าไม่พบประเด็นความเสี่ยง
 
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
@@ -773,7 +824,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <div style="display: flex; justify-content: space-between; align-items: start;">
             <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
         </div>
-        <div style="background: #FFFFFF; padding: 12px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 15px 0; font-size: 14px; color: #005B31;">
+        <div style="background: #FFFFFF; padding: 15px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 15px 0; font-size: 14px; color: #005B31; line-height: 1.8;">
             {framework_citation}
         </div>
     </div>
