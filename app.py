@@ -26,17 +26,19 @@ def connect_to_sheet():
         return None
 
 # --- ฟังก์ชันตรวจสอบรหัสซ้ำ (Consistency Check) ---
-# 💡 อัปเกรด: เช็คแยกตามพื้นที่ (Location) รหัส 001 ในสระบุรี จะไม่ชนกับ 001 ในลพบุรี
+# 💡 อัปเกรดล่าสุด: รหัสต้องเป็น "หนึ่งเดียวทั้งระบบ (Global Unique ID)" 
+# ถ้ารหัสซ้ำ ข้อมูลทุกฟิลด์ (พื้นที่, กลุ่ม, แผนก, เพศ) ต้องเป๊ะ 100% ห้ามเพี้ยนแม้แต่นิดเดียว
 def check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
     if not resp_id or resp_id.strip() == "": 
         return False
     all_records = sheet.get_all_values()
     for row in all_records:
         # เช็คคอลัมน์ [3]=Location, [5]=ID, [6]=Group, [7]=Dept, [8]=Gender
-        if len(row) > 8 and row[3] == location and row[5] == resp_id:
-            if row[6] != resp_group or row[7] != resp_dept or row[8] != resp_gender:
-                return True # ขัดแย้ง! รหัสซ้ำในพื้นที่เดียวกัน แต่ข้อมูลบุคคลไม่ตรงกัน
-    return False # ผ่าน! รหัสใหม่ หรือ รหัสเดิมแต่เป็นคนเดียวกัน
+        if len(row) > 8 and row[5] == resp_id:
+            # ถ้ารหัสตรงกัน แต่ข้อมูลอื่นๆ ไม่ตรงเลยแม้แต่อย่างเดียว = ถือว่าเป็นคนละคน! บล็อกทันที
+            if row[3] != location or row[6] != resp_group or row[7] != resp_dept or row[8] != resp_gender:
+                return True # ขัดแย้ง! รหัสถูกใช้ไปแล้วกับคนอื่น
+    return False # ผ่าน! รหัสใหม่ หรือ รหัสเดิมและข้อมูลทุกอย่างเป๊ะ 100%
 
 # --- ฟังก์ชันคำนวณสีไล่เฉดสี Heat Map (Gradient) ---
 def get_heat_color(s, l):
@@ -239,10 +241,10 @@ if is_tool_1_to_4:
         st.stop()
     elif sheet:
         with st.spinner("กำลังตรวจสอบความถูกต้องของรหัสอ้างอิง..."):
-            # 💡 ระบบเช็ครหัสซ้ำทันที (Fail Fast) พร้อมแนบ Location เข้าไปในการเช็คด้วย
+            # 💡 ระบบเช็ครหัสซ้ำทันที (Fail Fast) ถ้ารหัสซ้ำ ข้อมูลทุกฟิลด์ต้องเหมือนเดิม 100%
             if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                st.error(f"❌ ไม่อนุญาตให้ทำรายการ: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น!")
-                st.info("💡 **สาเหตุ:** กลุ่มเป้าหมาย, แผนก หรือ เพศ ไม่ตรงกับข้อมูลเดิมในฐานข้อมูล\n\n**คำแนะนำ:** กรุณาเปลี่ยนรหัสอ้างอิงใหม่ หรือแก้ไขข้อมูลด้านบนให้ตรงกับบุคคลเดิมก่อน")
+                st.error(f"❌ ไม่อนุญาตให้ทำรายการ: รหัสอ้างอิง '{resp_id}' นี้ถูกใช้งานไปแล้วกับบุคคลอื่นในระบบ!")
+                st.info("💡 **สาเหตุ:** พบรหัสนี้ในฐานข้อมูลแล้ว แต่ข้อมูล (พื้นที่, กลุ่มเป้าหมาย, แผนก หรือ เพศ) ไม่ตรงกับข้อมูลเดิม\n\n**คำแนะนำ:** หากเป็นคนละคนกัน กรุณาตั้งรหัสอ้างอิงใหม่ (เช่น 002, 003) เพื่อไม่ให้ข้อมูลสับสนตีกัน")
                 st.stop() 
 
 # ==========================================
@@ -272,7 +274,7 @@ if choice == "Tool 1: ประเมินสถานะองค์กร (Go
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             if sheet:
                 if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (ข้อมูลไม่ตรง 100%)")
                 else:
                     detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
                     sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
@@ -305,7 +307,7 @@ elif choice == "Tool 2: แบบสอบถามหน้างาน (Worker
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             if sheet:
                 if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (ข้อมูลไม่ตรง 100%)")
                 else:
                     detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
                     sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
@@ -325,7 +327,7 @@ elif choice == "Tool 3: สัมภาษณ์เชิงลึก (Evidence 
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             if sheet:
                 if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (ข้อมูลไม่ตรง 100%)")
                 else:
                     sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
                     st.success("✅ บันทึกหลักฐานสำเร็จ")
@@ -360,7 +362,7 @@ elif choice == "Tool 4: บันทึกการสังเกตการ�
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             if sheet:
                 if check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ในพื้นที่นี้ถูกใช้งานไปแล้วกับบุคคลอื่น")
+                    st.error(f"❌ บันทึกไม่ได้: รหัสอ้างอิง '{resp_id}' ถูกใช้งานไปแล้วกับบุคคลอื่น (ข้อมูลไม่ตรง 100%)")
                 else:
                     res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
                     res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
