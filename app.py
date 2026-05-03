@@ -75,7 +75,7 @@ def get_heat_color(s, l):
         if val <= 4: return "#34D399"   
         return "#059669"                
 
-# --- 3. STYLING (เคลียร์ CSS ที่ทำให้ค้างออกทั้งหมด) ---
+# --- 3. STYLING (ลบโค้ด CSS ขยะทิ้งทั้งหมด ทำให้ไม่ซ้อนทับกัน) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
@@ -124,7 +124,7 @@ st.markdown("""
     .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
 
-    .testimony-box { background-color: #FFFFFF; border-left: 4px solid #3B82F6; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -169,17 +169,21 @@ def check_password():
                                 st.session_state.user_db[email] = new_pwd
                                 st.session_state.current_user = email
                                 st.rerun()
-                            else: st.error("❌ รหัสผ่านไม่ตรงกัน")
+                            else:
+                                st.error("❌ รหัสผ่านไม่ตรงกัน หรือเว้นว่าง กรุณาลองใหม่")
                     else:
                         pwd = st.text_input("รหัสผ่าน (Password)", type="password", placeholder="Enter Password...")
                         c_btn1, c_btn2 = st.columns(2)
                         with c_btn1: btn_login = st.form_submit_button("LOGIN", use_container_width=True)
                         with c_btn2: btn_forgot = st.form_submit_button("ลืมรหัสผ่าน?", use_container_width=True)
-                        if btn_login:
+                        if btn_forgot:
+                            st.success("📩 ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลองค์กรของคุณเรียบร้อยแล้ว")
+                        elif btn_login:
                             if pwd == st.session_state.user_db[email]:
                                 st.session_state.current_user = email
                                 st.rerun()
-                            else: st.error("❌ รหัสผ่านไม่ถูกต้อง")
+                            else:
+                                st.error("❌ รหัสผ่านไม่ถูกต้อง")
                 else:
                     st.error("❌ Access Denied. อีเมลนี้ไม่ได้รับสิทธิ์การเข้าถึง")
                     st.form_submit_button("LOGIN") 
@@ -244,7 +248,7 @@ if is_tool_1_to_4:
     with col_r_loc: location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี")
     with col_r_id: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น T01, M01")
     col_r1, col_r2, col_r3 = st.columns(3)
-    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"])
+    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"])
     with col_r2: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
     with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ชาย", "หญิง", "ไม่ระบุ"])
 else:
@@ -315,7 +319,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", o1, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (THE NEW FLAWLESS NATIVE MODALS) -----------------
+# ----------------- TOOL 5 (THE FLAWLESS NATIVE MODALS) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -336,7 +340,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
         ])
 
-    # 💡 N-COUNT FIX: กรองข้อมูลให้ดึงเฉพาะแถวที่เป็น Tool 1-4 ก่อนนับ!
     raw_data_only_df = pd.DataFrame()
     if not df_real.empty:
         raw_data_only_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
@@ -392,7 +395,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 1. NATIVE POPOVER FOR EVIDENCE (ไม่มีการค้างหน้าจอ 100%)
+    # 💡 1. NATIVE POPOVER FOR EVIDENCE (ไม่มีรหัส HTML โผล่ ไม่มีการค้างหน้าจอ 100%)
     evidence_count = 0
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
@@ -400,25 +403,26 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         if subset.empty or subset['รายละเอียด/คำให้การ'].str.strip().eq("").all():
             st.info("ไม่มีคำให้การเจาะจง (ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)")
         else:
-            for idx, row in subset.head(5).iterrows(): 
-                if str(row['รายละเอียด/คำให้การ']).strip() != "":
-                    evidence_count += 1
-                    r_id = row['รหัสผู้ตอบ']
-                    full_text = row['รายละเอียด/คำให้การ']
-                    short_text = full_text if len(full_text) <= 60 else full_text[:60] + "..."
-                    
-                    # แบ่ง 2 คอลัมน์ (ข้อความ ซ้าย / ปุ่มกด ขวา)
-                    c_txt, c_btn = st.columns([5, 1])
-                    with c_txt:
-                        st.markdown(f"**ID {r_id}:** {short_text}")
-                    with c_btn:
-                        # 💡 ใช้ st.popover แทน CSS Modal
-                        with st.popover(f"🔍 ดูข้อมูลดิบ"):
-                            st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {r_id}")
-                            st.write(f"**📅 วันที่เก็บข้อมูล:** {row.get('วันที่-เวลา', '-')}")
-                            st.write(f"**📍 พื้นที่สำรวจ:** {row.get('พื้นที่สำรวจ', '-')}")
-                            st.write(f"**👥 กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
-                            st.info(f"**คำให้การฉบับเต็ม:**\n\n{full_text}")
+            with st.container():
+                for idx, row in subset.head(5).iterrows(): 
+                    if str(row['รายละเอียด/คำให้การ']).strip() != "":
+                        evidence_count += 1
+                        r_id = row['รหัสผู้ตอบ']
+                        full_text = row['รายละเอียด/คำให้การ']
+                        short_text = full_text if len(full_text) <= 60 else full_text[:60] + "..."
+                        
+                        # ใช้ columns แบ่งสัดส่วนข้อความกับปุ่ม
+                        c_txt, c_btn = st.columns([7, 2])
+                        with c_txt:
+                            st.markdown(f"<div style='padding: 8px 0; border-left: 3px solid #3B82F6; padding-left: 15px; margin-bottom: 10px; background: white;'><b>(ID {r_id}):</b> {short_text}</div>", unsafe_allow_html=True)
+                        with c_btn:
+                            # 💡 ปุ่มกด Native ของ Streamlit ปิดได้ 100%
+                            with st.popover(f"🔍 ดูข้อมูลดิบ"):
+                                st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {r_id}")
+                                st.write(f"**📅 วันที่เก็บข้อมูล:** {row.get('วันที่-เวลา', '-')}")
+                                st.write(f"**📍 พื้นที่สำรวจ:** {row.get('พื้นที่สำรวจ', '-')}")
+                                st.write(f"**👥 กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
+                                st.info(f"**คำให้การฉบับเต็ม:**\n\n{full_text}")
 
     # 💡 KNOWLEDGE BASE MATCHER
     matched_law = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
@@ -494,9 +498,9 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     """, unsafe_allow_html=True)
 
     # 💡 2. NATIVE POPOVER FOR LAW CITATION
-    c_std1, c_std2 = st.columns([5, 1])
+    c_std1, c_std2 = st.columns([7, 2])
     with c_std1:
-        st.markdown(f"<div style='background: #FFFFFF; padding: 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {matched_law}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='background: #FFFFFF; padding: 10px 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {matched_law}</div>", unsafe_allow_html=True)
     with c_std2:
         with st.popover("📚 เปิดดูข้อกฎหมาย"):
             st.markdown(f"### ⚖️ {matched_doc.replace('.pdf','').replace('_',' ')}")
@@ -561,9 +565,14 @@ elif choice == "Tool 6: ระบบเตือนภัยล่วงหน�
     with c_left:
         st.success("📋 **ข้อมูลเชิงนโยบาย (Tool 1: ผู้บริหาร)**\n\nพบข้อมูลจากผู้บริหาร (ID E04):\n\n*\"บริษัทมีนโยบาย Zero Recruitment Fee ชัดเจน แรงงานทุกคนไม่ต้องเสียค่าใช้จ่าย\"*")
     with c_right:
-        st.error("🗣️ **ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)**\n\nพบคำให้การจากพนักงาน (ID M06, M07):\n\n*\"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\"*")
-        
-        # 💡 3. NATIVE POPOVER สำหรับ Tool 6
+        st.markdown(f"""
+        <div style="background-color: #FEF2F2; color: #991B1B; padding: 15px; border-radius: 8px; border: 1px solid #F87171; margin-bottom: 10px;">
+            🗣️ <b>ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)</b><br><br>
+            พบคำให้การจากพนักงาน (ID M06, M07):<br>
+            <i>"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด"</i>
+        </div>
+        """, unsafe_allow_html=True)
+        # 💡 Native Popover สำหรับ Tool 6 ปิดได้ ไม่ค้าง
         with st.popover("🔍 เปิดดูข้อมูลดิบฉบับเต็ม (Evidence M06, M07)"):
             st.markdown("### 📄 รายละเอียดคำให้การ (Full Record)")
             st.write("**กลุ่มเป้าหมาย:** แรงงานข้ามชาติ (Migrant Workers)")
