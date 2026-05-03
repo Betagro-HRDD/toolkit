@@ -59,13 +59,25 @@ def check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gend
                 return True 
     return False 
 
+# 💡 อัปเกรด: กู้คืนระบบเฉดสี (Heat Map Gradient) สุดหรูหรา 10 ระดับ
 def get_heat_color(s, l):
     val = s * l
-    if val >= 16 or s == 5: return "#DC2626"                
-    elif val >= 8: return "#D97706"                
-    else: return "#059669"                
+    if val >= 16 or s == 5:
+        if val <= 5: return "#FCA5A5"   
+        if val <= 10: return "#F87171"  
+        if val <= 15: return "#EF4444"  
+        if val <= 20: return "#DC2626"  
+        return "#991B1B"                
+    elif val >= 8:
+        if val <= 9: return "#FDE047"   
+        if val <= 12: return "#F59E0B"  
+        return "#D97706"                
+    else:
+        if val <= 2: return "#A7F3D0"   
+        if val <= 4: return "#34D399"   
+        return "#059669"                
 
-# --- 3. STYLING (เพิ่ม Media Queries ให้รองรับ Mobile และ Modal ที่สมบูรณ์แบบ) ---
+# --- 3. STYLING ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
@@ -178,7 +190,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# --- 3.1 🔐 ENTERPRISE SSO & WHITELIST ---
+# --- 3.1 🔐 ENTERPRISE SSO & WHITELIST AUTHENTICATION ---
 # ==========================================
 if "user_db" not in st.session_state: st.session_state.user_db = {}
 if "current_user" not in st.session_state: st.session_state.current_user = None
@@ -271,7 +283,8 @@ st.markdown("""
 st.markdown('<div class="control-panel">', unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>1. ข้อมูลโครงการและบัญชีผู้ใช้งาน</h4>", unsafe_allow_html=True)
 col_p1, col_p2 = st.columns(2)
-with col_p1: audit_cycle = st.selectbox("รอบการประเมิน *", ["Annual 2026", "Q1/2026", "Q2/2026"])
+# 💡 คืนตัวเลือก Audit Cycle แบบครบเซ็ต
+with col_p1: audit_cycle = st.selectbox("รอบการประเมิน *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
 with col_p2: 
     st.text_input("ผู้ใช้งานระบบ", value=st.session_state.current_user, disabled=True)
     auditor_name = st.session_state.current_user
@@ -408,7 +421,7 @@ elif choice.startswith("Tool 4"):
         o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกัน (PPE) ถูกต้อง", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 3 (ถ้ามี)...")
         st.markdown("<br>", unsafe_allow_html=True)
-        o4 = st.radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        o4 = radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 4 (ถ้ามี)...")
         st.markdown("<br>", unsafe_allow_html=True)
         o5 = st.radio("5. ตู้ยาสามัญประจำโรงงานมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
@@ -425,7 +438,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (REAL DATA + NEW MODALS) -----------------
+# ----------------- TOOL 5 (REAL DATA + RAW HTML BUG FIXED) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -449,7 +462,13 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     df_filtered = df_real.copy()
     if not df_real.empty:
         if custom_filter_text:
-            df_filtered = df_real[df_real['กลุ่มเป้าหมาย'] == custom_filter_text]
+            # 💡 แก้บั๊กเรื่องการหาคำว่า "ลูกค้า" ไม่เจอ
+            if "ลูกค้า" in custom_filter_text:
+                df_filtered = df_real[df_real['กลุ่มเป้าหมาย'].str.contains("ลูกค้า", na=False)]
+            elif "NGO" in custom_filter_text:
+                df_filtered = df_real[df_real['กลุ่มเป้าหมาย'].str.contains("NGO", na=False)]
+            else:
+                df_filtered = df_real[df_real['กลุ่มเป้าหมาย'] == custom_filter_text]
     
     sheet_data_count = len(df_filtered)
     if sheet_data_count == 0: 
@@ -486,52 +505,48 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     is_already_approved = save_issue in st.session_state.approved_issues
     scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวม"
 
-    # 💡 THE MAGIC: เตรียมโค้ด HTML สร้างป้าย Citation และ Popup 
+    # 💡 แก้บั๊ก HTML Indentation ที่ทำให้ข้อความโชว์รหัส HTML ดิบ
     real_testimonies_html = ""
     dynamic_modals_html = ""
     evidence_count = 0
 
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
-        for idx, row in subset.head(5).iterrows(): # ดึงมาโชว์แค่ 5 อันแรกกันรกลูกตา
+        for idx, row in subset.head(5).iterrows(): 
             if str(row['รายละเอียด/คำให้การ']).strip() != "":
                 evidence_count += 1
                 r_id = row['รหัสผู้ตอบ']
                 modal_id = f"modal-evi-{idx}"
 
-                # 1. สร้างป้ายพร้อมข้อความ
-                real_testimonies_html += f"""
-                <div class="testimony-box">
-                    <div><b>(ID {r_id}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark></div>
-                    <label for="{modal_id}" class="cite-pill" title="คลิกดูข้อมูลเต็ม">[Source {evidence_count}]</label>
-                </div>
-                """
+                # 1. กล่องข้อความ (ไม่เว้นวรรคเยอะ ป้องกันบั๊ก Markdown)
+                real_testimonies_html += f"""<div class="testimony-box">
+<div><b>(ID {r_id}):</b> <mark>{row['รายละเอียด/คำให้การ']}</mark></div>
+<label for="{modal_id}" class="cite-pill" title="คลิกดูข้อมูลเต็ม">[Source {evidence_count}]</label>
+</div>"""
 
-                # 2. สร้างโครงสร้างหน้าต่าง Popup (Modal) ซ่อนไว้
-                dynamic_modals_html += f"""
-                <input type="checkbox" id="{modal_id}" class="modal-toggle">
-                <div class="modal-window">
-                    <label class="modal-backdrop" for="{modal_id}"></label>
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <div class="modal-title-link"><i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> ข้อมูลอ้างอิงรหัส: {r_id}</div>
-                            <label for="{modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
-                        </div>
-                        <div class="modal-body">
-                            <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                                <h4>รายละเอียดคำให้การ (Full Record)</h4>
-                                <table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
-                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">วันที่เก็บข้อมูล</td><td style="padding:10px;">{row.get('วันที่-เวลา', '-')}</td></tr>
-                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">พื้นที่สำรวจ</td><td style="padding:10px;">{row.get('พื้นที่สำรวจ', '-')}</td></tr>
-                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">{row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}</td></tr>
-                                    <tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">ประเด็นหลัก</td><td style="padding:10px;">{row.get('ประเด็นหลัก', '-')}</td></tr>
-                                    <tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การฉบับเต็ม</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">{row['รายละเอียด/คำให้การ']}</td></tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                """
+                # 2. หน้าต่าง Popup (เขียนชิดซ้ายทั้งหมดเพื่อป้องกัน Markdown Code Block Bug)
+                dynamic_modals_html += f"""<input type="checkbox" id="{modal_id}" class="modal-toggle">
+<div class="modal-window">
+<label class="modal-backdrop" for="{modal_id}"></label>
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title-link"><i class="fa-solid fa-file-lines" style="color:#3B82F6;"></i> ข้อมูลอ้างอิงรหัส: {r_id}</div>
+<label for="{modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
+</div>
+<div class="modal-body">
+<div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb;">
+<h4>รายละเอียดคำให้การ (Full Record)</h4>
+<table style="width:100%; border-collapse: collapse; margin-top:15px; font-size:16px;">
+<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; width:30%; color:#005B31;">วันที่เก็บข้อมูล</td><td style="padding:10px;">{row.get('วันที่-เวลา', '-')}</td></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">พื้นที่สำรวจ</td><td style="padding:10px;">{row.get('พื้นที่สำรวจ', '-')}</td></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">กลุ่มเป้าหมาย</td><td style="padding:10px;">{row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}</td></tr>
+<tr style="border-bottom:1px solid #eee;"><td style="padding:10px; font-weight:bold; color:#005B31;">ประเด็นหลัก</td><td style="padding:10px;">{row.get('ประเด็นหลัก', '-')}</td></tr>
+<tr><td style="padding:15px 10px; font-weight:bold; vertical-align:top; color:#005B31;">คำให้การฉบับเต็ม</td><td style="padding:15px 10px; background:#FEF08A; border-radius:4px; font-weight:bold;">{row['รายละเอียด/คำให้การ']}</td></tr>
+</table>
+</div>
+</div>
+</div>
+</div>"""
     
     # 💡 KNOWLEDGE BASE MATCHER
     matched_law = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
@@ -543,49 +558,44 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             break
 
     std_modal_id = "modal-std-law"
-    framework_html = f"""
-    ⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {matched_law}
-    <label for="{std_modal_id}" class="cite-pill doc-pill" title="คลิกดูข้อกฎหมาย">[อ่านฉบับเต็ม]</label>
-    """
     
-    law_modal_html = f"""
-    <input type="checkbox" id="{std_modal_id}" class="modal-toggle">
-    <div class="modal-window">
-        <label class="modal-backdrop" for="{std_modal_id}"></label>
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title-link"><i class="fa-solid fa-scale-balanced" style="color:#D97706;"></i> ฐานข้อมูลกฎหมาย: {matched_doc}</div>
-                <label for="{std_modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
-            </div>
-            <div class="modal-body">
-                 <div style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                    <h4 style="color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-top: 0; text-transform: uppercase;">{matched_doc.replace('.pdf','').replace('_',' ')}</h4>
-                    <p><b>ข้อกำหนดตามมาตรฐาน:</b></p>
-                    <p style="background-color: #FEF08A; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 4px solid #EAB308; font-size: 16px;">
-                        {matched_law}
-                    </p>
-                    <p style="color:#9CA3AF; font-size:12px; margin-top:30px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
-                        *เอกสารข้อกฎหมายจำลองนี้ ดึงมาจากระบบ Knowledge Base ขององค์กรอัตโนมัติ
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    """
+    # เขียนชิดซ้ายเพื่อป้องกัน Markdown Bug
+    law_modal_html = f"""<input type="checkbox" id="{std_modal_id}" class="modal-toggle">
+<div class="modal-window">
+<label class="modal-backdrop" for="{std_modal_id}"></label>
+<div class="modal-content">
+<div class="modal-header">
+<div class="modal-title-link"><i class="fa-solid fa-scale-balanced" style="color:#D97706;"></i> ฐานข้อมูลกฎหมาย: {matched_doc}</div>
+<label for="{std_modal_id}" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
+</div>
+<div class="modal-body">
+<div style="background: white; padding: 30px; border-radius: 8px; border: 1px solid #e5e7eb;">
+<h4 style="color: #005B31; border-bottom: 2px solid #E5E7EB; padding-bottom: 15px; margin-top: 0; text-transform: uppercase;">{matched_doc.replace('.pdf','').replace('_',' ')}</h4>
+<p><b>ข้อกำหนดตามมาตรฐาน:</b></p>
+<p style="background-color: #FEF08A; padding: 15px; border-radius: 8px; font-weight: bold; border-left: 4px solid #EAB308; font-size: 16px;">
+{matched_law}
+</p>
+<p style="color:#9CA3AF; font-size:12px; margin-top:30px; border-top: 1px dashed #E5E7EB; padding-top: 10px;">
+*เอกสารข้อกฎหมายนี้ ดึงมาจากระบบ Knowledge Base ขององค์กรอัตโนมัติ
+</p>
+</div>
+</div>
+</div>
+</div>"""
 
     plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {evidence_count} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
     plain_standard = matched_law
 
     # นำกล่อง HTML Evidence และ Modals ทั้งหมดไป Render พร้อมกัน
     st.markdown(f"""
-    {dynamic_modals_html}
-    {law_modal_html}
-    <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-        <strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
-        <div style="font-size: 14px; margin-top: 15px; color: #444; line-height: 1.8;">
-            {real_testimonies_html if real_testimonies_html else "<i>(ไม่มีคำให้การเจาะจง ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)</i>"}
-        </div>
-    </div>
+{dynamic_modals_html}
+{law_modal_html}
+<div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+<strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
+<div style="font-size: 14px; margin-top: 15px; color: #444; line-height: 1.8;">
+{real_testimonies_html if real_testimonies_html else "<i>(ไม่มีคำให้การเจาะจง ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)</i>"}
+</div>
+</div>
     """, unsafe_allow_html=True)
 
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
@@ -647,7 +657,8 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
         </div>
         <div style="background: #FFFFFF; padding: 15px; border-radius: 6px; border: 1px solid #EAEAEA; margin: 15px 0; font-size: 14px; color: #005B31; line-height: 1.8;">
-            {framework_html}
+            ⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> {matched_law}
+            <label for="{std_modal_id}" class="cite-pill doc-pill" title="คลิกดูข้อกฎหมาย">[อ่านฉบับเต็ม]</label>
         </div>
     </div>
     <div style="background: #FAFAFA; border: 1px solid #D2E3FC; border-top: none; padding: 25px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; margin-bottom: 30px;">
@@ -755,7 +766,8 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
     ew_count = 1 if st.session_state.get("early_warning_approved", False) else 0
     with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยที่รอการสอบสวน</div></div>", unsafe_allow_html=True)
     
-    st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังการกระจายตัวความเสี่ยง (Corporate Risk Matrix)</h5>", unsafe_allow_html=True)
+    # 💡 อัปเกรด: เปลี่ยนชื่อเป็น Human Rights Risk Heat Map ตามที่ร้องขอ
+    st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังการกระจายตัวความเสี่ยง (Human Rights Risk Heat Map)</h5>", unsafe_allow_html=True)
     
     matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
     for iss, data in st.session_state.get("saved_plans_dict", {}).items():
