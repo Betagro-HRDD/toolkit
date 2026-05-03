@@ -87,19 +87,9 @@ st.markdown("""
     }
     [data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover { background: #004222 !important; transform: translateY(-2px) !important; box-shadow: 0 12px 25px rgba(0, 91, 49, 0.3) !important; }
 
-    .salient-badge { padding: 15px; border-radius: 12px; font-weight: 700; text-align: center; display: block; margin-top: 15px; border: 1px solid transparent;}
-    .gemini-draft-box { background: linear-gradient(135deg, #F0F4FF 0%, #FFFFFF 100%); border-left: 6px solid #4285F4; padding: 25px; border-radius: 12px; margin-top: 20px; border: 1px solid #D2E3FC; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.05);}
-    .gemini-title { color: #1967D2; font-family: 'Poppins', sans-serif; font-weight: 700; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;}
+    .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
+    @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
     
-    .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
-    .heat-cell { height: 60px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 18px; transition: 0.3s; position: relative;}
-    .matrix-bubble { width: 34px; height: 34px; background: #FFFFFF; border-radius: 50%; color: #333; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 16px;}
-    .matrix-bubble:hover { transform: scale(1.2); }
-    
-    .dash-card { background: #FFFFFF; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #EAEAEA; text-align: center; }
-    .dash-number { font-size: 36px; font-family: 'Poppins', sans-serif; font-weight: 800; color: #005B31; line-height: 1; margin: 10px 0; }
-    .dash-label { font-size: 14px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
-
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
 
@@ -121,11 +111,14 @@ st.markdown("""
     }
     .modal-toggle:checked ~ .modal-window { opacity: 1; pointer-events: auto; }
     
+    /* 💡 แก้ไข: เพิ่มพื้นที่คลิกพื้นหลังเพื่อปิด Modal */
+    .modal-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+    
     .modal-content {
         background: #F8FAFC; width: 85%; max-width: 900px; max-height: 85vh;
         border-radius: 16px; display: flex; flex-direction: column;
         box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s;
-        border: 1px solid #E5E7EB;
+        border: 1px solid #E5E7EB; z-index: 2; /* ให้อยู่เหนือ backdrop */
     }
     .modal-toggle:checked ~ .modal-window .modal-content { transform: translateY(0); }
     
@@ -133,7 +126,14 @@ st.markdown("""
         background: #FFFFFF; padding: 15px 25px; border-bottom: 1px solid #E5E7EB;
         display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0;
     }
-    .modal-title { font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: #111827; display: flex; align-items: center; gap: 10px;}
+    
+    /* 💡 แก้ไข: ทำชื่อไฟล์เป็นลิงก์คลิกได้ */
+    .modal-title-link { 
+        font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: #111827; 
+        display: flex; align-items: center; gap: 10px; text-decoration: none; transition: 0.2s;
+    }
+    .modal-title-link:hover { color: #4F46E5; }
+    
     .close-btn { cursor: pointer; font-size: 24px; color: #9CA3AF; font-weight: bold; background: #F3F4F6; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s;}
     .close-btn:hover { background: #EF4444; color: white; }
     
@@ -355,9 +355,9 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     if "OT" in selected_issue or "โอที" in selected_issue: 
         evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
         - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ระบุคะแนน 1-2 ในข้อ 1.1 
-        <label for="modal-csv-ot" class="cite-pill" title="คลิกเพื่อดูไฟล์ CSV">[Source 1]</label><br>
+        <label for="modal-csv-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์ข้อมูล">[Source 1]</label><br>
         - <i>Tool 3 (Interview):</i> สัมภาษณ์เชิงลึก ยืนยันว่าได้เงินล่าช้าเกิน 7 วัน 
-        <label for="modal-pdf-ot" class="cite-pill" title="คลิกเพื่อดูไฟล์ PDF Transcript">[Source 2]</label>"""
+        <label for="modal-pdf-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์เอกสาร">[Source 2]</label>"""
         framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)"
         
         # HTML For the Pop-ups
@@ -365,9 +365,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <!-- Modal 1: CSV File -->
         <input type="checkbox" id="modal-csv-ot" class="modal-toggle">
         <div class="modal-window">
+            <label class="modal-backdrop" for="modal-csv-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="modal-title"><i class="fa-solid fa-file-csv" style="color:#10B981; font-size: 20px;"></i> DB_Tool2_Survey.csv</div>
+                    <a href="#" class="modal-title-link" title="เปิดไฟล์ฉบับเต็มในแท็บใหม่"><i class="fa-solid fa-file-csv" style="color:#10B981; font-size: 20px;"></i> DB_Tool2_Survey.csv <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-csv-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
@@ -388,9 +389,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <!-- Modal 2: PDF Transcript -->
         <input type="checkbox" id="modal-pdf-ot" class="modal-toggle">
         <div class="modal-window">
+            <label class="modal-backdrop" for="modal-pdf-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="modal-title"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf</div>
+                    <a href="#" class="modal-title-link" title="เปิดไฟล์ฉบับเต็มในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
@@ -417,9 +419,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <!-- Modal 1: Image -->
         <input type="checkbox" id="modal-img-safe" class="modal-toggle">
         <div class="modal-window">
+            <label class="modal-backdrop" for="modal-img-safe"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="modal-title"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg</div>
+                    <a href="#" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-safe" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
@@ -433,9 +436,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <!-- Modal 2: PDF Transcript -->
         <input type="checkbox" id="modal-pdf-passport" class="modal-toggle">
         <div class="modal-window">
+            <label class="modal-backdrop" for="modal-pdf-passport"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="modal-title"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf</div>
+                    <a href="#" class="modal-title-link" title="เปิดไฟล์ฉบับเต็มในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-passport" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
@@ -461,9 +465,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         modal_html = """
         <input type="checkbox" id="modal-img-machine" class="modal-toggle">
         <div class="modal-window">
+            <label class="modal-backdrop" for="modal-img-machine"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <div class="modal-title"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg</div>
+                    <a href="#" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-machine" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
