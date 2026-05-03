@@ -62,6 +62,7 @@ st.markdown("""
     
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
+    a.header-anchor { display: none !important; }
     
     .premium-banner {
         background: #FFFFFF; border-radius: 24px; padding: 30px 40px;
@@ -87,13 +88,31 @@ st.markdown("""
     }
     [data-testid="stFormSubmitButton"] > button:hover, .stButton > button:hover { background: #004222 !important; transform: translateY(-2px) !important; box-shadow: 0 12px 25px rgba(0, 91, 49, 0.3) !important; }
 
+    .salient-badge { padding: 15px; border-radius: 12px; font-weight: 700; text-align: center; display: block; margin-top: 15px; border: 1px solid transparent;}
+    .gemini-draft-box { background: linear-gradient(135deg, #F0F4FF 0%, #FFFFFF 100%); border-left: 6px solid #4285F4; padding: 25px; border-radius: 12px; margin-top: 20px; border: 1px solid #D2E3FC; box-shadow: 0 4px 15px rgba(66, 133, 244, 0.05);}
+    .gemini-title { color: #1967D2; font-family: 'Poppins', sans-serif; font-weight: 700; margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 8px;}
+    
+    .heat-table { width: 100%; border-collapse: separate; border-spacing: 4px; margin-top: 15px;}
+    .heat-cell { height: 60px; text-align: center; font-weight: bold; color: white; border-radius: 8px; font-size: 18px; transition: 0.3s; position: relative;}
+    .matrix-bubble { width: 34px; height: 34px; background: #FFFFFF; border-radius: 50%; color: #333; display: flex; align-items: center; justify-content: center; margin: 0 auto; font-weight: 800; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 16px;}
+    .matrix-bubble:hover { transform: scale(1.2); }
+    
+    .dash-card { background: #FFFFFF; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #EAEAEA; text-align: center; }
+    .dash-number { font-size: 36px; font-family: 'Poppins', sans-serif; font-weight: 800; color: #005B31; line-height: 1; margin: 10px 0; }
+    .dash-label { font-size: 14px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+
+    .radar-pulse {
+        width: 80px; height: 80px; background: rgba(220, 38, 38, 0.15); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        animation: pulse 2s infinite; margin: 0 auto 20px auto;
+    }
     .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
     
     .control-panel label { font-size: 14px !important; color: #444 !important; font-weight: 600 !important; }
     .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
 
-    /* 💡 NOTEBOOK LM INTERACTIVE CITATION & MODAL SYSTEM */
+    /* 💡 NOTEBOOK LM INTERACTIVE CITATION & MODAL SYSTEM (FIXED Z-INDEX & HITBOX) */
     .cite-pill {
         display: inline-flex; align-items: center; justify-content: center;
         background-color: #E0E7FF; color: #4F46E5; border-radius: 12px;
@@ -103,22 +122,30 @@ st.markdown("""
     .cite-pill:hover { background-color: #4F46E5; color: #FFFFFF; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3); }
 
     .modal-toggle { display: none; }
+    
+    /* The main wrapper of the modal */
     .modal-window {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
         z-index: 999999; display: flex; align-items: center; justify-content: center;
         opacity: 0; pointer-events: none; transition: opacity 0.3s;
     }
+    
+    /* When checkbox is checked, make modal visible and clickable */
     .modal-toggle:checked ~ .modal-window { opacity: 1; pointer-events: auto; }
     
-    /* 💡 แก้ไข: เพิ่มพื้นที่คลิกพื้นหลังเพื่อปิด Modal */
-    .modal-backdrop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; }
+    /* The dark blurred background - clicking this will uncheck the toggle */
+    .modal-backdrop { 
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+        background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+        cursor: pointer; z-index: 1; 
+    }
     
+    /* The white content box */
     .modal-content {
         background: #F8FAFC; width: 85%; max-width: 900px; max-height: 85vh;
         border-radius: 16px; display: flex; flex-direction: column;
         box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); transform: translateY(20px); transition: transform 0.3s;
-        border: 1px solid #E5E7EB; z-index: 2; /* ให้อยู่เหนือ backdrop */
+        border: 1px solid #E5E7EB; z-index: 2; position: relative;
     }
     .modal-toggle:checked ~ .modal-window .modal-content { transform: translateY(0); }
     
@@ -127,14 +154,17 @@ st.markdown("""
         display: flex; justify-content: space-between; align-items: center; border-radius: 16px 16px 0 0;
     }
     
-    /* 💡 แก้ไข: ทำชื่อไฟล์เป็นลิงก์คลิกได้ */
     .modal-title-link { 
         font-family: 'Poppins', sans-serif; font-size: 16px; font-weight: 700; color: #111827; 
         display: flex; align-items: center; gap: 10px; text-decoration: none; transition: 0.2s;
     }
     .modal-title-link:hover { color: #4F46E5; }
     
-    .close-btn { cursor: pointer; font-size: 24px; color: #9CA3AF; font-weight: bold; background: #F3F4F6; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s;}
+    .close-btn { 
+        cursor: pointer; font-size: 24px; color: #9CA3AF; font-weight: bold; background: #F3F4F6; 
+        width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; 
+        border-radius: 50%; transition: 0.2s; z-index: 10;
+    }
     .close-btn:hover { background: #EF4444; color: white; }
     
     .modal-body { padding: 30px; overflow-y: auto; background: #F3F4F6;}
@@ -154,37 +184,74 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # ==========================================
-# --- 3.1 SECURITY ACCESS GATE & GLOBAL STATE ---
+# --- 3.1 🔐 ENTERPRISE SSO & WHITELIST AUTHENTICATION ---
 # ==========================================
+# 💡 Mockup Database สำหรับเก็บรหัสผ่าน
+if "user_db" not in st.session_state:
+    st.session_state.user_db = {}
+if "current_user" not in st.session_state:
+    st.session_state.current_user = None
+
+# 💡 กำหนด Whitelist (เฉพาะอีเมลในนี้เท่านั้นที่เข้าใช้งานได้)
+WHITELIST = ["admin@betagro.com", "somchai@betagro.com", "auditor1@betagro.com", "auditor2@betagro.com"]
+
 def check_password():
-    if "password_correct" not in st.session_state: st.session_state["password_correct"] = False
-    if not st.session_state["password_correct"]:
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            st.markdown("""
-                <div style="text-align: center; margin-top: 60px; margin-bottom: 30px;">
-                    <svg width="90" height="90" viewBox="0 0 100 100" style="margin-bottom: 15px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
-                        <circle cx="36" cy="38" r="23" fill="#005B31"/>
-                        <circle cx="64" cy="38" r="23" fill="#005B31"/>
-                        <circle cx="50" cy="62" r="23" fill="#005B31"/>
-                        <path d="M 50,42 Q 54,54 62,60 Q 50,56 38,60 Q 46,54 50,42 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
-                    </svg>
-                    <h2 style="color: #005B31; font-family: 'Poppins', sans-serif; font-weight: 800; margin: 0; font-size: 36px;">BETAGRO</h2>
-                    <p style="color: #D3A129; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; font-size: 12px; margin-top: 5px;">Secure Access Only</p>
-                </div>
-            """, unsafe_allow_html=True)
-            with st.form("login_form"):
-                st.markdown("<h4 style='color: #005B31; text-align: center; margin-bottom: 20px; font-weight: 600;'>🔒 ระบบประเมิน HRDD อัจฉริยะ</h4>", unsafe_allow_html=True)
-                pwd = st.text_input("Security Access Key", type="password", placeholder="Enter Password...", label_visibility="collapsed")
-                submitted = st.form_submit_button("LOGIN")
-                if submitted:
-                    correct_password = st.secrets.get("APP_PASSWORD", "Betagro@2026")
-                    if pwd == correct_password:
-                        st.session_state["password_correct"] = True
-                        st.rerun()
-                    else: st.error("❌ Access Denied. รหัสผ่านไม่ถูกต้อง")
-        return False
-    return True
+    if st.session_state.current_user is not None:
+        return True
+
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.markdown("""
+            <div style="text-align: center; margin-top: 60px; margin-bottom: 30px;">
+                <svg width="90" height="90" viewBox="0 0 100 100" style="margin-bottom: 15px; filter: drop-shadow(0 6px 15px rgba(0,91,49,0.15));">
+                    <circle cx="36" cy="38" r="23" fill="#005B31"/>
+                    <circle cx="64" cy="38" r="23" fill="#005B31"/>
+                    <circle cx="50" cy="62" r="23" fill="#005B31"/>
+                    <path d="M 50,42 Q 54,54 62,60 Q 50,56 38,60 Q 46,54 50,42 Z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+                <h2 style="color: #005B31; font-family: 'Poppins', sans-serif; font-weight: 800; margin: 0; font-size: 36px;">BETAGRO</h2>
+                <p style="color: #D3A129; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; font-size: 12px; margin-top: 5px;">Enterprise Single Sign-On</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        with st.form("login_form"):
+            st.markdown("<h4 style='color: #005B31; text-align: center; margin-bottom: 20px; font-weight: 600;'>🔒 ระบบประเมิน HRDD อัจฉริยะ</h4>", unsafe_allow_html=True)
+            
+            email = st.text_input("Corporate Email (อีเมลองค์กร)", placeholder="เช่น admin@betagro.com")
+            
+            # เช็คว่ากรอกอีเมลมาหรือยัง
+            if email:
+                if email in WHITELIST:
+                    # ถ้าอยู่ใน Whitelist และยังไม่เคยตั้งรหัสผ่าน (First-time user)
+                    if email not in st.session_state.user_db:
+                        st.info("👋 ยินดีต้อนรับผู้ใช้งานใหม่! เนื่องจากคุณเพิ่งเข้าสู่ระบบครั้งแรก กรุณาตั้งรหัสผ่านสำหรับบัญชีของคุณเพื่อความปลอดภัย")
+                        new_pwd = st.text_input("ตั้งรหัสผ่านใหม่ (New Password)", type="password")
+                        confirm_pwd = st.text_input("ยืนยันรหัสผ่าน (Confirm Password)", type="password")
+                        
+                        if st.form_submit_button("บันทึกรหัสผ่านและเข้าสู่ระบบ"):
+                            if new_pwd == confirm_pwd and new_pwd != "":
+                                st.session_state.user_db[email] = new_pwd
+                                st.session_state.current_user = email
+                                st.rerun()
+                            else:
+                                st.error("❌ รหัสผ่านไม่ตรงกัน หรือเว้นว่าง กรุณาลองใหม่")
+                    # ถ้าเคยตั้งรหัสผ่านแล้ว
+                    else:
+                        pwd = st.text_input("รหัสผ่าน (Password)", type="password", placeholder="Enter Password...")
+                        if st.form_submit_button("LOGIN"):
+                            if pwd == st.session_state.user_db[email]:
+                                st.session_state.current_user = email
+                                st.rerun()
+                            else:
+                                st.error("❌ รหัสผ่านไม่ถูกต้อง")
+                else:
+                    st.error("❌ Access Denied. อีเมลนี้ไม่ได้รับสิทธิ์การเข้าถึง (Not in Whitelist) กรุณาติดต่อ Admin")
+                    st.form_submit_button("LOGIN") # ใส่ปุ่มหลอกไว้กัน Form error
+            else:
+                st.form_submit_button("ตรวจสอบสิทธิ์")
+                st.caption("💡 อีเมลทดสอบระบบ: admin@betagro.com, somchai@betagro.com")
+                
+    return False
 
 if not check_password(): st.stop()
 
@@ -218,7 +285,10 @@ st.markdown('<div class="control-panel">', unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-folder-open'></i> 1. ข้อมูลโครงการและบัญชีผู้ใช้งาน</h4>", unsafe_allow_html=True)
 col_p1, col_p2 = st.columns(2)
 with col_p1: audit_cycle = st.selectbox("รอบการประเมิน (Audit Cycle) *", ["Annual 2026", "Q1/2026", "Q2/2026", "Q3/2026", "Q4/2026", "Special Audit"])
-with col_p2: auditor_name = st.text_input("ชื่อผู้ใช้งาน (Auditor/Executive) *", placeholder="เช่น สมชาย ใจดี")
+with col_p2: 
+    # 💡 อัปเกรด: ดึงชื่อผู้ใช้งานจากอีเมลที่ Login มาแสดงแบบอัตโนมัติ (Read-only)
+    st.text_input("ผู้ใช้งานระบบ (System User)", value=st.session_state.current_user, disabled=True)
+    auditor_name = st.session_state.current_user
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
 
@@ -256,10 +326,6 @@ else:
     resp_gender = "ภาพรวม"
 
 st.markdown('</div>', unsafe_allow_html=True)
-
-if not auditor_name:
-    st.info("📌 กรุณาระบุข้อมูล **ชื่อผู้ใช้งาน** ด้านบนให้ครบถ้วน เพื่อเข้าสู่ระบบ")
-    st.stop()
 
 now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
 sheet = connect_to_sheet()
@@ -333,13 +399,19 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         ai_header = f"🤖 Gemini AI พบประเด็นที่ต้องจัดทำแผน (วิเคราะห์เฉพาะกลุ่ม: {custom_filter_text}):" if custom_filter_text else "🤖 Gemini AI พบ 10 ประเด็นยุทธศาสตร์ที่ต้องจัดทำแผน (วิเคราะห์จากภาพรวมทั้งหมด):"
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
         
+        # 💡 อัปเกรด: เพิ่มรายการให้ครบ 10 ตัวเลือก
         selected_issue = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", [
             "เลือกประเด็นความเสี่ยงเพื่อจัดการ...",
             "[สิทธิแรงงาน] 1. พนักงานร้องเรียนเรื่องการจ่ายเงิน OT ไม่ครบ/ล่าช้า",
             "[แรงงานบังคับ] 2. พบกลุ่มแรงงานข้ามชาติถูกยึดพาสปอร์ตโดยเอเจนซี่",
             "[อาชีวอนามัย] 3. พบเครื่องจักรโซนปฏิบัติงานไม่มีฝาครอบป้องกันอันตราย",
             "[แรงงานเด็ก] 4. พบการจ้างงานเยาวชนอายุต่ำกว่า 18 ปี ในพื้นที่อันตราย",
-            "[การเลือกปฏิบัติ] 5. ความเหลื่อมล้ำในการจ่ายค่าจ้างระหว่างแรงงานไทยและข้ามชาติ"
+            "[การเลือกปฏิบัติ] 5. ความเหลื่อมล้ำในการจ่ายค่าจ้างระหว่างแรงงานไทยและข้ามชาติ",
+            "[ผลกระทบชุมชน] 6. มลพิษทางกลิ่นและเสียงส่งผลกระทบต่อชุมชนรอบโรงงาน",
+            "[สวัสดิการ] 7. สภาพหอพักแรงงานแออัดและไม่ถูกสุขลักษณะ",
+            "[เสรีภาพการสมาคม] 8. การกีดกันไม่ให้พนักงานรวมกลุ่มจัดตั้งคณะกรรมการสวัสดิการ",
+            "[ชั่วโมงการทำงาน] 9. พนักงานต้องทำงานติดต่อกันเกิน 60 ชั่วโมง/สัปดาห์",
+            "[กลไกร้องเรียน] 10. พนักงานไม่กล้าร้องเรียนเนื่องจากระบบไม่ปกปิดตัวตน"
         ])
 
     save_issue = selected_issue if selected_issue and "เลือกประเด็น" not in selected_issue else "ประเด็นที่ระบุเอง (Manual)"
@@ -347,11 +419,13 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
 
     evidence_base = ""
     framework_citation = ""
-    modal_html = "" # ตัวแปรเก็บโค้ดซ่อน Modal HTML
+    modal_html = "" 
     
     scope_text = f"เฉพาะกลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมพนักงาน"
     
-    # 💡 THE NOTEBOOK LM MAGIC: กำหนดป้าย HTML Citation และสร้างหน้าต่าง Modal
+    # 💡 THE NOTEBOOK LM MAGIC: แก้ลิงก์เป็น URL เอกสารตัวอย่าง และแก้ระบบคลิกพื้นหลัง
+    dummy_pdf_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+    
     if "OT" in selected_issue or "โอที" in selected_issue: 
         evidence_base = f"""📌 <b>แหล่งที่มา (Sources):</b> <br>
         - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ระบุคะแนน 1-2 ในข้อ 1.1 
@@ -360,15 +434,14 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         <label for="modal-pdf-ot" class="cite-pill" title="คลิกเพื่อดูไฮไลต์เอกสาร">[Source 2]</label>"""
         framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> พ.ร.บ. คุ้มครองแรงงาน มาตรา 70 | ILO Convention No. 95 (Protection of Wages)"
         
-        # HTML For the Pop-ups
-        modal_html = """
+        modal_html = f"""
         <!-- Modal 1: CSV File -->
         <input type="checkbox" id="modal-csv-ot" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-csv-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="#" class="modal-title-link" title="เปิดไฟล์ฉบับเต็มในแท็บใหม่"><i class="fa-solid fa-file-csv" style="color:#10B981; font-size: 20px;"></i> DB_Tool2_Survey.csv <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit?usp=sharing" target="_blank" class="modal-title-link" title="เปิดไฟล์ตารางข้อมูลจริงในแท็บใหม่"><i class="fa-solid fa-file-csv" style="color:#10B981; font-size: 20px;"></i> DB_Tool2_Survey.csv <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-csv-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
@@ -392,7 +465,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <label class="modal-backdrop" for="modal-pdf-ot"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="#" class="modal-title-link" title="เปิดไฟล์ฉบับเต็มในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{dummy_pdf_url}" target="_blank" class="modal-title-link" title="เปิดไฟล์เอกสารต้นฉบับในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_ID045_088.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-ot" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
@@ -412,22 +485,24 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         - <i>Tool 4 (Observation):</i> พบตู้เซฟล็อกกุญแจในห้องพักเอเจนซี่ 
         <label for="modal-img-safe" class="cite-pill" title="คลิกเพื่อดูรูปถ่ายหลักฐาน">[Source 1]</label><br>
         - <i>Tool 3 (Interview):</i> จาก{scope_text} ให้การตรงกันว่าถูกยึดพาสปอร์ต 
-        <label for="modal-pdf-passport" class="cite-pill" title="คลิกเพื่อดูไฟล์ PDF Transcript">[Source 2]</label>"""
+        <label for="modal-pdf-passport" class="cite-pill" title="คลิกเพื่อดูไฮไลต์เอกสาร">[Source 2]</label>"""
         framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> หลักการ Employer Pays Principle (EPP) | ILO Forced Labour Convention (No. 29)"
         
-        modal_html = """
+        img_url = "https://images.unsplash.com/photo-1614036417651-1d4b68e0d37d?auto=format&fit=crop&q=80&w=800"
+        
+        modal_html = f"""
         <!-- Modal 1: Image -->
         <input type="checkbox" id="modal-img-safe" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-img-safe"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="#" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{img_url}" target="_blank" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Observation_Site_A_04.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-safe" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
                     <div class="mock-doc-wrapper" style="padding: 10px;">
-                        <img src="https://images.unsplash.com/photo-1614036417651-1d4b68e0d37d?auto=format&fit=crop&q=80&w=800" style="width:100%; border-radius: 4px;">
+                        <img src="{img_url}" style="width:100%; border-radius: 4px;">
                         <p style="margin-top: 15px; color: #DC2626; font-weight: bold;"><i class="fa-solid fa-triangle-exclamation"></i> หมายเหตุออดิเตอร์: พบตู้เซฟล็อกกุญแจ ภายในห้องพักของนายหน้า (Agency) โดยแรงงานไม่สามารถเข้าถึงได้</p>
                     </div>
                 </div>
@@ -439,7 +514,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             <label class="modal-backdrop" for="modal-pdf-passport"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="#" class="modal-title-link" title="เปิดไฟล์ฉบับเต็มในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{dummy_pdf_url}" target="_blank" class="modal-title-link" title="เปิดไฟล์เอกสารต้นฉบับในแท็บใหม่"><i class="fa-solid fa-file-pdf" style="color:#EF4444; font-size: 20px;"></i> Transcript_Migrant_Grp1.pdf <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-pdf-passport" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body">
@@ -462,31 +537,35 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         - <i>Tool 2 (Worker Survey):</i> จาก{scope_text} ให้คะแนนความปลอดภัยเฉลี่ยต่ำ"""
         framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> ISO 45001 | พ.ร.บ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. 2554"
         
-        modal_html = """
+        img_url = "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800"
+        modal_html = f"""
         <input type="checkbox" id="modal-img-machine" class="modal-toggle">
         <div class="modal-window">
             <label class="modal-backdrop" for="modal-img-machine"></label>
             <div class="modal-content">
                 <div class="modal-header">
-                    <a href="#" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
+                    <a href="{img_url}" target="_blank" class="modal-title-link" title="เปิดรูปถ่ายความละเอียดสูงในแท็บใหม่"><i class="fa-solid fa-image" style="color:#3B82F6; font-size: 20px;"></i> Site_Audit_ZoneB.jpg <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 12px; color: #9CA3AF;"></i></a>
                     <label for="modal-img-machine" class="close-btn"><i class="fa-solid fa-xmark"></i></label>
                 </div>
                 <div class="modal-body" style="text-align: center;">
                     <div class="mock-doc-wrapper" style="padding: 10px;">
-                        <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800" style="width:100%; border-radius: 4px;">
+                        <img src="{img_url}" style="width:100%; border-radius: 4px;">
                         <p style="margin-top: 15px; color: #DC2626; font-weight: bold;"><i class="fa-solid fa-triangle-exclamation"></i> ตรวจพบเฟืองและสายพานเปลือย (Missing Machine Guard) เสี่ยงต่อการหนีบหรือดึงรั้งอวัยวะพนักงาน</p>
                     </div>
                 </div>
             </div>
         </div>
         """
+    elif "เลือกปฏิบัติ" in selected_issue or "เด็ก" in selected_issue or "ชุมชน" in selected_issue or "สวัสดิการ" in selected_issue or "สมาคม" in selected_issue or "ชั่วโมง" in selected_issue or "ร้องเรียน" in selected_issue:
+        # สำหรับประเด็นอื่นๆ ที่เหลือ โชว์ข้อความ Evidence ปกติ
+        evidence_base = f"📌 <b>แหล่งที่มา (Sources):</b> <br>- <i>Tool 2 & 3:</i> ระบบวิเคราะห์พบสัญญาณความเสี่ยงจากข้อมูล {scope_text} โปรดตรวจสอบหลักฐานเพิ่มเติม"
+        framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> UNGPs | ILO Conventions | กฎหมายแรงงานท้องถิ่น"
         
     elif "เลือกประเด็น" not in selected_issue:
         evidence_base = "📌 <b>แหล่งที่มา (Sources):</b> รอการระบุหลักฐานเชิงประจักษ์โดย Auditor"
         framework_citation = "⚖️ <b>อ้างอิงมาตรฐาน (Standard):</b> รอการวิเคราะห์จากระบบ"
 
     if selected_issue and "เลือกประเด็น" not in selected_issue:
-        # 💡 Inject the HTML Modals and the Evidence Box into Streamlit
         st.markdown(f"""
         {modal_html}
         <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
@@ -504,10 +583,11 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         def_scale, def_lik = saved_data.get('sev', 1), saved_data.get('lik', 1)
         def_scope, def_remedy = def_scale, def_scale
     else:
-        if "OT" in selected_issue or "โอที" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 3, 4, 2, 4
+        if "OT" in selected_issue or "ชั่วโมง" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 3, 4, 2, 4
         elif "พาสปอร์ต" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 2, 3, 3
         elif "เครื่องจักร" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 4, 2, 2, 4
         elif "เด็ก" in selected_issue: def_scale, def_scope, def_remedy, def_lik = 5, 1, 4, 1
+        else: def_scale, def_scope, def_remedy, def_lik = 3, 3, 3, 3
 
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1: scale = st.slider("Scale (ขนาดผลกระทบ: 1 เล็กน้อย - 5 Zero Tolerance)", 1, 5, def_scale)
