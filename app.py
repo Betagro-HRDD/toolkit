@@ -192,10 +192,10 @@ with col_p3: location = st.text_input("พื้นที่สำรวจ (Loc
 st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-users'></i> 2. ข้อมูลผู้ให้ข้อมูล (Respondent Info)</h4>", unsafe_allow_html=True)
 col_r1, col_r2, col_r3, col_r4 = st.columns(4)
-with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID)", placeholder="เช่น 001, 002 (สำหรับ Tool 1-4)")
-with col_r2: resp_group = st.selectbox("กลุ่มเป้าหมาย", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
-with col_r3: resp_dept = st.text_input("แผนก/ส่วนงาน", placeholder="เช่น ฝ่ายตัดแต่ง")
-with col_r4: resp_gender = st.selectbox("เพศ (Gender)", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
+with col_r1: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น 001, 002 (สำหรับ Tool 1-4)")
+with col_r2: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ไม่ระบุ/ภาพรวม", "ฝ่ายบริหาร", "แรงงานไทย", "แรงงานข้ามชาติ", "ชุมชน", "คู่ค้า"])
+with col_r3: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
+with col_r4: resp_gender = st.selectbox("เพศ (Gender) *", ["ไม่ระบุ", "ชาย", "หญิง", "อื่นๆ"])
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'><i class='fa-solid fa-screwdriver-wrench'></i> 3. เลือกเครื่องมือประเมิน</h4>", unsafe_allow_html=True)
@@ -226,8 +226,8 @@ sheet = connect_to_sheet()
 is_tool_1_to_4 = choice.startswith("Tool 1") or choice.startswith("Tool 2") or choice.startswith("Tool 3") or choice.startswith("Tool 4")
 
 if is_tool_1_to_4:
-    if not resp_id:
-        st.warning("⚠️ กรุณากรอก **รหัสอ้างอิง (ID)** ด้านบนให้เรียบร้อย เพื่อปลดล็อกแบบฟอร์มการประเมิน")
+    if not resp_id or not resp_dept:
+        st.warning("⚠️ กรุณากรอก **รหัสอ้างอิง (ID)** และ **แผนก/ส่วนงาน** ด้านบนให้ครบถ้วน เพื่อปลดล็อกแบบฟอร์มการประเมิน")
         st.stop()
     elif sheet:
         with st.spinner("กำลังตรวจสอบความถูกต้องของรหัสอ้างอิง..."):
