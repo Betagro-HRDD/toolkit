@@ -10,39 +10,55 @@ import altair as alt
 # ==========================================
 st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
-# --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix แบบขั้นสุด) ---
+# --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix ทะลวง Streamlit Flexbox) ---
 st.markdown("""
 <style>
-    /* 1. ป้องกันการเลื่อนขอบจอซ้ายขวาในระดับพื้นที่ใหญ่สุด */
-    .stApp, .main, .block-container {
+    /* 1. รีเซ็ต Box Sizing ป้องกัน Padding ดันขอบจอ และตัด Scroll แนวนอนระดับราก */
+    * {
+        box-sizing: border-box !important;
+    }
+    html, body, .stApp, .main, [data-testid="stAppViewContainer"] {
         overflow-x: hidden !important;
         max-width: 100vw !important;
+        margin: 0 !important;
     }
     
     /* 2. กฎเฉพาะสำหรับหน้าจอมือถือและแท็บเล็ต */
     @media (max-width: 768px) {
-        /* บีบกล่องและรูปภาพทุกชนิดไม่ให้ทะลุจอ (ทับ Inline Style ของ Streamlit) */
-        img, [data-testid="stImage"], [data-testid="stImage"] > img {
+        /* บังคับตัวห่อหุ้มคอลัมน์หลักให้เรียงจากบนลงล่างแทนซ้ายไปขวา (หักดิบ Streamlit) */
+        [data-testid="stHorizontalBlock"] {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 0 !important; /* ลดช่องว่างที่อาจดันขอบ */
+        }
+
+        /* บังคับคอลัมน์ย่อยทุกอันให้กว้าง 100% เต็มจอ */
+        [data-testid="column"] {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            flex: none !important;
+            padding-bottom: 20px !important;
+        }
+
+        /* บีบกล่องและรูปภาพทุกชั้นไม่ให้ทะลุจอแบบ 100% */
+        img, 
+        [data-testid="stImage"], 
+        [data-testid="stImage"] > div,
+        [data-testid="stImage"] > img {
             max-width: 100% !important;
             width: 100% !important;
             height: auto !important;
             object-fit: contain !important;
         }
         
-        /* บังคับคอลัมน์ให้ตัดการเรียงแนวนอน แล้วเรียงซ้อนบน-ล่างแทน 100% */
-        [data-testid="column"] {
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: 100% !important;
-            flex: 1 1 100% !important;
-            display: block !important;
-            padding-bottom: 20px !important;
-        }
-        
-        /* ลดขอบซ้ายขวาของหน้าจอลงเพื่อเพิ่มพื้นที่การแสดงผล */
+        /* ลดขอบซ้ายขวาของ Container หลัก */
         .block-container {
             padding-left: 1rem !important;
             padding-right: 1rem !important;
+            width: 100% !important;
+            max-width: 100vw !important;
+            overflow-x: hidden !important;
         }
     }
 </style>
