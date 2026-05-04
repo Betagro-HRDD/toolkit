@@ -10,27 +10,39 @@ import altair as alt
 # ==========================================
 st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
-# --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix) ---
+# --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix แบบขั้นสุด) ---
 st.markdown("""
 <style>
-    /* 1. ป้องกันรูปภาพทุกรูปในหน้าเว็บล้นขอบจอ */
-    img {
-        max-width: 100% !important;
-        height: auto !important;
-    }
-    
-    /* 2. บังคับไม่ให้หน้าจอเลื่อนซ้าย-ขวา (Horizontal Scroll) */
-    .stApp, .main {
+    /* 1. ป้องกันการเลื่อนขอบจอซ้ายขวาในระดับพื้นที่ใหญ่สุด */
+    .stApp, .main, .block-container {
         overflow-x: hidden !important;
         max-width: 100vw !important;
     }
     
-    /* 3. ทำให้ Column ของ Hero Section ตอบสนองกับจอมือถือ (ซ้อนกันพอดีจอ) */
+    /* 2. กฎเฉพาะสำหรับหน้าจอมือถือและแท็บเล็ต */
     @media (max-width: 768px) {
+        /* บีบกล่องและรูปภาพทุกชนิดไม่ให้ทะลุจอ (ทับ Inline Style ของ Streamlit) */
+        img, [data-testid="stImage"], [data-testid="stImage"] > img {
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            object-fit: contain !important;
+        }
+        
+        /* บังคับคอลัมน์ให้ตัดการเรียงแนวนอน แล้วเรียงซ้อนบน-ล่างแทน 100% */
         [data-testid="column"] {
             width: 100% !important;
             min-width: 100% !important;
+            max-width: 100% !important;
+            flex: 1 1 100% !important;
             display: block !important;
+            padding-bottom: 20px !important;
+        }
+        
+        /* ลดขอบซ้ายขวาของหน้าจอลงเพื่อเพิ่มพื้นที่การแสดงผล */
+        .block-container {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
         }
     }
 </style>
