@@ -10,6 +10,36 @@ import altair as alt
 # ==========================================
 st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
+# ... existing code ...
+st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
+
+# --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix) ---
+st.markdown("""
+<style>
+    /* 1. ป้องกันรูปภาพทุกรูปในหน้าเว็บล้นขอบจอ */
+    img {
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* 2. บังคับไม่ให้หน้าจอเลื่อนซ้าย-ขวา (Horizontal Scroll) */
+    .stApp, .main {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+    }
+    
+    /* 3. ทำให้ Column ของ Hero Section ตอบสนองกับจอมือถือ (ซ้อนกันพอดีจอ) */
+    @media (max-width: 768px) {
+        [data-testid="column"] {
+            width: 100% !important;
+            min-width: 100% !important;
+            display: block !important;
+        }
+    }
+</style>
+""", unsafe_allow_html=True)
+# --------------------------------------------------------
+
 # ==========================================
 # --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบาย) ---
 # ==========================================
