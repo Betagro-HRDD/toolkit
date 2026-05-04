@@ -437,7 +437,22 @@ elif choice.startswith("Tool 5"):
     df_filtered = raw_data_only_df.copy()
     if not raw_data_only_df.empty:
         if custom_filter_text:
-            df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains(custom_filter_text, na=False)]
+            # --- ส่วนที่แก้ไขแล้ว ---
+            # 1. ตัดเอาเฉพาะคำหลักภาษาไทยไปค้นหา ป้องกันปัญหาชื่อที่มีวงเล็บภาษาอังกฤษต่อท้าย
+            search_keyword = custom_filter_text.split(" ")[0]
+            
+            # 2. ค้นหาแบบยืดหยุ่นด้วย regex (|) ครอบคลุมทั้งกรณีบันทึกเป็นไทยและอังกฤษในฐานข้อมูล
+            if search_keyword == "องค์กรไม่แสวงหากำไร":
+                df_filtered = raw_data_only_df[
+                    raw_data_only_df['กลุ่มเป้าหมาย'].str.contains("องค์กรไม่แสวงหากำไร|NGO", na=False, case=False, regex=True)
+                ]
+            elif search_keyword == "คู่ค้า":
+                df_filtered = raw_data_only_df[
+                    raw_data_only_df['กลุ่มเป้าหมาย'].str.contains("คู่ค้า|Supplier", na=False, case=False, regex=True)
+                ]
+            else:
+                df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains(search_keyword, na=False, case=False)]
+            # ---------------------
     
     sheet_data_count = len(df_filtered)
     if sheet_data_count == 0: 
