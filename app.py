@@ -75,7 +75,7 @@ def get_heat_color(s, l):
         if val <= 4: return "#34D399"   
         return "#059669"                
 
-# --- 3. STYLING (ลบโค้ด CSS ขยะทิ้งทั้งหมด ทำให้ไม่ซ้อนทับกัน) ---
+# --- 3. STYLING ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
@@ -249,7 +249,7 @@ if is_tool_1_to_4:
     with col_r_loc: location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี")
     with col_r_id: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น T01, M01")
     col_r1, col_r2, col_r3 = st.columns(3)
-    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"])
+    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"])
     with col_r2: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
     with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ชาย", "หญิง", "ไม่ระบุ"])
 else:
@@ -286,26 +286,67 @@ if is_tool_1_to_4:
 if choice.startswith("Tool 1"):
     with st.form("form_t1"):
         st.markdown("<h3 style='color:#005B31;'>Tool 1: ประเมินสถานะองค์กร (Policy Gap)</h3><hr>", unsafe_allow_html=True)
+        st.markdown("**หมวด A: การกำกับดูแลและนโยบาย**")
         q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' ที่เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, ชุมชน, สิ่งแวดล้อม) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        st.markdown("**หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)**")
+        q2_1 = st.radio("2.1 มีการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) ประจำปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q2_2 = st.radio("2.2 มีระบบการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        st.markdown("**หมวด C: กลไกการร้องเรียนและการเยียวยา (Grievance & Remediation)**")
+        q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัย เป็นความลับ และเข้าถึงได้ง่ายหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        q3_2 = st.radio("3.2 มีขั้นตอนการเยียวยา (Remediation) แก่ผู้ได้รับผลกระทบเมื่อเกิดการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", f"A({q1_1})", "", "", "", ""])
+                detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 elif choice.startswith("Tool 2"):
     with st.form("form_t2"):
         st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน</h3>", unsafe_allow_html=True)
-        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วน", options=[1,2,3,4,5], value=3)
+        st.info("💡 ระดับคะแนน: 1 = ไม่จริงเลย/ไม่เคยปฏิบัติ | 5 = เป็นความจริงที่สุด/ปฏิบัติเสมอ")
+        st.markdown("<hr>", unsafe_allow_html=True)
+
+        st.markdown("**หมวดที่ 1: สภาพการจ้างและค่าจ้าง (Wages & Employment)**")
+        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามที่ตกลงไว้", options=[1,2,3,4,5], value=3)
+        s1_2 = st.select_slider("1.2 ท่านเป็นผู้เก็บเอกสารประจำตัว (เช่น พาสปอร์ต, บัตร ปชช.) ไว้เอง", options=[1,2,3,4,5], value=3)
+        s1_3 = st.select_slider("1.3 การทำล่วงเวลา (OT) ของท่าน เกิดจากความสมัครใจ ไม่ได้ถูกบังคับ", options=[1,2,3,4,5], value=3)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+        
+        st.markdown("**หมวดที่ 2: ความปลอดภัยและสุขอนามัย (Occupational Health & Safety)**")
+        s2_1 = st.select_slider("2.1 บริษัทจัดเตรียมอุปกรณ์ป้องกันอันตราย (PPE) ให้เพียงพอและฟรี", options=[1,2,3,4,5], value=3)
+        s2_2 = st.select_slider("2.2 สภาพแวดล้อมการทำงานของท่าน (แสง, เสียง, อากาศ) ปลอดภัยต่อสุขภาพ", options=[1,2,3,4,5], value=3)
+        s2_3 = st.select_slider("2.3 โรงอาหารและที่พักอาศัย (ถ้ามี) สะอาดและถูกสุขลักษณะ", options=[1,2,3,4,5], value=3)
+        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+
+        st.markdown("**หมวดที่ 3: การปฏิบัติต่อพนักงานและการร้องเรียน (Fair Treatment & Grievance)**")
+        s3_1 = st.select_slider("3.1 หัวหน้างานปฏิบัติต่อพนักงานทุกคนอย่างเท่าเทียม ไม่เลือกปฏิบัติ", options=[1,2,3,4,5], value=3)
+        s3_2 = st.select_slider("3.2 หากมีปัญหาหรือถูกเอาเปรียบ ท่านทราบช่องทางและกล้าร้องเรียน", options=[1,2,3,4,5], value=3)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", f"จ้างงาน({s1_1})", "", "", "", ""])
+                detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
                 st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 elif choice.startswith("Tool 3"):
     with st.form("form_t3"):
         st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก</h3><hr>", unsafe_allow_html=True)
-        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา", "สัญญาจ้าง", "ที่พักอาศัย", "กลไกร้องเรียน", "ความรู้"], label_visibility="collapsed")
+        st.markdown("**🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)**")
+        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา/ค่านายหน้า", "ความเข้าใจในสัญญาจ้าง", "สภาพที่พักอาศัย/โรงอาหาร", "กลไกการร้องเรียน", "การเลือกปฏิบัติ", "ชั่วโมงการทำงาน", "ความรู้/อบรม"], label_visibility="collapsed")
+        
+        st.markdown("<br>**✍️ บันทึกคำให้การ (Testimony)**", unsafe_allow_html=True)
         testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=150)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             if sheet:
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
@@ -314,13 +355,41 @@ elif choice.startswith("Tool 3"):
 elif choice.startswith("Tool 4"):
     with st.form("form_t4"):
         st.markdown("<h3 style='color:#005B31;'>Tool 4: บันทึกการสังเกตการณ์</h3><hr>", unsafe_allow_html=True)
-        o1 = st.radio("1. มีการติดประกาศนโยบายในพื้นที่", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        st.info("📌 ประเมินสิ่งที่พบเห็นจริงหน้างาน และสามารถบันทึกข้อสังเกตเพิ่มเติมในแต่ละข้อได้ทันที")
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        o1 = st.radio("1. มีการติดประกาศนโยบายและช่องทางร้องเรียนในพื้นที่ที่พนักงานมองเห็นได้ชัดเจน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o1 = st.text_input("บันทึกเพิ่มเติมข้อ 1:", key="n1", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 1 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o2 = st.radio("2. ทางหนีไฟ อุปกรณ์ดับเพลิง ไม่มีสิ่งกีดขวางและพร้อมใช้งาน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o2 = st.text_input("บันทึกเพิ่มเติมข้อ 2:", key="n2", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 2 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกัน (PPE) ถูกต้อง", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 3 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o4 = st.radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 4 (ถ้ามี)...")
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        o5 = st.radio("5. ตู้ยาสามัญประจำโรงงานมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
+        note_o5 = st.text_input("บันทึกเพิ่มเติมข้อ 5:", key="n5", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 5 (ถ้ามี)...")
+        
+        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", o1, "", "", "", ""])
+                res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
+                res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
+                res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
+                res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
+                res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
+                detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (THE FLAWLESS NATIVE MODALS) -----------------
+# ----------------- TOOL 5 (THE NEW FLAWLESS NATIVE MODALS) -----------------
 elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -341,6 +410,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
             "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
         ])
 
+    # 💡 N-COUNT FIX: กรองข้อมูลให้ดึงเฉพาะแถวที่เป็น Tool 1-4 ก่อนนับ!
     raw_data_only_df = pd.DataFrame()
     if not df_real.empty:
         raw_data_only_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
@@ -396,7 +466,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 1. NATIVE POPOVER FOR EVIDENCE (ไม่มีรหัส HTML โผล่ ไม่มีการค้างหน้าจอ 100%)
+    # 💡 1. NATIVE POPOVER FOR EVIDENCE (ไม่มีการค้างหน้าจอ 100%)
     evidence_count = 0
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
@@ -417,7 +487,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                         with c_txt:
                             st.markdown(f"<div style='padding: 8px 0; border-left: 3px solid #3B82F6; padding-left: 15px; margin-bottom: 10px; background: white;'><b>(ID {r_id}):</b> {short_text}</div>", unsafe_allow_html=True)
                         with c_btn:
-                            # 💡 ปุ่มกด Native ของ Streamlit ปิดได้ 100%
+                            # 💡 ใช้ st.popover แทน CSS Modal
                             with st.popover(f"🔍 ดูข้อมูลดิบ"):
                                 st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {r_id}")
                                 st.write(f"**📅 วันที่เก็บข้อมูล:** {row.get('วันที่-เวลา', '-')}")
