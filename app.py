@@ -250,7 +250,7 @@ choice = st.selectbox("เลือกฟังก์ชันหรือรา
     "Tool 2: แบบสอบถามหน้างาน (Worker Survey)",
     "Tool 3: สัมภาษณ์เชิงลึก (Evidence-based Grounding)",
     "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)",
-    "Tool 5: ประเมินความเสี่ยง (Salient Human Rights Risks Scoring Matrix: AI-Augmented Triangulation & Sentiment Analysis)",
+    "Tool 5: ประเมินความเสี่ยง (Salient Human Rights Risks Scoring Matrix)",
     "Tool 6: ระบบเตือนภัยล่วงหน้า (Predictive Hotspot Modeling)",
     "Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)"
 ], label_visibility="collapsed")
@@ -413,7 +413,7 @@ elif choice.startswith("Tool 4"):
 elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (Salient HR Risks Scoring Matrix:AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
     
     st.markdown("""
     <div class="filter-box">
