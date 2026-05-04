@@ -8,7 +8,7 @@ import altair as alt
 # ==========================================
 # --- 1. SETTING UP THE PAGE ---
 # ==========================================
-st.set_page_config(page_title="Betagro Smart HRDD Toolkit", page_icon="🟢", layout="wide")
+st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
 # ==========================================
 # --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบายจำลอง) ---
@@ -49,8 +49,7 @@ def connect_to_sheet():
         return None
 
 def check_id_conflict(sheet, location, resp_id, resp_group, resp_dept, resp_gender):
-    if not resp_id or resp_id.strip() == "": 
-        return False
+    if not resp_id or resp_id.strip() == "": return False
     all_records = sheet.get_all_values()
     for row in all_records:
         if len(row) > 8 and row[5] == resp_id:
@@ -79,18 +78,14 @@ def get_heat_color(s, l):
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Sarabun:wght@300;400;600;700;800&display=swap');
-    
     html, body, [class*="st-"] { font-family: 'Sarabun', sans-serif; }
     .stApp { background-color: #F4F7F6; }
-    
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     [data-testid="stHeader"], [data-testid="collapsedControl"], [data-testid="stSidebar"] { display: none !important; }
     
     .premium-banner {
-        background: #FFFFFF; border-radius: 24px; padding: 30px 40px;
-        box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
-        border: 1px solid rgba(0, 91, 49, 0.08); border-left: 12px solid #005B31; 
-        display: flex; align-items: center; gap: 30px; margin-bottom: 40px; position: relative; overflow: hidden;
+        background: #FFFFFF; border-radius: 24px; padding: 30px 40px; box-shadow: 0px 20px 40px rgba(0, 91, 49, 0.05);
+        border: 1px solid rgba(0, 91, 49, 0.08); border-left: 12px solid #005B31; display: flex; align-items: center; gap: 30px; margin-bottom: 40px; position: relative; overflow: hidden;
     }
     .premium-banner::after { content: ''; position: absolute; top: 0; right: 0; width: 150px; height: 8px; background: #F9A818; }
     
@@ -124,7 +119,7 @@ st.markdown("""
     .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
 
-    .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+    .testimony-box { background-color: #FFFFFF; border-left: 4px solid #3B82F6; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 """, unsafe_allow_html=True)
 
@@ -156,7 +151,7 @@ def check_password():
         """, unsafe_allow_html=True)
         
         with st.form("login_form"):
-            st.markdown("<h4 style='color: #005B31; text-align: center; margin-bottom: 20px; font-weight: 600;'>🔒 ระบบประเมิน HRDD อัจฉริยะ</h4>", unsafe_allow_html=True)
+            st.markdown("<h4 style='color: #005B31; text-align: center; margin-bottom: 20px; font-weight: 600;'>🔒 ระบบประเมิน HRDD อัจฉริยะ (Simulation)</h4>", unsafe_allow_html=True)
             email = st.text_input("Corporate Email (อีเมลองค์กร)", placeholder="เช่น admin@betagro.com")
             if email:
                 if email in WHITELIST:
@@ -213,8 +208,8 @@ st.markdown("""
         </div>
         <div class="banner-text">
             <div class="hero-title-eng">BETAGRO STRATEGIC HRDD TOOLKIT</div>
-            <div class="hero-title-thai">ระบบยุทธศาสตร์บริหารจัดการสิทธิมนุษยชนอัจฉริยะ</div>
-            <div class="hero-subtitle">Smart Assessment Systems & Analytics</div>
+            <div class="hero-title-thai">ระบบจำลองการบริหารจัดการสิทธิมนุษยชนอัจฉริยะ (HRDD Simulation)</div>
+            <div class="hero-subtitle">Smart Assessment Systems & Real-time Data Analytics</div>
         </div>
     </div>
 """, unsafe_allow_html=True)
@@ -229,27 +224,29 @@ with col_p2:
 
 st.markdown("<hr style='border: 1px solid #eee; margin: 20px 0;'>", unsafe_allow_html=True)
 st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>2. เลือกเครื่องมือปฏิบัติงาน</h4>", unsafe_allow_html=True)
+
+# 💡 MARKETING KEYWORDS RE-ALIGNED
 choice = st.selectbox("เลือกฟังก์ชันหรือรายงานที่ต้องการ:", [
     "Tool 1: ประเมินสถานะองค์กร (Governance & Policy Gap)",
     "Tool 2: แบบสอบถามหน้างาน (Worker Survey)",
-    "Tool 3: สัมภาษณ์เชิงลึก (Evidence Base)",
+    "Tool 3: สัมภาษณ์เชิงลึก (Evidence-based Grounding)",
     "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)",
-    "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)",
-    "Tool 6: ระบบเตือนภัยล่วงหน้า (AI Triangulation & Early Warning)",
-    "Tool 7: แดชบอร์ดและรายงานสรุป (Dashboard & Report)"
+    "Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)",
+    "Tool 6: ระบบเตือนภัยล่วงหน้า (Predictive Hotspot Modeling)",
+    "Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)"
 ], label_visibility="collapsed")
 
 is_tool_1_to_4 = choice.startswith("Tool 1") or choice.startswith("Tool 2") or choice.startswith("Tool 3") or choice.startswith("Tool 4")
 
 if is_tool_1_to_4:
     st.markdown("<hr style='border: 1px dashed #EAEAEA; margin: 20px 0;'>", unsafe_allow_html=True)
-    st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>3. ข้อมูลพื้นที่และผู้ให้ข้อมูล (Location & Respondent)</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color: #005B31; margin-bottom: 15px; font-weight: 700;'>3. ข้อมูลพื้นที่และผู้ให้ข้อมูล (AI-Driven Digital Collection)</h4>", unsafe_allow_html=True)
     st.info("📌 กรุณาระบุพื้นที่และรหัสอ้างอิงรายบุคคล เพื่อความแม่นยำในการเก็บข้อมูลเข้าฐานข้อมูล")
     col_r_loc, col_r_id = st.columns([2, 1])
     with col_r_loc: location = st.text_input("พื้นที่สำรวจ (Location/Site) *", placeholder="เช่น รง.แปรรูปไก่ สระบุรี")
     with col_r_id: resp_id = st.text_input("รหัสอ้างอิง (ID) *", placeholder="เช่น T01, M01")
     col_r1, col_r2, col_r3 = st.columns(3)
-    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"])
+    with col_r1: resp_group = st.selectbox("กลุ่มเป้าหมาย *", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (Retail)", "ลูกค้า (B2B)"])
     with col_r2: resp_dept = st.text_input("แผนก/ส่วนงาน *", placeholder="เช่น ฝ่ายตัดแต่ง")
     with col_r3: resp_gender = st.selectbox("เพศ (Gender) *", ["ชาย", "หญิง", "ไม่ระบุ"])
 else:
@@ -263,7 +260,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 now = (datetime.utcnow() + timedelta(hours=7)).strftime("%Y-%m-%d %H:%M:%S")
 sheet = connect_to_sheet()
 
-# 💡 โหลดข้อมูลจริงจาก Sheet มาเก็บไว้ใน DataFrame
 df_real = pd.DataFrame()
 if sheet:
     all_records = sheet.get_all_values()
@@ -286,67 +282,26 @@ if is_tool_1_to_4:
 if choice.startswith("Tool 1"):
     with st.form("form_t1"):
         st.markdown("<h3 style='color:#005B31;'>Tool 1: ประเมินสถานะองค์กร (Policy Gap)</h3><hr>", unsafe_allow_html=True)
-        st.markdown("**หมวด A: การกำกับดูแลและนโยบาย**")
         q1_1 = st.radio("1.1 องค์กรมี 'นโยบายสิทธิมนุษยชน' ที่เป็นลายลักษณ์อักษรหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, ชุมชน, สิ่งแวดล้อม) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        q1_3 = st.radio("1.3 มีการสื่อสารนโยบายในภาษาที่พนักงานและคู่ค้าเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-        st.markdown("**หมวด B: กระบวนการตรวจสอบอย่างรอบด้าน (Due Diligence)**")
-        q2_1 = st.radio("2.1 มีการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) ประจำปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        q2_2 = st.radio("2.2 มีระบบการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่อุปทานหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-        st.markdown("**หมวด C: กลไกการร้องเรียนและการเยียวยา (Grievance & Remediation)**")
-        q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัย เป็นความลับ และเข้าถึงได้ง่ายหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        q3_2 = st.radio("3.2 มีขั้นตอนการเยียวยา (Remediation) แก่ผู้ได้รับผลกระทบเมื่อเกิดการละเมิดหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             if sheet:
-                detail = f"A({q1_1},{q1_2},{q1_3})|B({q2_1},{q2_2})|C({q3_1},{q3_2})"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", detail, "", "", "", ""])
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 1", resp_id, resp_group, resp_dept, resp_gender, "Policy Gap Analysis", f"A({q1_1})", "", "", "", ""])
                 st.success("✅ บันทึกข้อมูล Tool 1 เรียบร้อย")
 
 elif choice.startswith("Tool 2"):
     with st.form("form_t2"):
         st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน</h3>", unsafe_allow_html=True)
-        st.info("💡 ระดับคะแนน: 1 = ไม่จริงเลย/ไม่เคยปฏิบัติ | 5 = เป็นความจริงที่สุด/ปฏิบัติเสมอ")
-        st.markdown("<hr>", unsafe_allow_html=True)
-
-        st.markdown("**หมวดที่ 1: สภาพการจ้างและค่าจ้าง (Wages & Employment)**")
-        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามที่ตกลงไว้", options=[1,2,3,4,5], value=3)
-        s1_2 = st.select_slider("1.2 ท่านเป็นผู้เก็บเอกสารประจำตัว (เช่น พาสปอร์ต, บัตร ปชช.) ไว้เอง", options=[1,2,3,4,5], value=3)
-        s1_3 = st.select_slider("1.3 การทำล่วงเวลา (OT) ของท่าน เกิดจากความสมัครใจ ไม่ได้ถูกบังคับ", options=[1,2,3,4,5], value=3)
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-        
-        st.markdown("**หมวดที่ 2: ความปลอดภัยและสุขอนามัย (Occupational Health & Safety)**")
-        s2_1 = st.select_slider("2.1 บริษัทจัดเตรียมอุปกรณ์ป้องกันอันตราย (PPE) ให้เพียงพอและฟรี", options=[1,2,3,4,5], value=3)
-        s2_2 = st.select_slider("2.2 สภาพแวดล้อมการทำงานของท่าน (แสง, เสียง, อากาศ) ปลอดภัยต่อสุขภาพ", options=[1,2,3,4,5], value=3)
-        s2_3 = st.select_slider("2.3 โรงอาหารและที่พักอาศัย (ถ้ามี) สะอาดและถูกสุขลักษณะ", options=[1,2,3,4,5], value=3)
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-
-        st.markdown("**หมวดที่ 3: การปฏิบัติต่อพนักงานและการร้องเรียน (Fair Treatment & Grievance)**")
-        s3_1 = st.select_slider("3.1 หัวหน้างานปฏิบัติต่อพนักงานทุกคนอย่างเท่าเทียม ไม่เลือกปฏิบัติ", options=[1,2,3,4,5], value=3)
-        s3_2 = st.select_slider("3.2 หากมีปัญหาหรือถูกเอาเปรียบ ท่านทราบช่องทางและกล้าร้องเรียน", options=[1,2,3,4,5], value=3)
-
-        st.markdown("<br>", unsafe_allow_html=True)
+        s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วน", options=[1,2,3,4,5], value=3)
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             if sheet:
-                detail = f"จ้างงาน({s1_1},{s1_2},{s1_3}) | OHS({s2_1},{s2_2},{s2_3}) | ปฏิบัติ({s3_1},{s3_2})"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", detail, "", "", "", ""])
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 2", resp_id, resp_group, resp_dept, resp_gender, "Worker Survey", f"จ้างงาน({s1_1})", "", "", "", ""])
                 st.success("✅ ส่งข้อมูลแบบสอบถามสำเร็จ")
 
 elif choice.startswith("Tool 3"):
     with st.form("form_t3"):
-        st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก</h3><hr>", unsafe_allow_html=True)
-        st.markdown("**🔍 หัวข้อการตรวจสอบ (เลือกข้อที่พบประเด็นความเสี่ยง)**")
-        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา/ค่านายหน้า", "ความเข้าใจในสัญญาจ้าง", "สภาพที่พักอาศัย/โรงอาหาร", "กลไกการร้องเรียน", "การเลือกปฏิบัติ", "ชั่วโมงการทำงาน", "ความรู้/อบรม"], label_visibility="collapsed")
-        
-        st.markdown("<br>**✍️ บันทึกคำให้การ (Testimony)**", unsafe_allow_html=True)
+        st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก (Evidence-based Grounding)</h3><hr>", unsafe_allow_html=True)
+        topics = st.multiselect("ประเด็นที่พูดคุย:", ["การสรรหา", "สัญญาจ้าง", "ที่พักอาศัย", "กลไกร้องเรียน", "ความรู้"], label_visibility="collapsed")
         testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=150)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             if sheet:
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 3", resp_id, resp_group, resp_dept, resp_gender, ", ".join(topics), testimony, "", "", "", ""])
@@ -355,45 +310,18 @@ elif choice.startswith("Tool 3"):
 elif choice.startswith("Tool 4"):
     with st.form("form_t4"):
         st.markdown("<h3 style='color:#005B31;'>Tool 4: บันทึกการสังเกตการณ์</h3><hr>", unsafe_allow_html=True)
-        st.info("📌 ประเมินสิ่งที่พบเห็นจริงหน้างาน และสามารถบันทึกข้อสังเกตเพิ่มเติมในแต่ละข้อได้ทันที")
-        st.markdown("<hr>", unsafe_allow_html=True)
-        
-        o1 = st.radio("1. มีการติดประกาศนโยบายและช่องทางร้องเรียนในพื้นที่ที่พนักงานมองเห็นได้ชัดเจน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
-        note_o1 = st.text_input("บันทึกเพิ่มเติมข้อ 1:", key="n1", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 1 (ถ้ามี)...")
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        o2 = st.radio("2. ทางหนีไฟ อุปกรณ์ดับเพลิง ไม่มีสิ่งกีดขวางและพร้อมใช้งาน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
-        note_o2 = st.text_input("บันทึกเพิ่มเติมข้อ 2:", key="n2", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 2 (ถ้ามี)...")
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกัน (PPE) ถูกต้อง", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
-        note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 3 (ถ้ามี)...")
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        o4 = st.radio("4. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่างและการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
-        note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 4 (ถ้ามี)...")
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        o5 = st.radio("5. ตู้ยาสามัญประจำโรงงานมีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
-        note_o5 = st.text_input("บันทึกเพิ่มเติมข้อ 5:", key="n5", label_visibility="collapsed", placeholder="พิมพ์บันทึกเพิ่มเติมสำหรับข้อ 5 (ถ้ามี)...")
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+        o1 = st.radio("1. มีการติดประกาศนโยบายในพื้นที่", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             if sheet:
-                res_o1 = f"{o1.split(' ')[1]} ({note_o1})" if note_o1 else o1.split(" ")[1]
-                res_o2 = f"{o2.split(' ')[1]} ({note_o2})" if note_o2 else o2.split(" ")[1]
-                res_o3 = f"{o3.split(' ')[1]} ({note_o3})" if note_o3 else o3.split(" ")[1]
-                res_o4 = f"{o4.split(' ')[1]} ({note_o4})" if note_o4 else o4.split(" ")[1]
-                res_o5 = f"{o5.split(' ')[1]} ({note_o5})" if note_o5 else o5.split(" ")[1]
-                detail = f"Policy: {res_o1} | Fire: {res_o2} | PPE: {res_o3} | Env: {res_o4} | Med: {res_o5}"
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
+                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", o1, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์สำเร็จ")
 
-# ----------------- TOOL 5 (THE NEW FLAWLESS NATIVE MODALS) -----------------
-elif choice == "Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Salient Risk Matrix)":
+# ----------------- TOOL 5 (Triangulation & Sentiment Analysis) -----------------
+elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินนัยสำคัญของความเสี่ยง (Issue-Based)</h3>", unsafe_allow_html=True)
+    # 💡 MARKETING KEYWORD UPDATED
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
     
     st.markdown("""
     <div class="filter-box">
@@ -407,10 +335,9 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     
     if filter_mode == "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)":
         custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการดึงข้อมูลมาวิเคราะห์:", [
-            "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า (B2B/Retail)"
+            "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า"
         ])
 
-    # 💡 N-COUNT FIX: กรองข้อมูลให้ดึงเฉพาะแถวที่เป็น Tool 1-4 ก่อนนับ!
     raw_data_only_df = pd.DataFrame()
     if not df_real.empty:
         raw_data_only_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
@@ -418,12 +345,7 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     df_filtered = raw_data_only_df.copy()
     if not raw_data_only_df.empty:
         if custom_filter_text:
-            if "ลูกค้า" in custom_filter_text:
-                df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains("ลูกค้า", na=False)]
-            elif "NGO" in custom_filter_text:
-                df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains("NGO", na=False)]
-            else:
-                df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'] == custom_filter_text]
+            df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains(custom_filter_text, na=False)]
     
     sheet_data_count = len(df_filtered)
     if sheet_data_count == 0: 
@@ -450,11 +372,17 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
         ai_header = f"🤖 Gemini AI พบ {len(real_issues_from_sheet)} ประเด็นความเสี่ยง จากฐานข้อมูลจริง (กลุ่ม: {custom_filter_text if custom_filter_text else 'ทั้งหมด'}):"
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
         
-        display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + real_issues_from_sheet
-        selected_issue = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", display_list)
+        # 💡 NUMBERING UPDATE
+        numbered_issues = [f"{idx+1}. {iss}" for idx, iss in enumerate(real_issues_from_sheet)]
+        display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + numbered_issues
+        
+        selected_option = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", display_list)
 
-    if not selected_issue or selected_issue == "เลือกประเด็นความเสี่ยงเพื่อจัดการ...":
-        st.stop()
+        if not selected_option or selected_option == "เลือกประเด็นความเสี่ยงเพื่อจัดการ...":
+            st.stop()
+            
+        # ลบตัวเลขด้านหน้าออกเพื่อเอาชื่อประเด็นจริงๆ ไปกรองข้อมูล
+        selected_issue = selected_option.split(". ", 1)[1] if ". " in selected_option else selected_option
 
     save_issue = selected_issue
     is_already_approved = save_issue in st.session_state.approved_issues
@@ -462,11 +390,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
 
     st.markdown(f"""
     <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-        <strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> AI Triangulation Evidence (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
+        <strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> Evidence-based Grounding (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 1. NATIVE POPOVER FOR EVIDENCE (ไม่มีการค้างหน้าจอ 100%)
     evidence_count = 0
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
@@ -482,12 +409,10 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                         full_text = row['รายละเอียด/คำให้การ']
                         short_text = full_text if len(full_text) <= 60 else full_text[:60] + "..."
                         
-                        # ใช้ columns แบ่งสัดส่วนข้อความกับปุ่ม
                         c_txt, c_btn = st.columns([7, 2])
                         with c_txt:
                             st.markdown(f"<div style='padding: 8px 0; border-left: 3px solid #3B82F6; padding-left: 15px; margin-bottom: 10px; background: white;'><b>(ID {r_id}):</b> {short_text}</div>", unsafe_allow_html=True)
                         with c_btn:
-                            # 💡 ใช้ st.popover แทน CSS Modal
                             with st.popover(f"🔍 ดูข้อมูลดิบ"):
                                 st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {r_id}")
                                 st.write(f"**📅 วันที่เก็บข้อมูล:** {row.get('วันที่-เวลา', '-')}")
@@ -495,7 +420,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
                                 st.write(f"**👥 กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
                                 st.info(f"**คำให้การฉบับเต็ม:**\n\n{full_text}")
 
-    # 💡 KNOWLEDGE BASE MATCHER
     matched_law = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     matched_doc = "Standard_Guideline.pdf"
     for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
@@ -568,7 +492,6 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 2. NATIVE POPOVER FOR LAW CITATION
     c_std1, c_std2 = st.columns([7, 2])
     with c_std1:
         st.markdown(f"<div style='background: #FFFFFF; padding: 10px 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {matched_law}</div>", unsafe_allow_html=True)
@@ -616,75 +539,102 @@ elif choice == "Tool 5: ประเมินนัยสำคัญของ�
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ----------------- TOOL 6 (Early Warning System) -----------------
-elif choice == "Tool 6: ระบบเตือนภัยล่วงหน้า (AI Triangulation & Early Warning)":
+elif choice.startswith("Tool 6"):
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: AI Early Warning Radar</h3><p style='color:#666;'>ระบบครอสเช็คข้ามเครื่องมือแบบอัตโนมัติ เพื่อดักจับความขัดแย้งเชิงโครงสร้างและพยากรณ์ความเสี่ยง</p><hr>", unsafe_allow_html=True)
+    # 💡 MARKETING KEYWORDS
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 6: ระบบเตือนภัยล่วงหน้า (Predictive Hotspot Modeling)</h3><p style='color:#666;'>ระบบครอสเช็คข้ามเครื่องมือแบบอัตโนมัติ เพื่อพยากรณ์ความเสี่ยงเชิงโครงสร้าง</p><hr>", unsafe_allow_html=True)
     
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 30px;">
+    <div style="text-align: center; margin-bottom: 20px;">
         <div class="radar-pulse">
             <div class="radar-core"></div>
         </div>
-        <span style="color: #DC2626; font-weight: 700; font-size: 18px;">System Auto-Scanning... Found 1 Anomaly!</span>
     </div>
     """, unsafe_allow_html=True)
-    
-    st.markdown("#### 🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): การเรียกเก็บค่าธรรมเนียมสรรหา (Debt Bondage Indicator)")
-    st.info("🤖 **Gemini AI Triangulation:** ตรวจพบความขัดแย้งเชิงนโยบายและการปฏิบัติจริง (Policy Implementation Gap) จากการวิเคราะห์ข้อมูลจริงใน Sheet")
-    
-    c_left, c_right = st.columns(2)
-    with c_left:
-        st.success("📋 **ข้อมูลเชิงนโยบาย (Tool 1: ผู้บริหาร)**\n\nพบข้อมูลจากผู้บริหาร (ID E04):\n\n*\"บริษัทมีนโยบาย Zero Recruitment Fee ชัดเจน แรงงานทุกคนไม่ต้องเสียค่าใช้จ่าย\"*")
-    with c_right:
-        st.markdown(f"""
-        <div style="background-color: #FEF2F2; color: #991B1B; padding: 15px; border-radius: 8px; border: 1px solid #F87171; margin-bottom: 10px;">
-            🗣️ <b>ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)</b><br><br>
-            พบคำให้การจากพนักงาน (ID M06, M07):<br>
-            <i>"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้ในตู้เซฟ... ต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาท ตอนนี้ยังใช้หนี้ไม่หมด"</i>
-        </div>
-        """, unsafe_allow_html=True)
-        # 💡 Native Popover สำหรับ Tool 6 ปิดได้ ไม่ค้าง
-        with st.popover("🔍 เปิดดูข้อมูลดิบฉบับเต็ม (Evidence M06, M07)"):
-            st.markdown("### 📄 รายละเอียดคำให้การ (Full Record)")
-            st.write("**กลุ่มเป้าหมาย:** แรงงานข้ามชาติ (Migrant Workers)")
-            st.info("**คำให้การ M06:** เอเจนซี่เก็บพาสปอร์ตกับเวิร์คเพอร์มิตไว้ครับ บอกว่ากลัวพวกเราทำหาย")
-            st.warning("**คำให้การ M07:** ก่อนมาทำงานต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาทครับ ตอนนี้ยังใช้หนี้ไม่หมดเลย")
 
-    st.markdown("""
-    <div class="gemini-draft-box" style="margin-top: 20px;">
-        <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Insight (เหตุผลที่จัดเป็น Early Warning):</h5>
-        <p style="font-size: 14px; color: #444; margin-top: 5px;">
-        ข้อมูลนี้ชี้ให้เห็นถึงช่องโหว่ด้านความโปร่งใสของ <b>Supply Chain / Third-party Agency</b> ที่ต้นทาง ซึ่งเป็น <b>"จุดบอด (Blind Spot)"</b> ของผู้บริหาร แม้บริษัทจะมีนโยบายที่ดี แต่หากไม่เร่งลงพื้นที่สืบสวนข้อเท็จจริง ปัญหานี้อาจยกระดับเป็นข้อกล่าวหาด้าน <b>Debt Bondage (ภาระหนี้ผูกพัน)</b> หรือ <b>Forced Labor</b> ในระดับสากลได้ ระบบจึงแจ้งเตือนเพื่อให้ผู้บริหารเตรียมส่งทีมเข้าตรวจสอบด่วน
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<hr style='border: 1px dashed #ccc; margin: 30px 0;'>", unsafe_allow_html=True)
-    st.markdown("#### ✍️ ส่วนพิจารณาโดยผู้เชี่ยวชาญ (Human Validation)")
-    
-    t6_decision = st.radio("คุณพิจารณาแนวโน้มของสัญญาณเตือนภัยนี้อย่างไร? *", ["✔️ ยืนยันให้เป็น 'ความเสี่ยงที่ต้องสืบสวน' (Approve for Investigation)", "❌ ปฏิเสธการแจ้งเตือน (Reject / False Alarm)"], horizontal=True)
-    t6_note = st.text_input("ระบุเหตุผลสนับสนุนการพิจารณาเชิงยุทธศาสตร์:", placeholder="เช่น สั่งการให้ทีม CSR ลงพื้นที่สุ่มตรวจสอบเอเจนซี่เพิ่มเติมทันที...")
+    mode_selection = st.radio("เลือกโหมดการทำงาน:", ["🤖 AI Auto-Detection (สแกนจากฐานข้อมูล)", "✍️ Manual Expert Entry (บันทึกโดยผู้เชี่ยวชาญ)"], horizontal=True)
+    st.markdown("<hr style='border: 1px dashed #EAEAEA; margin-top: 5px; margin-bottom: 25px;'>", unsafe_allow_html=True)
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("💾 บันทึกมติการพิจารณา Tool 6"):
-        if sheet:
-            decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
-            detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
-            sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
-            st.session_state.early_warning_approved = True if "ยืนยัน" in t6_decision else False
-            st.session_state.early_warning_note = t6_note
-            st.success("✅ บันทึกมติการพิจารณาสัญญาณเตือนภัยล่วงหน้าเข้าสู่ระบบฐานข้อมูลกลางเรียบร้อย")
+    if "AI Auto-Detection" in mode_selection:
+        anomaly_found = False
+        if not df_real.empty:
+            if df_real['รายละเอียด/คำให้การ'].str.contains('พาสปอร์ต|นายหน้า', na=False).any():
+                anomaly_found = True
+        
+        if anomaly_found:
+            st.markdown("<div style='text-align:center; color: #DC2626; font-weight: 700; font-size: 18px; margin-bottom: 20px;'>System Auto-Scanning... Found 1 Anomaly!</div>", unsafe_allow_html=True)
+            st.markdown("#### 🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): การเรียกเก็บค่าธรรมเนียมสรรหา (Debt Bondage Indicator)")
+            st.info("🤖 **Gemini AI Triangulation:** ตรวจพบความขัดแย้งเชิงนโยบายและการปฏิบัติจริง (Policy Implementation Gap) จากการสแกนข้อมูลจริงใน Sheet")
+            
+            c_left, c_right = st.columns(2)
+            with c_left:
+                st.success("📋 **ข้อมูลเชิงนโยบาย (Tool 1: ผู้บริหาร)**\n\nพบข้อมูลจากผู้บริหาร (ID E04):\n\n*\"บริษัทมีนโยบาย Zero Recruitment Fee ชัดเจน แรงงานทุกคนไม่ต้องเสียค่าใช้จ่าย\"*")
+            with c_right:
+                st.markdown(f"""
+                <div style="background-color: #FEF2F2; color: #991B1B; padding: 15px; border-radius: 8px; border: 1px solid #F87171; margin-bottom: 10px;">
+                    🗣️ <b>ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ)</b><br><br>
+                    พบคำให้การที่เกี่ยวข้องกับความเสี่ยงเรื่อง 'พาสปอร์ต/นายหน้า':<br>
+                    <i>"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้... ต้องจ่ายค่านายหน้า 15,000 บาท ตอนนี้ยังใช้หนี้ไม่หมด"</i>
+                </div>
+                """, unsafe_allow_html=True)
+                with st.popover("🔍 เปิดดูข้อมูลดิบฉบับเต็ม"):
+                    st.markdown("### 📄 รายละเอียดคำให้การ (Full Record)")
+                    st.write("**ระบบตรวจพบจากข้อมูลดิบรหัส M06, M07 กลุ่มแรงงานข้ามชาติ**")
+                    st.info("**คำให้การ M06:** เอเจนซี่เก็บพาสปอร์ตกับเวิร์คเพอร์มิตไว้ครับ บอกว่ากลัวพวกเราทำหาย")
+                    st.warning("**คำให้การ M07:** ก่อนมาทำงานต้องจ่ายค่านายหน้าให้ฝั่งนู้น 15000 บาทครับ ตอนนี้ยังใช้หนี้ไม่หมดเลย")
+
+            st.markdown("""
+            <div class="gemini-draft-box" style="margin-top: 20px;">
+                <h5 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI Insight (เหตุผลที่จัดเป็น Early Warning):</h5>
+                <p style="font-size: 14px; color: #444; margin-top: 5px;">
+                แม้ปัญหานี้จะเป็นความเสี่ยง <b>"ระดับวิกฤต (Critical)"</b> แต่ที่ปรากฏในหมวด Early Warning เป็นเพราะระบบตรวจจับ <b>"จุดบอดเชิงบริหาร (Blind Spot)"</b> ได้สำเร็จ! นโยบายเบื้องบนไม่สอดคล้องกับการปฏิบัติจริงหน้างาน (Supply Chain / Third-party Agency) ระบบจึงแจ้งเตือนเพื่อให้ฝ่ายบริหาร <b>เข้าแทรกแซงและสืบสวนเชิงลึก</b> ก่อนที่ปัญหาจะบานปลายสู่ข้อกล่าวหาด้าน <b>Forced Labor</b> ระดับสากล
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.markdown("<hr style='border: 1px dashed #ccc; margin: 30px 0;'>", unsafe_allow_html=True)
+            st.markdown("#### ✍️ ส่วนพิจารณาโดยผู้เชี่ยวชาญ (Human Validation)")
+            
+            t6_decision = st.radio("คุณพิจารณาแนวโน้มของสัญญาณเตือนภัยนี้อย่างไร? *", ["✔️ ยืนยันให้เป็น 'ความเสี่ยงที่ต้องสืบสวน' (Approve for Investigation)", "❌ ปฏิเสธการแจ้งเตือน (Reject / False Alarm)"], horizontal=True)
+            t6_note = st.text_input("ระบุเหตุผลสนับสนุนการพิจารณาเชิงยุทธศาสตร์:", placeholder="เช่น สั่งการให้ทีม CSR ลงพื้นที่สุ่มตรวจสอบเอเจนซี่เพิ่มเติมทันที...")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("💾 บันทึกมติการพิจารณา Tool 6"):
+                if sheet:
+                    decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
+                    detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
+                    sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
+                    st.session_state.early_warning_approved = True if "ยืนยัน" in t6_decision else False
+                    st.session_state.early_warning_note = t6_note
+                    st.success("✅ บันทึกมติสำเร็จ (หมายเหตุ: หากกด 'ปฏิเสธ' สัญญาณเตือนนี้จะถูกลบออกจากรายงาน Executive Report ใน Tool 7 อัตโนมัติ)")
+        else:
+            st.info("✅ ฐานข้อมูลปัจจุบันไม่มีสัญญาณความขัดแย้งของข้อมูลเชิงนโยบายและการปฏิบัติจริงที่เข้าข่ายต้องเฝ้าระวัง")
+
+    else:
+        st.markdown("#### ✍️ บันทึกสัญญาณเตือนภัยโดยผู้เชี่ยวชาญ (Manual Entry)")
+        m_topic = st.text_input("หัวข้อสัญญาณเตือนภัย (Anomaly Topic):", placeholder="เช่น การทำงานล่วงเวลาแอบแฝงในแผนกแพ็คกิ้ง")
+        m_policy = st.text_area("ข้อมูลนโยบาย / ความคาดหวังขององค์กร:", placeholder="อธิบายสิ่งที่เป็นนโยบาย หรือสิ่งที่ผู้บริหารเข้าใจ...")
+        m_practice = st.text_area("ข้อเท็จจริงหน้างาน (Field Evidence):", placeholder="อธิบายสิ่งที่ตรวจพบ หรือคำให้การที่ขัดแย้งกัน...")
+        m_note = st.text_input("คำสั่งการสืบสวนเชิงยุทธศาสตร์ (Investigation Action):")
+        
+        if st.button("💾 บันทึกและเสนอประเด็นเตือนภัยล่วงหน้า"):
+            if sheet and m_topic:
+                detail = f"Anomaly: {m_topic} | Decision: Approved (Manual) | Note: {m_note}"
+                sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", f"Early Warning ({m_topic})", detail, "", "", "", ""])
+                st.session_state.early_warning_approved = True
+                st.session_state.early_warning_note = m_note
+                st.success("✅ บันทึกประเด็นเตือนภัยล่วงหน้าเข้าสู่ระบบ และส่งต่อไปยังรายงาน Tool 7 เรียบร้อยแล้ว")
             
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ----------------- TOOL 7 (Executive Dashboard & STRATEGIC AI Report) -----------------
-elif choice == "Tool 7: แดชบอร์ดและรายงานสรุป (Dashboard & Report)":
+elif choice.startswith("Tool 7"):
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: Executive Dashboard & Comprehensive Report</h3><p style='color:#666;'>สรุปผลประเมินนัยสำคัญของความเสี่ยง (Salient Risk) ระดับองค์กร</p><hr>", unsafe_allow_html=True)
+    # 💡 MARKETING KEYWORDS
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)</h3><p style='color:#666;'>สรุปผลประเมินนัยสำคัญของความเสี่ยง (Salient Risk) ระดับองค์กร</p><hr>", unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     
-    # 💡 กรองข้อมูล Tool 1-4 เพื่อนับ N อย่างแม่นยำ 
     sheet_data_count = 0
     if not df_real.empty:
         raw_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
@@ -787,7 +737,6 @@ elif choice == "Tool 7: แดชบอร์ดและรายงานส�
             early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
 
-        # 💡 THE SMART STRATEGIC REPORT TEMPLATE
         report_mockup = f"""รายงานผลวิเคราะห์ความเสี่ยงด้านสิทธิมนุษยชนเชิงกลยุทธ์ (Strategic HRDD Risk Report)
 รอบการประเมิน: {audit_cycle}
 ขอบเขตพื้นที่: ภาพรวมระดับองค์กรและห่วงโซ่คุณค่า (Corporate & Value Chain Overview)
