@@ -464,8 +464,9 @@ elif choice.startswith("Tool 4"):
 # ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
  elif choice.startswith("Tool 5"):
         st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)  
 
+        st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
+        
         st.markdown("""
         <div class="filter-box">
             <h5 style="color:#D97706; margin-top:0;"><i class="fa-solid fa-filter"></i> กำหนดหน่วยการวิเคราะห์ (Unit of Analysis)</h5>
@@ -475,7 +476,7 @@ elif choice.startswith("Tool 4"):
 
         filter_mode = st.radio("ระดับการวิเคราะห์:", ["ระดับองค์กรภาพรวม (Corporate Level / ทุกกลุ่ม)", "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)"], horizontal=True, label_visibility="collapsed")
         custom_filter_text = ""
-
+        
         if filter_mode == "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)":
             custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการดึงข้อมูลมาวิเคราะห์:", [
                 "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า"
@@ -489,35 +490,35 @@ elif choice.startswith("Tool 4"):
         if not raw_data_only_df.empty:
             if custom_filter_text:
                 df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains(custom_filter_text, na=False)]
-
+        
         sheet_data_count = len(df_filtered)
         if sheet_data_count == 0: 
             st.warning(f"⚠️ ไม่พบข้อมูลดิบของการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
             st.stop()
 
         btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
-        
+
         st.markdown("<h5 style='color: #005B31; margin-top: 20px;'><i class='fa-solid fa-wand-magic-sparkles'></i> 1. สกัดประเด็นความเสี่ยงจากฐานข้อมูลจริง</h5>", unsafe_allow_html=True)
         if st.button(btn_text):
-            st.session_state.ai_scanned_issues = True    
-
+            st.session_state.ai_scanned_issues = True
+        
         selected_issue = ""
         if st.session_state.get("ai_scanned_issues", False):
             real_issues_from_sheet = []
             if 'ประเด็นหลัก' in df_filtered.columns:
                 raw_issues = df_filtered['ประเด็นหลัก'].unique().tolist()
-                real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "Worker Survey", "Site Observation", "Policy Gap Analysis", "nan", "None"]]        
-
+                real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "Worker Survey", "Site Observation", "Policy Gap Analysis", "nan", "None"]]
+            
             if len(real_issues_from_sheet) == 0:
                 st.info(f"✅ AI ประมวลผลข้อมูลของกลุ่มนี้แล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญครับ")
-                st.stop()            
+                st.stop()
 
             ai_header = f"🤖 Gemini AI พบ {len(real_issues_from_sheet)} ประเด็นความเสี่ยง จากฐานข้อมูลจริง (กลุ่ม: {custom_filter_text if custom_filter_text else 'ทั้งหมด'}):"
-            st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)        
-
+            st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
+            
             numbered_issues = [f"{idx+1}. {iss}" for idx, iss in enumerate(real_issues_from_sheet)]
-            display_list = ["เลือกประเด็นความเสี่ยงให้ AI วิเคราะห์..."] + numbered_issues        
-
+            display_list = ["เลือกประเด็นความเสี่ยงให้ AI วิเคราะห์..."] + numbered_issues
+            
             selected_option = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", display_list)
             if not selected_option or selected_option == "เลือกประเด็นความเสี่ยงให้ AI วิเคราะห์...":
                 st.stop()
@@ -526,6 +527,7 @@ elif choice.startswith("Tool 4"):
         if selected_issue:
             save_issue = selected_issue
             scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
+
             st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
             st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-brain'></i> 2. ผลการวิเคราะห์และฟันธงโดย AI (AI Executive Summary)</h5>", unsafe_allow_html=True)
 
@@ -547,8 +549,8 @@ elif choice.startswith("Tool 4"):
             ai_conclusion = ""
             ai_severity_suggest = 3
             ai_likelihood_suggest = 3
-            ai_plan_suggest = ""        
-
+            ai_plan_suggest = ""
+            
             if len(exec_quotes) > 0 and len(worker_quotes) > 0:
                 ai_conclusion = f"<div style='background-color: #FEF2F2; padding: 20px; border-radius: 8px; border-left: 5px solid #DC2626; margin-bottom: 20px;'><h4 style='color: #991B1B; margin-top:0;'>⚠️ AI ฟันธง: พบความขัดแย้งของข้อมูล (Policy Implementation Gap)</h4><p style='color: #444; font-size: 14px;'>ตรวจพบว่านโยบายของผู้บริหาร ขัดแย้งโดยตรงกับคำให้การของกลุ่มปฏิบัติการ ระบบจึงยกระดับประเด็น <b>'{selected_issue}'</b> เป็นความเสี่ยงวิกฤต</p></div>"
                 ai_severity_suggest = 5 if any(x in selected_issue for x in ["แรงงาน", "พาสปอร์ต", "สวัสดิการ"]) else 4
@@ -572,67 +574,144 @@ elif choice.startswith("Tool 4"):
             st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 3. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
             
             col_s1, col_s2, col_s3 = st.columns(3)
-            with col_s1: scale = st.slider("Scale", 1, 5, ai_severity_suggest)
-            with col_s2: scope = st.slider("Scope", 1, 5, ai_severity_suggest)
-            with col_s3: remedy = st.slider("Remedy", 1, 5, ai_severity_suggest)        
-
+            with col_s1: scale = st.slider("Scale (ขนาด)", 1, 5, ai_severity_suggest)
+            with col_s2: scope = st.slider("Scope (ขอบเขต)", 1, 5, ai_severity_suggest)
+            with col_s3: remedy = st.slider("Remedy (การเยียวยา)", 1, 5, ai_severity_suggest)
+            
             sev_max = max(scale, scope, remedy)
-            likelihood = st.slider("📌 Likelihood", 1, 5, ai_likelihood_suggest)
+            likelihood = st.slider("📌 Likelihood (โอกาสเกิด)", 1, 5, ai_likelihood_suggest)
             score = sev_max * likelihood
 
-            # Heat Map
-            matrix_colors = {
-                5: ["#009A71", "#F9A00A", "#D97706", "#DE282A", "#9A2121"],
-                4: ["#3DDC97", "#FFE142", "#F9A00A", "#DE282A", "#DE282A"],
-                3: ["#3DDC97", "#009A71", "#FFE142", "#F9A00A", "#F05050"],
-                2: ["#A6F0D0", "#3DDC97", "#009A71", "#FFE142", "#F47E7E"],
-                1: ["#A6F0D0", "#A6F0D0", "#3DDC97", "#3DDC97", "#FAADAD"]
-            }        
-
+            # ========================================================
+            # --- PREMIUM RISK HEAT MAP (Minimalist & Luxury Style) ---
+            # ========================================================
+            
+            # โทนสีแบบ Muted/Premium (ไม่สดจนแสบตา)
+            premium_colors = {
+                5: ["#2D5A27", "#C68D07", "#B45309", "#991B1B", "#7F1D1D"], # Sev 5
+                4: ["#4ADE80", "#FACC15", "#C68D07", "#B45309", "#991B1B"], # Sev 4
+                3: ["#4ADE80", "#2D5A27", "#FACC15", "#C68D07", "#B45309"], # Sev 3
+                2: ["#DCFCE7", "#4ADE80", "#2D5A27", "#FACC15", "#C68D07"], # Sev 2
+                1: ["#DCFCE7", "#DCFCE7", "#4ADE80", "#4ADE80", "#FACC15"]  # Sev 1
+            }
+            
             st.markdown("""
             <style>
-            @keyframes pulse-glow {
-                0% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0.7), 0 0 10px rgba(0, 0, 0, 0.5); }
-                50% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0), 0 0 25px rgba(255, 255, 255, 0.8); }
-                100% { box-shadow: 0 0 0 0px rgba(255, 255, 255, 0), 0 0 10px rgba(0, 0, 0, 0.5); }
+            @keyframes soft-pulse {
+                0% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
+                50% { transform: scale(1.1); filter: brightness(1.2); box-shadow: 0 0 20px 5px rgba(255,255,255,0.6); }
+                100% { transform: scale(1); filter: brightness(1); box-shadow: 0 0 0 0 rgba(255,255,255,0); }
             }
-            .glow-marker {
-                width: 35px; height: 35px; background: white; border-radius: 50%;
-                display: flex; align-items: center; justify-content: center;
-                animation: pulse-glow 1.5s infinite; border: 3px solid black; font-size: 20px;
+            .matrix-container {
+                background: #ffffff;
+                padding: 40px;
+                border-radius: 24px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+                border: 1px solid #f0f0f0;
+                margin: 20px auto;
+                max-width: 700px;
+            }
+            .grid-wrapper {
+                display: grid;
+                grid-template-columns: 40px 1fr;
+                gap: 15px;
+                align-items: center;
+            }
+            .y-axis-label {
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+                text-align: center;
+                font-weight: 600;
+                color: #888;
+                letter-spacing: 2px;
+                font-size: 12px;
+                text-transform: uppercase;
+            }
+            .heat-grid {
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 12px;
+            }
+            .grid-cell {
+                aspect-ratio: 1.2;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                position: relative;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            .active-cell {
+                animation: soft-pulse 2s infinite ease-in-out;
+                z-index: 5;
+                border: 3px solid #fff;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            }
+            .marker-icon {
+                font-size: 24px;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            }
+            .x-axis-label {
+                grid-column: 2;
+                text-align: center;
+                margin-top: 20px;
+                font-weight: 600;
+                color: #888;
+                letter-spacing: 2px;
+                font-size: 12px;
+                text-transform: uppercase;
             }
             </style>
-            """, unsafe_allow_html=True)        
+            """, unsafe_allow_html=True)
 
-            html_map = '<div style="width: 100%; max-width: 800px; margin: 30px auto;"><div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; background: #222; padding: 15px; border-radius: 12px; border: 4px solid #444;">'
+            # Build HTML Grid
+            grid_cells = ""
             for s in range(5, 0, -1):
                 for l in range(1, 6):
-                    bg_color = matrix_colors[s][l-1]
-                    is_active = (s == sev_max and l == likelihood)                
-                    if is_active:
-                        html_map += f'<div style="background-color: {bg_color}; aspect-ratio: 2.5/1; border-radius: 8px; display: flex; align-items: center; justify-content: center;"><div class="glow-marker">📍</div></div>'
-                    else:
-                        html_map += f'<div style="background-color: {bg_color}; aspect-ratio: 2.5/1; border-radius: 8px; opacity: 0.8;"></div>'                    
-            html_map += '</div></div>'        
+                    bg = premium_colors[s][l-1]
+                    is_target = (s == sev_max and l == likelihood)
+                    active_class = "active-cell" if is_target else ""
+                    content = '<div class="marker-icon">💎</div>' if is_target else ""
+                    grid_cells += f'<div class="grid-cell {active_class}" style="background-color: {bg};">{content}</div>'
 
-            st.markdown(html_map, unsafe_allow_html=True)
+            heatmap_html = f"""
+            <div class="matrix-container">
+                <div class="grid-wrapper">
+                    <div class="y-axis-label">Severity (ความรุนแรง)</div>
+                    <div class="heat-grid">
+                        {grid_cells}
+                    </div>
+                    <div class="x-axis-label">Likelihood (โอกาสเกิด)</div>
+                </div>
+            </div>
+            """
+            st.markdown(heatmap_html, unsafe_allow_html=True)
 
+            # --- Badge & Summary ---
             if score >= 16 or sev_max == 5:
-                risk_zone, badge_color, badge_text = "RED", "#DC2626", "🚨 SALIENT RISK (วิกฤต)"
+                badge_color, badge_text = "#991B1B", "🚨 SALIENT RISK (วิกฤต)"
             elif score >= 8:
-                risk_zone, badge_color, badge_text = "YELLOW", "#D97706", "⚠️ SIGNIFICANT RISK (สูง)"
+                badge_color, badge_text = "#B45309", "⚠️ SIGNIFICANT RISK (สูง)"
             else:
-                risk_zone, badge_color, badge_text = "GREEN", "#166534", "✅ NORMAL RISK (เฝ้าระวัง)"      
-            st.markdown(f'<div style="background-color: {badge_color}10; color: {badge_color}; border: 1px solid {badge_color}50; padding: 12px; border-radius: 8px; font-weight: bold; text-align: center;">{badge_text}: คะแนนรวม {score}</div>', unsafe_allow_html=True)
+                badge_color, badge_text = "#2D5A27", "✅ NORMAL RISK (เฝ้าระวัง)"
 
+            st.markdown(f'''
+            <div style="background: white; border-radius: 16px; padding: 20px; border: 1px solid #eee; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <span style="color: {badge_color}; font-size: 18px; font-weight: 800; letter-spacing: 1px;">{badge_text}</span>
+                <div style="font-size: 13px; color: #666; margin-top: 5px;">คะแนนประเมินรวม: <span style="font-weight: 700; color: #000;">{score} / 25</span></div>
+            </div>
+            ''', unsafe_allow_html=True)
+
+            # Human Approval
             st.markdown("<br><h5 style='color: #005B31;'><i class='fa-solid fa-pen-to-square'></i> 4. ทบทวนและบันทึก (Human Approval)</h5>", unsafe_allow_html=True)
             final_evidence = st.text_area("✍️ หลักฐานสนับสนุน:", value=f"AI วิเคราะห์พบ Gap ของหลักฐาน {evidence_count} รายการ", height=70)
             final_plan = st.text_area("✍️ แผนการจัดการความเสี่ยง:", value=ai_plan_suggest, height=120)
 
             if st.button("💾 อนุมัติและบันทึกประเด็นนี้"):
                 if 'sheet' in globals() and sheet:
-                    current_now = datetime.now().strftime("%Y-%m-%d")
-                    db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Normal")
+                    current_now = now if 'now' in globals() else datetime.now().strftime("%Y-%m-%d")
+                    db_risk_level = "Critical" if (score >= 16 or sev_max == 5) else ("Significant" if score >= 8 else "Normal")
                     new_row = [current_now, audit_cycle, auditor_name, "N/A", "Tool 5", "AI-Analysis", scope_text, "N/A", "N/A", save_issue, f"Evid: {final_evidence} | Plan: {final_plan}", sev_max, likelihood, score, db_risk_level]
                     with st.spinner("บันทึกข้อมูล..."):
                         sheet.append_row(new_row)
