@@ -462,9 +462,6 @@ elif choice.startswith("Tool 4"):
                 st.success("✅ บันทึกการสังเกตการณ์ (ฉบับเต็ม) สำเร็จ")
 
 # ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
-# ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
-# ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
-# ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
 elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -635,12 +632,13 @@ elif choice.startswith("Tool 5"):
         kb_clause = "-"
         kb_desc = "ดึงข้อมูลจาก Knowledge Base อัตโนมัติ"
         
-        for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
-            if keyword in selected_issue:
-                kb_name = knowledge["name"]
-                kb_clause = knowledge["clause"]
-                kb_desc = knowledge["desc"]
-                break
+        if 'LAW_KNOWLEDGE_BASE' in globals():
+            for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
+                if keyword in selected_issue:
+                    kb_name = knowledge["name"]
+                    kb_clause = knowledge["clause"]
+                    kb_desc = knowledge["desc"]
+                    break
 
         # ประเมิน Matrix
         st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
@@ -656,6 +654,41 @@ elif choice.startswith("Tool 5"):
         sev_max = max(scale, scope, remedy)
         likelihood = st.slider("📌 Likelihood (โอกาสเกิด)", 1, 5, ai_likelihood_suggest)
         score = sev_max * likelihood
+
+        # ========================================================
+        # --- เพิ่ม HTML RISK HEAT MAP ตามรูปภาพของคุณตรงนี้ ---
+        # ========================================================
+        # กำหนดชุดสีไล่เฉด 5x5 ให้ตรงตามรูป (Sev แกนตั้ง 5->1, Lik แกนนอน 1->5)
+        matrix_colors = {
+            5: ["#009A71", "#F9A00A", "#D97706", "#DE282A", "#9A2121"],
+            4: ["#3DDC97", "#FFE142", "#F9A00A", "#DE282A", "#DE282A"],
+            3: ["#3DDC97", "#009A71", "#FFE142", "#F9A00A", "#F05050"],
+            2: ["#A6F0D0", "#3DDC97", "#009A71", "#FFE142", "#F47E7E"],
+            1: ["#A6F0D0", "#A6F0D0", "#3DDC97", "#3DDC97", "#FAADAD"]
+        }
+        
+        html_map = '''<div style="width: 100%; max-width: 800px; margin: 30px auto; font-family: 'Sarabun', sans-serif;">'''
+        html_map += '''<div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; background: #f4f7f6; padding: 10px; border-radius: 8px; border: 1px solid #eaeaea;">'''
+        
+        for s in range(5, 0, -1):
+            for l in range(1, 6):
+                bg_color = matrix_colors[s][l-1]
+                is_active = (s == sev_max and l == likelihood)
+                
+                if is_active:
+                    # ช่องที่เลือกจะแสดงเป็นหมุด (📍) พร้อมกรอบสีดำชัดเจน
+                    html_map += f'<div style="background-color: {bg_color}; aspect-ratio: 3.5/1; border-radius: 6px; box-shadow: inset 0 0 0 3px rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; transition: 0.3s;"><span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">📍</span></div>'
+                else:
+                    html_map += f'<div style="background-color: {bg_color}; aspect-ratio: 3.5/1; border-radius: 6px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);"></div>'
+                    
+        html_map += '''</div>'''
+        html_map += '''<div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 13px; font-weight: bold; color: #555;">'''
+        html_map += '''<span>&lt; ความเป็นไปได้ที่จะเกิด (Likelihood)</span>'''
+        html_map += '''<span>ระดับความร้ายแรงของผลกระทบ (Severity) &gt;</span>'''
+        html_map += '''</div></div>'''
+        
+        st.markdown(html_map, unsafe_allow_html=True)
+        # ========================================================
 
         # ตรวจสอบ Salient Risk
         if score >= 16 or sev_max == 5:
@@ -676,15 +709,24 @@ elif choice.startswith("Tool 5"):
         final_plan = st.text_area("✍️ แผนการจัดการความเสี่ยง:", value=ai_plan_suggest, height=120)
 
         if st.button("💾 อนุมัติและบันทึกประเด็นนี้"):
-            if sheet:
+            if 'sheet' in globals() and sheet:
                 db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Normal")
                 detail = f"Evidence: {final_evidence} | Plan: {final_plan} | Standard: {kb_name}"
-                new_row = [now, audit_cycle, auditor_name, "N/A", "Tool 5", "AI-Analysis", scope_text, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
+                
+                # ตรวจสอบตัวแปรที่ใช้บันทึก (อิงจากโครงสร้างเดิม)
+                current_now = now if 'now' in globals() else datetime.now().strftime("%Y-%m-%d")
+                current_audit_cycle = audit_cycle if 'audit_cycle' in globals() else "N/A"
+                current_auditor_name = auditor_name if 'auditor_name' in globals() else "N/A"
+                
+                new_row = [current_now, current_audit_cycle, current_auditor_name, "N/A", "Tool 5", "AI-Analysis", scope_text, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
                 
                 with st.spinner("บันทึกข้อมูล..."):
                     sheet.append_row(new_row)
                     st.success(f"✅ บันทึกประเด็น '{save_issue}' เรียบร้อยแล้ว")
                     # อัปเดต State เพื่อให้ Tool 7 เห็น
+                    if "approved_issues" not in st.session_state: st.session_state.approved_issues = []
+                    if "saved_plans_dict" not in st.session_state: st.session_state.saved_plans_dict = {}
+                    
                     st.session_state.approved_issues.append(save_issue)
                     st.session_state.saved_plans_dict[save_issue] = {'plan': final_plan, 'sev': sev_max, 'lik': likelihood}
 
