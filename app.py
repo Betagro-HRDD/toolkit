@@ -412,123 +412,119 @@ elif choice.startswith("Tool 4"):
 # ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
 elif choice == "Tool 5 (Matrix)":
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ตารางประเมินนัยสำคัญของความเสี่ยง (Salient Risk Scoring Matrix)</h3>", unsafe_allow_html=True)
     
-    # --- ส่วนการกรองข้อมูล (Filter Section) ---
-    st.markdown("<div class='filter-box'><h5 style='color:#D97706; margin-top:0;'><i class='fa-solid fa-filter'></i> กำหนดหน่วยการวิเคราะห์ (Unit of Analysis)</h5></div>", unsafe_allow_html=True)
+    # --- 1. กรองข้อมูล (เหมือนโครงสร้าง Tool อื่นๆ ของคุณ) ---
+    st.markdown("<div class='filter-box'><h5 style='color:#D97706; margin-top:0;'>1. ระบุหน่วยงานหรือกลุ่มเป้าหมายที่ต้องการประเมิน</h5></div>", unsafe_allow_html=True)
     
-    filter_mode = st.radio("ระดับการวิเคราะห์:", ["ระดับองค์กรภาพรวม (Corporate Level / ทุกกลุ่ม)", "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)"], horizontal=True)
-    custom_filter_text = ""
-    if filter_mode == "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)":
-        custom_filter_text = st.selectbox("เลือกกลุ่มเป้าหมาย:", ["ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "ลูกค้า"])
-
-    # --- การดึงข้อมูลจากฐานข้อมูลจริง (Data Preparation) ---
-    raw_data_only_df = pd.DataFrame()
+    # ดึงรายชื่อกลุ่มเป้าหมายที่มีอยู่จริงในฐานข้อมูลมาให้เลือก
+    available_groups = ["ภาพรวมองค์กร"]
     if not df_real.empty:
-        # กรองเฉพาะ Tool 1-4 เพื่อมาวิเคราะห์ใน Tool 5
-        raw_data_only_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
-        if custom_filter_text:
-            raw_data_only_df = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains(custom_filter_text, na=False)]
+        groups_in_db = df_real['กลุ่มเป้าหมาย'].dropna().unique().tolist()
+        available_groups.extend(groups_in_db)
     
-    data_count = len(raw_data_only_df)
-    
-    # --- ปุ่มกระตุ้นการวิเคราะห์ (Trigger) ---
-    # ใช้ Session State เพื่อล็อกหน้าจอให้คงอยู่หลังจากกดปุ่ม
-    if st.button(f"✨ สกัดประเด็นความเสี่ยงจากฐานข้อมูล ({data_count} รายการ)"):
-        st.session_state.tool5_scanned = True
+    target_focus = st.selectbox("เลือกกลุ่มเป้าหมายที่ต้องการวิเคราะห์ความเสี่ยง:", available_groups)
 
-    # --- ส่วนการแสดงผลผลลัพธ์ (Result Section) ---
-    if st.session_state.get("tool5_scanned", False):
-        # ดึงประเด็นหลักที่พบจริงใน Sheet
-        real_issues = []
-        if not raw_data_only_df.empty and 'ประเด็นหลัก' in raw_data_only_df.columns:
-            real_issues = [i for i in raw_data_only_df['ประเด็นหลัก'].unique().tolist() if str(i).strip() not in ["", "nan"]]
+    # --- 2. การดึงประเด็น (Issue Selection) ---
+    # กรองข้อมูลจาก Tool 1-4 เพื่อหาประเด็นมาประเมิน
+    issues_to_evaluate = []
+    if not df_real.empty:
+        relevant_data = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
+        if target_focus != "ภาพรวมองค์กร":
+            relevant_data = relevant_data[relevant_data['กลุ่มเป้าหมาย'] == target_focus]
         
-        if not real_issues:
-            st.warning("⚠️ ไม่พบประเด็นความเสี่ยงในฐานข้อมูลสำหรับกลุ่มที่เลือก")
-        else:
-            st.markdown("<h5 style='color: #005B31; margin-top: 20px;'><i class='fa-solid fa-wand-magic-sparkles'></i> 1. เลือกประเด็นที่ AI ตรวจพบเพื่อประเมินความเสี่ยง</h5>", unsafe_allow_html=True)
+        issues_to_evaluate = relevant_data['ประเด็นหลัก'].dropna().unique().tolist()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("##### 2. เลือกประเด็นความเสี่ยงเพื่อประเมินระดับนัยสำคัญ")
+    
+    if not issues_to_evaluate:
+        st.info("💡 ยังไม่มีประเด็นความเสี่ยงที่บันทึกจาก Tool 1-4 สำหรับกลุ่มนี้")
+        selected_issue = st.text_input("ระบุประเด็นความเสี่ยงด้วยตนเอง:")
+    else:
+        selected_issue = st.selectbox("ประเด็นความเสี่ยงที่พบในระบบ:", ["-- โปรดเลือกประเด็น --"] + issues_to_evaluate)
+
+    # เช็คว่ามีการเลือกประเด็นแล้วหรือยัง
+    if (isinstance(selected_issue, str) and selected_issue != "-- โปรดเลือกประเด็น --" and selected_issue != ""):
+        
+        st.markdown("<hr>", unsafe_allow_html=True)
+        
+        # --- 3. การประเมิน Severity (Scale, Scope, Remediability) ---
+        st.subheader("3. การประเมินความร้ายแรง (Severity)")
+        st.info("📌 หลักการความร้ายแรงนำ (Severity-led Rule): ใช้ค่าที่สูงที่สุดระหว่าง Scale, Scope และ Remediability")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            s_scale = st.selectslider("ขนาด (Scale): ความหนักหน่วง", options=[1, 2, 3, 4, 5], value=3)
+        with col2:
+            s_scope = st.selectslider("ขอบเขต (Scope): จำนวนผู้ได้รับผลกระทบ", options=[1, 2, 3, 4, 5], value=3)
+        with col3:
+            s_remedy = st.selectslider("การเยียวยา (Remediability): ความยากในการฟื้นฟู", options=[1, 2, 3, 4, 5], value=3)
             
-            # Dropdown สำหรับเลือกประเด็น
-            selected_issue = st.selectbox("รายการความเสี่ยงที่พบ (Process Issue):", ["-- โปรดเลือกประเด็น --"] + real_issues)
+        # คำนวณความร้ายแรงสุดท้าย (ค่าสูงสุด)
+        severity_final = max(s_scale, s_scope, s_remedy)
+        st.markdown(f"<div style='background-color:#f8f9fa; padding:10px; border-left:5px solid #005B31;'><strong>ผลลัพธ์ความร้ายแรง (Final Severity): {severity_final}</strong></div>", unsafe_allow_html=True)
 
-            if selected_issue != "-- โปรดเลือกประเด็น --":
-                # --- AI Triangulation Logic ---
-                subset = raw_data_only_df[raw_data_only_df['ประเด็นหลัก'] == selected_issue]
-                
-                # แยกข้อมูลแบบสามเส้า (Triangulation)
-                policy_side = subset[subset['กลุ่มเป้าหมาย'].str.contains("ผู้บริหาร|คู่ค้า", na=False)]
-                worker_side = subset[~subset['กลุ่มเป้าหมาย'].str.contains("ผู้บริหาร|คู่ค้า", na=False)]
-                
-                # แสดงผลการฟันธงของ AI
-                if not policy_side.empty and not worker_side.empty:
-                    st.error("⚠️ **AI ฟันธง: พบ Implementation Gap (ข้อมูลขัดแย้งกัน)**\n\nฝ่ายบริหารระบุว่ามีนโยบาย แต่ภาคสนามพบการปฏิบัติที่ขัดแย้ง ระบบยกระดับความรุนแรงเป็น 'วิกฤต'")
-                    ai_sev = 5
-                elif policy_side.empty and not worker_side.empty:
-                    st.warning("⚠️ **AI ฟันธง: Operational Risk**\n\nตรวจพบปัญหาจากหน้างานโดยไม่มีนโยบายรองรับชัดเจน")
-                    ai_sev = 3
-                else:
-                    st.success("✅ **AI ฟันธง: Managed Risk**\n\nประเด็นนี้อยู่ภายใต้การบริหารจัดการตามนโยบาย")
-                    ai_sev = 1
+        # --- 4. การประเมิน Likelihood ---
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("4. การประเมินโอกาสเกิด (Likelihood)")
+        likelihood = st.slider("โอกาสในการเกิดความเสี่ยง (Likelihood):", 1, 5, 3)
 
-                # --- 3. Risk Matrix (Severity-led Rule) ---
-                st.markdown("<hr>", unsafe_allow_html=True)
-                st.subheader("2. ประเมินความรุนแรง (Risk Matrix)")
-                
-                col1, col2, col3 = st.columns(3)
-                with col1: s_scale = st.slider("Scale (ความหนักหน่วง)", 1, 5, ai_sev)
-                with col2: s_scope = st.slider("Scope (ขอบเขต)", 1, 5, ai_sev)
-                with col3: s_remedy = st.slider("Remediability (การเยียวยา)", 1, 5, ai_sev)
-                
-                # กฎ "ความร้ายแรงนำ" (Severity-led): ใช้ค่าที่สูงที่สุด
-                severity_final = max(s_scale, s_scope, s_remedy)
-                likelihood = st.slider("Likelihood (โอกาสเกิด)", 1, 5, 3)
-                risk_score = severity_final * likelihood
-                
-                # แสดงสถานะความเสี่ยง (Salient Risk Check)
-                if risk_score >= 15 or severity_final == 5:
-                    st.error(f"🚨 **SALIENT RISK (ระดับวิกฤต): คะแนน {risk_score}**")
-                    risk_level = "Critical"
-                elif risk_score >= 8:
-                    st.warning(f"⚠️ **SIGNIFICANT RISK (ระดับสูง): คะแนน {risk_score}**")
-                    risk_level = "Significant"
-                else:
-                    st.success(f"✅ **MODERATE RISK: คะแนน {risk_score}**")
-                    risk_level = "Moderate"
+        # --- 5. คำนวณ Risk Score & Level ---
+        risk_score = severity_final * likelihood
+        
+        risk_level = ""
+        risk_color = ""
+        if risk_score >= 15 or severity_final == 5:
+            risk_level = "Critical (ระดับวิกฤต / Salient Risk)"
+            risk_color = "#ef4444" # Red
+        elif risk_score >= 8:
+            risk_level = "Significant (ระดับสูง)"
+            risk_color = "#f59e0b" # Orange
+        else:
+            risk_level = "Moderate (ระดับปานกลาง)"
+            risk_color = "#10b981" # Green
 
-                # --- 4. Mitigation Plan ---
-                st.markdown("<hr>", unsafe_allow_html=True)
-                st.subheader("3. แผนบริหารจัดการ (Mitigation Plan)")
-                
-                final_evidence = st.text_area("หลักฐานเชิงประจักษ์ (Evidence):", value=f"วิเคราะห์ข้อมูลจากกลุ่ม {custom_filter_text if custom_filter_text else 'ทั้งหมด'} จำนวน {len(subset)} รายการ")
-                final_plan = st.text_area("แผนการจัดการ (Action Plan):", placeholder="ระบุแผนการป้องกันและการเยียวยา...")
+        st.markdown(f"""
+            <div style='text-align:center; padding:20px; border-radius:10px; background-color:{risk_color}; color:white; margin:20px 0;'>
+                <h2 style='margin:0;'>คะแนนความเสี่ยง: {risk_score}</h2>
+                <h3 style='margin:0;'>สถานะ: {risk_level}</h3>
+            </div>
+        """, unsafe_allow_html=True)
 
-                if st.button("💾 อนุมัติและบันทึกประเด็นยุทธศาสตร์"):
-                    if sheet:
-                        try:
-                            # บันทึกข้อมูลลง Google Sheet ตามโครงสร้างเดิม
-                            detail_full = f"Evidence: {final_evidence} | Plan: {final_plan}"
-                            new_row = [
-                                datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                                audit_cycle, 
-                                auditor_name, 
-                                "N/A", 
-                                "Tool 5", 
-                                "Issue-Based", 
-                                custom_filter_text if custom_filter_text else "ภาพรวม", 
-                                "N/A", "N/A", 
-                                selected_issue, 
-                                detail_full, 
-                                severity_final, 
-                                likelihood, 
-                                risk_score, 
-                                risk_level
-                            ]
-                            sheet.append_row(new_row)
-                            st.balloons()
-                            st.success(f"บันทึกประเด็น '{selected_issue}' เรียบร้อยแล้ว")
-                        except Exception as e:
-                            st.error(f"เกิดข้อผิดพลาดในการบันทึก: {e}")
+        # --- 6. แผนการจัดการและบันทึกข้อมูล ---
+        st.subheader("5. แผนการตอบสนองและหลักฐานเชิงประจักษ์")
+        evidence = st.text_area("หลักฐานหรือข้อมูลยืนยัน (Evidence-based Grounding):", placeholder="ระบุเหตุผลที่ให้คะแนนความร้ายแรงนี้...")
+        action_plan = st.text_area("มาตรการป้องกันและเยียวยา (Mitigation & Action Plan):", placeholder="ระบุแผนการจัดการในยุทธศาสตร์...")
+
+        if st.button("💾 บันทึกผลการประเมินนัยสำคัญ (Save Risk Matrix)"):
+            if sheet:
+                try:
+                    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    detail_text = f"Severity[Scale:{s_scale}, Scope:{s_scope}, Remedy:{s_remedy}] | Evidence: {evidence} | Action: {action_plan}"
+                    
+                    # บันทึกตามโครงสร้างไฟล์เดิมของคุณ (15 Columns)
+                    new_row = [
+                        now,                # วันที่
+                        audit_cycle,        # รอบ
+                        auditor_name,       # ผู้ประเมิน
+                        location,           # สถานที่
+                        "Tool 5",           # เครื่องมือ
+                        "Risk Assessment",   # หมวดหมู่
+                        target_focus,       # กลุ่มเป้าหมาย
+                        "N/A", "N/A",       # คอลัมน์ว่างตามโครงสร้าง
+                        selected_issue,     # ประเด็นหลัก
+                        detail_text,        # รายละเอียด
+                        severity_final,     # Severity
+                        likelihood,         # Likelihood
+                        risk_score,         # คะแนน
+                        risk_level          # สถานะ
+                    ]
+                    sheet.append_row(new_row)
+                    st.balloons()
+                    st.success(f"บันทึกข้อมูลความเสี่ยง '{selected_issue}' เรียบร้อยแล้ว!")
+                except Exception as e:
+                    st.error(f"ไม่สามารถบันทึกได้: {e}")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
