@@ -10,6 +10,58 @@ import altair as alt
 # ==========================================
 st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
+# ปรับปรุง CSS เพื่อแก้ปัญหา "ตัวอักษรขยะทับลิงก์" และจัดระเบียบ UI
+st.markdown("""
+    <style>
+    /* แก้ไขปัญหาการทับซ้อนของ Layer */
+    .main {
+        background-color: #F8FAFC;
+    }
+    
+    /* ปรับแต่งปุ่มและลิงก์ข้อมูลดิบให้เด่นชัดและไม่ถูกทับ */
+    .raw-data-link {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: #E2E8F0;
+        color: #475569 !important;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 15px;
+        border: 1px solid #CBD5E1;
+        transition: all 0.3s;
+    }
+    .raw-data-link:hover {
+        background-color: #CBD5E1;
+        transform: translateY(-1px);
+    }
+
+    /* สไตล์สำหรับส่วนหัว (Header) */
+    .header-container {
+        background: linear-gradient(135deg, #005B31 0%, #009245 100%);
+        padding: 1.5rem;
+        border-radius: 12px;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* จัดระเบียบกล่องแบบฟอร์ม */
+    .standalone-form {
+        background: white;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        border: 1px solid #E2E8F0;
+        margin-bottom: 2rem;
+    }
+
+    /* ซ่อนส่วนประกอบ Streamlit ที่อาจโผล่มาทับ (หากมี) */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+
 # ==========================================
 # --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบาย) ---
 # ==========================================
