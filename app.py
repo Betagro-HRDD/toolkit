@@ -10,9 +10,6 @@ import altair as alt
 # ==========================================
 st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
-# ... existing code ...
-st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
-
 # --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix) ---
 st.markdown("""
 <style>
