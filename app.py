@@ -159,7 +159,11 @@ st.markdown("""
     .radar-core { width: 24px; height: 24px; background: #DC2626; border-radius: 50%; box-shadow: 0 0 10px #DC2626; }
     @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
 
-    .filter-box { background: #FDFDFD; border: 1px dashed #D3A129; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+    .testimony-box { background-color: #FFFFFF; border-left: 4px solid #3B82F6; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    /* 💡 FIX: ซ่อนไอคอน expand_more ที่ทำให้ปุ่มมีตัวอักษรขยะซ้อนทับ */
+    [data-testid="stPopover"] button span.material-symbols-rounded { display: none !important; }
+    [data-testid="stPopover"] button svg { display: none !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -454,7 +458,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์ (ฉบับเต็ม) สำเร็จ")
 
-# ----------------- TOOL 5 (THE ULTIMATE FIX) -----------------
+# ----------------- TOOL 5 (FOCUS ON FIXING RUBRIC & CITATION) -----------------
 elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -529,9 +533,8 @@ elif choice.startswith("Tool 5"):
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 THE BUG-FREE EVIDENCE CITATION
+    # 💡 THE BUG-FREE EVIDENCE CITATION (แก้ตัวหนังสือซ้อนทับ และเรื่อง Sentiment)
     evidence_count = 0
-    sentiment_note = ""
     
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
@@ -539,15 +542,16 @@ elif choice.startswith("Tool 5"):
         if subset.empty or subset['รายละเอียด/คำให้การ'].str.strip().eq("").all():
             st.info("ไม่มีคำให้การเจาะจง (ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)")
         else:
-            # ตรวจจับถ้าเป็นข้อมูลผู้บริหาร (เพื่ออธิบายว่าทำไมถึงถูกเลือกมาวิเคราะห์)
+            # 💡 แก้ไขลอจิก AI Sentiment: ตรวจจับว่ามีคำพูดแง่บวกของผู้บริหารเพื่ออธิบายเหตุผล
             is_exec_data = subset['กลุ่มเป้าหมาย'].str.contains("ผู้บริหาร").any()
-            if is_exec_data:
-                sentiment_note = """
-                <div style='background-color: #FFFBEB; color: #92400E; padding: 10px 15px; border-radius: 6px; border-left: 4px solid #F59E0B; margin-bottom: 15px; font-size: 14px;'>
-                    <b>🧠 AI Sentiment & Gap Analysis:</b> ข้อมูลที่ตรวจพบจากกลุ่มผู้บริหารมีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) ระบบจึงทำการยกประเด็นนี้ขึ้นมาเพื่อตั้งเป็น <b>'สมมติฐานหลัก (Baseline)'</b> สำหรับให้ Auditor นำไปใช้สืบสวนและตีกรอบเทียบเคียง (Cross-check) กับการปฏิบัติจริงในพื้นที่ว่ามีช่องโหว่ (Implementation Gap) หรือไม่
+            if is_exec_data and filter_mode != "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)":
+                st.markdown("""
+                <div style='background-color: #FFFBEB; color: #92400E; padding: 12px 18px; border-radius: 6px; border-left: 5px solid #F59E0B; margin-bottom: 20px; font-size: 14px;'>
+                    <b>🧠 AI Sentiment & Gap Analysis:</b> ข้อมูลที่ตรวจพบจากกลุ่มผู้บริหารมีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) 
+                    ระบบจึงดึงข้อมูลนี้มาแสดงเพื่อใช้ตั้งเป็น <b>'สมมติฐานหลัก (Baseline)'</b> สำหรับให้ผู้ตรวจสอบ (Auditor) นำไปประเมินความเสี่ยงและเทียบเคียงข้อมูล 
+                    (Cross-check) กับการปฏิบัติจริงหน้างานว่ามี <b>ช่องโหว่ทางนโยบาย (Implementation Gap)</b> หรือไม่
                 </div>
-                """
-                st.markdown(sentiment_note, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
             
             with st.container():
                 for idx, row in subset.head(5).iterrows(): 
@@ -557,7 +561,7 @@ elif choice.startswith("Tool 5"):
                         full_text = row['รายละเอียด/คำให้การ']
                         short_text = full_text if len(full_text) <= 60 else full_text[:60] + "..."
                         
-                        # แยกฝั่งซ้ายข้อความ ฝั่งขวาปุ่ม Popover แบบ Native 100% ไม่มี HTML ขยะปน
+                        # แยกฝั่งซ้ายข้อความ ฝั่งขวาปุ่ม Popover แบบคลีนๆ ไม่ซ้อนทับ
                         c_txt, c_btn = st.columns([8, 2])
                         with c_txt:
                             st.markdown(f"<div style='padding: 8px 0; border-left: 3px solid #3B82F6; padding-left: 15px; margin-bottom: 10px; background: white; font-size: 15px;'><b>ID {r_id}:</b> {short_text}</div>", unsafe_allow_html=True)
@@ -569,7 +573,7 @@ elif choice.startswith("Tool 5"):
                                 st.write(f"**👥 กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
                                 st.info(f"**คำให้การฉบับเต็ม:**\n\n{full_text}")
 
-    # 💡 KNOWLEDGE BASE MATCHER (ดึงข้อมูลให้ลึกขึ้น)
+    # 💡 KNOWLEDGE BASE MATCHER (คม ชัด ลึก ตามที่ขอ)
     kb_name = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     kb_clause = "-"
     kb_desc = "ไม่พบรายละเอียดที่เจาะจงในระบบ Knowledge Base"
@@ -591,16 +595,23 @@ elif choice.startswith("Tool 5"):
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
 
-    # 💡 THE STRICT RUBRIC EXPLANATION (โชว์ตารางคะแนนให้เห็นชัดเจน)
-    with st.expander("ℹ️ ดูเกณฑ์การประเมิน (Risk Assessment Rubric)"):
-        st.markdown("""
-        **เกณฑ์การประเมินคะแนน (คะแนน = Severity x Likelihood):**
-        * 🔴 **วิกฤต (Critical):** คะแนน **16 - 25** หรือ มีค่า Severity = 5 (Zero Tolerance) ต้องระงับการทำงานทันที
-        * 🟡 **สูง (Significant):** คะแนน **8 - 15** ต้องทำแผนป้องกันเชิงรุก และแก้ไขภายใน 3 เดือน
-        * 🟢 **ปกติ/เฝ้าระวัง (Moderate/Minor):** คะแนน **1 - 7** ติดตามผลตามวงรอบปกติ
-        """)
+    # 💡 THE STRICT RUBRIC EXPLANATION (โชว์ตารางคะแนนให้เห็นชัดเจนตามไฟล์ Docx)
+    st.markdown("""
+    <div style='background-color: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;'>
+        <strong style='color: #0F172A; font-size: 14px;'>ℹ️ ตารางเกณฑ์การประเมินนัยสำคัญ (Risk Assessment Rubric):</strong>
+        <ul style='font-size: 13px; color: #475569; margin-top: 10px;'>
+            <li>🔴 <b>วิกฤต (Critical):</b> คะแนน <b>16 - 25</b> (ต้องระงับการทำงานทันที)</li>
+            <li>🟡 <b>สูง (Significant):</b> คะแนน <b>8 - 15</b> (ทำแผนป้องกันเชิงรุก แก้ไขภายใน 3 เดือน)</li>
+            <li>🟢 <b>ปกติ/เฝ้าระวัง (Moderate/Minor):</b> คะแนน <b>1 - 7</b> (ติดตามผลตามวงรอบปกติ)</li>
+        </ul>
+        <div style='font-size: 13px; color: #B91C1C; margin-top: 5px; font-weight: bold;'>
+            * กฎความร้ายแรงนำ (Severity-led Rule): หากความรุนแรง (Severity) มีระดับ 5 (Zero Tolerance) จะถือเป็นระดับ 'วิกฤต' ทันที แม้คะแนนรวมจะไม่ถึง 16 ก็ตาม
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    def_scale, def_sco, def_rem, def_lik = 3, 3, 3, 3
+    # ปรับค่า Default ให้เป็น 1 เพื่อไม่ให้เด้งเป็นวิกฤตเองถ้าผู้ใช้ไม่ตั้งใจเลือก
+    def_scale, def_sco, def_rem, def_lik = 1, 1, 1, 1
     if "แรงงาน" in selected_issue or "พาสปอร์ต" in selected_issue or "เด็ก" in selected_issue: def_scale = 5
     if "ชุมชน" in selected_issue: def_sco = 5
     
@@ -613,18 +624,22 @@ elif choice.startswith("Tool 5"):
     likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, def_lik)
     score = sev_max * likelihood
 
-    # 💡 STRICT LOGIC FOR RISK LEVELS (แก้บั๊ก 15 = วิกฤต แล้ว)
-    if score >= 16 or sev_max == 5:
+    # 💡 STRICT LOGIC FOR RISK LEVELS (แก้บั๊ก 15 = วิกฤต เรียบร้อย)
+    if score >= 16:
         risk_zone = "RED"
-        badge_html = '<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): ประเด็นนี้มีความเสี่ยงสูงมาก (AI กำลังร่างแผนกลยุทธ์และมาตรการเยียวยาเร่งด่วน)</div>'
+        badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} (อยู่ในช่วง 16-25)</div>'
+        ai_plan = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงทันที (Zero Tolerance Policy)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้า\n\nRemediation Plan:\n- ชดเชยและเยียวยาผู้ได้รับผลกระทบอย่างเป็นธรรมและโปร่งใสภายใน 24 ชม."
+    elif sev_max == 5:
+        risk_zone = "RED"
+        badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} แต่ถูกปรับระดับเป็นวิกฤตตามกฎ "ความร้ายแรงนำ" เนื่องจาก Severity = 5</div>'
         ai_plan = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงทันที (Zero Tolerance Policy)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้า\n\nRemediation Plan:\n- ชดเชยและเยียวยาผู้ได้รับผลกระทบอย่างเป็นธรรมและโปร่งใสภายใน 24 ชม."
     elif score >= 8 and score <= 15:
         risk_zone = "YELLOW"
-        badge_html = '<div class="salient-badge" style="background-color: #FFFBEB; color: #D97706; border-color: #FDE68A;">⚠️ SIGNIFICANT RISK (ระดับสูง): ประเด็นความเสี่ยงปานกลาง/สูง (AI กำลังร่างแผนป้องกันเชิงรุก)</div>'
+        badge_html = f'<div class="salient-badge" style="background-color: #FFFBEB; color: #D97706; border-color: #FDE68A;">⚠️ SIGNIFICANT RISK (ระดับสูง): คะแนนประเมิน {score} (อยู่ในช่วง 8-15)</div>'
         ai_plan = "Preventive Action (แผนป้องกันเชิงรุก):\n- จัดอบรมทบทวนขั้นตอนการทำงาน และสื่อสารนโยบายให้ผู้เกี่ยวข้องรับทราบ\n- ติดตามผลการปรับปรุงประสิทธิภาพอย่างใกล้ชิดภายใน 3 เดือน\n\nRemediation Plan:\n- เปิดเวทีรับฟังปัญหาและเยียวยาตามสัดส่วนผลกระทบ"
     else:
         risk_zone = "GREEN"
-        badge_html = '<div class="salient-badge" style="background-color: #F0FDF4; color: #166534; border-color: #BBF7D0;">✅ MODERATE/MINOR RISK (ระดับเฝ้าระวัง): ความเสี่ยงต่ำ (AI กำลังร่างแผนคงสภาพ)</div>'
+        badge_html = f'<div class="salient-badge" style="background-color: #F0FDF4; color: #166534; border-color: #BBF7D0;">✅ MODERATE/MINOR RISK (ระดับเฝ้าระวัง): คะแนนประเมิน {score} (อยู่ในช่วง 1-7)</div>'
         ai_plan = "Maintenance Plan (แผนคงสภาพ):\n- ดำเนินการตรวจสอบและติดตามผลตามวงรอบปกติอย่างน้อยปีละ 1 ครั้ง"
     
     st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
@@ -659,7 +674,7 @@ elif choice.startswith("Tool 5"):
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 2. NATIVE POPOVER FOR DETAILED LAW CITATION
+    # 💡 2. NATIVE POPOVER FOR DETAILED LAW CITATION (ครบถ้วน ชื่อ มาตรา คำอธิบาย ลิงก์)
     c_std1, c_std2 = st.columns([8, 2])
     with c_std1:
         st.markdown(f"<div style='background: #FFFFFF; padding: 10px 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {kb_name} ({kb_clause})</div>", unsafe_allow_html=True)
@@ -688,7 +703,6 @@ elif choice.startswith("Tool 5"):
 
     if st.button(button_label):
         if sheet:
-            # ใช้ Logic การประเมินที่เข้มงวด
             db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Evidence: {final_evidence} | Standard: {final_standard} | Plan: {final_plan}"
             macro_group = f"ประเมินเจาะจงกลุ่ม ({custom_filter_text})" if custom_filter_text else "ประเมินระดับองค์กร (Corporate Level)"
