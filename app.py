@@ -413,7 +413,7 @@ elif choice.startswith("Tool 4"):
 elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (Salient HR Risks Scoring Matrix:AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (Salient HR Risks Scoring Matrix: Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
     
     st.markdown("""
     <div class="filter-box">
