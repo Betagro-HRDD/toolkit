@@ -14,51 +14,42 @@ st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢",
 st.markdown("""
 <style>
     /* 1. รีเซ็ต Box Sizing ป้องกัน Padding ดันขอบจอ และตัด Scroll แนวนอนระดับราก */
-    * {
-        box-sizing: border-box !important;
-    }
-    html, body, .stApp, .main, [data-testid="stAppViewContainer"] {
+    html, body, .stApp, .main, .block-container {
         overflow-x: hidden !important;
         max-width: 100vw !important;
-        margin: 0 !important;
     }
     
     /* 2. กฎเฉพาะสำหรับหน้าจอมือถือและแท็บเล็ต */
     @media (max-width: 768px) {
-        /* บังคับตัวห่อหุ้มคอลัมน์หลักให้เรียงจากบนลงล่างแทนซ้ายไปขวา (หักดิบ Streamlit) */
-        [data-testid="stHorizontalBlock"] {
+        /* หักดิบ Streamlit: บังคับแท็กรูปภาพทั่วไปและกล่องรูปภาพของ Streamlit ให้พอดีจอ */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+        }
+        
+        div[data-testid="stImage"], 
+        div[data-testid="stImage"] > div,
+        div[data-testid="stImage"] img {
+            width: 100% !important;
+            max-width: 100vw !important;
+            object-fit: contain !important;
+        }
+
+        /* บังคับตัวห่อหุ้มคอลัมน์หลักให้เรียงจากบนลงล่างแทนซ้ายไปขวา */
+        div[data-testid="stHorizontalBlock"] {
             flex-direction: column !important;
             width: 100% !important;
-            gap: 0 !important; /* ลดช่องว่างที่อาจดันขอบ */
+            gap: 1rem !important;
         }
 
         /* บังคับคอลัมน์ย่อยทุกอันให้กว้าง 100% เต็มจอ */
-        [data-testid="column"] {
+        div[data-testid="column"] {
             width: 100% !important;
             min-width: 100% !important;
             max-width: 100% !important;
-            flex: none !important;
-            padding-bottom: 20px !important;
-        }
-
-        /* บีบกล่องและรูปภาพทุกชั้นไม่ให้ทะลุจอแบบ 100% */
-        img, 
-        [data-testid="stImage"], 
-        [data-testid="stImage"] > div,
-        [data-testid="stImage"] > img {
-            max-width: 100% !important;
-            width: 100% !important;
-            height: auto !important;
-            object-fit: contain !important;
-        }
-        
-        /* ลดขอบซ้ายขวาของ Container หลัก */
-        .block-container {
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-            width: 100% !important;
-            max-width: 100vw !important;
-            overflow-x: hidden !important;
+            flex: 1 1 100% !important;
+            display: block !important;
+            margin-bottom: 1rem !important;
         }
     }
 </style>
