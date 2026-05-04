@@ -250,7 +250,7 @@ choice = st.selectbox("เลือกฟังก์ชันหรือรา
     "Tool 2: แบบสอบถามหน้างาน (Worker Survey)",
     "Tool 3: สัมภาษณ์เชิงลึก (Evidence-based Grounding)",
     "Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)",
-    "Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)",
+    "Tool 5: ประเมินความเสี่ยง (Salient Human Rights Risks Scoring Matrix: AI-Augmented Triangulation & Sentiment Analysis)",
     "Tool 6: ระบบเตือนภัยล่วงหน้า (Predictive Hotspot Modeling)",
     "Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)"
 ], label_visibility="collapsed")
@@ -409,7 +409,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์ (ฉบับเต็ม) สำเร็จ")
 
-# ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
+# ----------------- TOOL 5 (Salient Human Rights Risks Scoring Matrix: AI-AUGMENTED TRIANGULATION ENGINE) -----------------
 elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
