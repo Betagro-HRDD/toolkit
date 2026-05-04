@@ -11,64 +11,48 @@ import altair as alt
 st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
 
 # ==========================================
-# --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบายปรับปรุงใหม่ คม ชัด ลึก) ---
+# --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบาย) ---
 # ==========================================
 LAW_KNOWLEDGE_BASE = {
     "OT": {
-        "name": "พระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541", 
-        "clause": "มาตรา 24 และ มาตรา 70", 
-        "desc": "ห้ามมิให้นายจ้างให้ลูกจ้างทำงานล่วงเวลาเกินกว่าที่กฎหมายกำหนด (ไม่เกิน 36 ชั่วโมง/สัปดาห์) และนายจ้างต้องจ่ายค่าทำงานล่วงเวลาให้ถูกต้อง ไม่น้อยกว่าเดือนละ 1 ครั้ง", 
-        "doc": "Thai_Labor_Law_2541.pdf",
-        "link": "https://www.mol.go.th/law"
+        "name": "พระราชบัญญัติคุ้มครองแรงงาน พ.ศ. 2541", "clause": "มาตรา 24 และ มาตรา 70", 
+        "desc": "ห้ามมิให้นายจ้างให้ลูกจ้างทำงานล่วงเวลาเกินกว่าที่กฎหมายกำหนด (ไม่เกิน 36 ชั่วโมง/สัปดาห์) และนายจ้างต้องจ่ายค่าทำงานล่วงเวลาให้ถูกต้อง", 
+        "doc": "Thai_Labor_Law_2541.pdf", "link": "https://www.mol.go.th/law"
     },
     "ค่าจ้าง": {
-        "name": "ILO Convention No. 95 (Protection of Wages Convention, 1949)", 
-        "clause": "Article 12", 
-        "desc": "ค่าจ้างจะต้องถูกจ่ายอย่างสม่ำเสมอตามระยะเวลาที่กำหนด ห้ามมิให้มีการหักค่าจ้างอย่างไม่เป็นธรรมหรือเพื่อเป็นเครื่องมือในการกักขังแรงงาน", 
-        "doc": "ILO_Conv_95_Full.pdf",
-        "link": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C095"
+        "name": "ILO Convention No. 95 (Protection of Wages)", "clause": "Article 12", 
+        "desc": "ค่าจ้างจะต้องถูกจ่ายอย่างสม่ำเสมอตามระยะเวลาที่กำหนด ห้ามมิให้มีการหักค่าจ้างอย่างไม่เป็นธรรม", 
+        "doc": "ILO_Conv_95_Full.pdf", "link": "https://www.ilo.org/"
+    },
+    "เอกสารประจำตัว": {
+        "name": "ILO Forced Labour Convention, 1930 (No. 29) & Employer Pays Principle", "clause": "มาตรา 2 (นิยามแรงงานบังคับ)", 
+        "desc": "ห้ามมิให้นายจ้างหรือตัวแทนยึดเอกสารประจำตัวแรงงาน (Passport/Work Permit) เพื่อเป็นหลักประกัน", 
+        "doc": "ILO_Conv_29_EPP.pdf", "link": "https://www.ilo.org/"
     },
     "พาสปอร์ต": {
-        "name": "ILO Forced Labour Convention, 1930 (No. 29) & Employer Pays Principle", 
-        "clause": "มาตรา 2 (นิยามแรงงานบังคับ)", 
-        "desc": "ห้ามมิให้นายจ้างหรือตัวแทน (Agency) ยึดเอกสารประจำตัวแรงงาน (Passport/Work Permit) เพื่อเป็นหลักประกัน และนายจ้างต้องรับผิดชอบค่าใช้จ่ายในการสรรหาแรงงานทั้งหมด (Zero Recruitment Fee)", 
-        "doc": "ILO_Conv_29_EPP.pdf",
-        "link": "https://www.ilo.org/global/topics/forced-labour/lang--en/index.htm"
+        "name": "ILO Forced Labour Convention, 1930 (No. 29) & Employer Pays Principle", "clause": "มาตรา 2 (นิยามแรงงานบังคับ)", 
+        "desc": "ห้ามมิให้นายจ้างหรือตัวแทนยึดเอกสารประจำตัวแรงงาน (Passport/Work Permit) เพื่อเป็นหลักประกัน", 
+        "doc": "ILO_Conv_29_EPP.pdf", "link": "https://www.ilo.org/"
+    },
+    "ค่าธรรมเนียม": {
+        "name": "ILO Forced Labour Convention, 1930 (No. 29) & Employer Pays Principle", "clause": "มาตรา 2 (นิยามแรงงานบังคับ)", 
+        "desc": "นายจ้างต้องรับผิดชอบค่าใช้จ่ายในการสรรหาแรงงานทั้งหมด (Zero Recruitment Fee)", 
+        "doc": "ILO_Conv_29_EPP.pdf", "link": "https://www.ilo.org/"
     },
     "ความปลอดภัย": {
-        "name": "ISO 45001:2018 & พ.ร.บ. ความปลอดภัย อาชีวอนามัยฯ พ.ศ. 2554", 
-        "clause": "หมวด 2 มาตรา 16", 
-        "desc": "นายจ้างต้องจัดให้มีอุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE) ที่ได้มาตรฐานให้ลูกจ้างสวมใส่โดยไม่คิดค่าใช้จ่าย และจัดสภาพแวดล้อมให้ปลอดภัย", 
-        "doc": "ISO_45001_OHS.pdf",
-        "link": "https://www.iso.org/iso-45001-occupational-health-and-safety.html"
+        "name": "ISO 45001:2018 & พ.ร.บ. ความปลอดภัยฯ", "clause": "หมวด 2 มาตรา 16", 
+        "desc": "นายจ้างต้องจัดให้มีอุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE) ที่ได้มาตรฐานโดยไม่คิดค่าใช้จ่าย", 
+        "doc": "ISO_45001_OHS.pdf", "link": "https://www.iso.org/"
     },
     "เด็ก": {
-        "name": "ILO Minimum Age Convention, 1973 (No. 138) & Betagro Zero Tolerance", 
-        "clause": "Article 3", 
-        "desc": "ห้ามใช้แรงงานเด็กอายุต่ำกว่า 18 ปี ในงานที่มีลักษณะเป็นอันตรายต่อสุขภาพ ความปลอดภัย และศีลธรรม (Hazardous Work) โดยเด็ดขาด", 
-        "doc": "ILO_Conv_138_ChildLabor.pdf",
-        "link": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C138"
-    },
-    "เลือกปฏิบัติ": {
-        "name": "ILO Discrimination Convention, 1958 (No. 111)", 
-        "clause": "Article 1(a)", 
-        "desc": "ห้ามมิให้มีการเลือกปฏิบัติ แบ่งแยก หรือกีดกันในการจ้างงานและการประกอบอาชีพ ด้วยเหตุแห่งเชื้อชาติ สีผิว เพศ ศาสนา หรือแหล่งกำเนิดทางสังคม", 
-        "doc": "ILO_Conv_111_Discrimination.pdf",
-        "link": "https://www.ilo.org/dyn/normlex/en/f?p=NORMLEXPUB:12100:0::NO::P12100_ILO_CODE:C111"
+        "name": "ILO Minimum Age Convention, 1973 (No. 138)", "clause": "Article 3", 
+        "desc": "ห้ามใช้แรงงานเด็กอายุต่ำกว่า 18 ปี ในงานที่มีลักษณะเป็นอันตราย", 
+        "doc": "ILO_Conv_138_ChildLabor.pdf", "link": "https://www.ilo.org/"
     },
     "ชุมชน": {
-        "name": "พระราชบัญญัติส่งเสริมและรักษาคุณภาพสิ่งแวดล้อมแห่งชาติ พ.ศ. 2535", 
-        "clause": "หมวด 4 การควบคุมมลพิษ", 
-        "desc": "สถานประกอบการต้องมีระบบบำบัดน้ำเสียและระบบควบคุมอากาศเสียที่ได้มาตรฐาน ไม่ก่อให้เกิดผลกระทบต่อสิ่งแวดล้อมและสุขภาพของชุมชนโดยรอบ", 
-        "doc": "Thai_Env_Law_2535.pdf",
-        "link": "https://www.pcd.go.th/laws"
-    },
-    "ร้องเรียน": {
-        "name": "UN Guiding Principles on Business and Human Rights (UNGPs)", 
-        "clause": "Principle 29 & 31", 
-        "desc": "องค์กรต้องจัดให้มีกลไกรับเรื่องร้องเรียนในระดับปฏิบัติการ (Operational-level Grievance Mechanism) ที่เข้าถึงง่าย โปร่งใส และมีนโยบายห้ามตอบโต้ผู้ร้องเรียน (Non-Retaliation)", 
-        "doc": "UNGPs_Framework.pdf",
-        "link": "https://www.ohchr.org/sites/default/files/documents/publications/guidingprinciplesbusinesshr_en.pdf"
+        "name": "พ.ร.บ. ส่งเสริมและรักษาคุณภาพสิ่งแวดล้อมแห่งชาติ", "clause": "หมวด 4 การควบคุมมลพิษ", 
+        "desc": "สถานประกอบการต้องมีระบบบำบัดมลพิษที่ไม่ก่อให้เกิดผลกระทบต่อสิ่งแวดล้อมชุมชน", 
+        "doc": "Thai_Env_Law_2535.pdf", "link": "https://www.pcd.go.th/"
     }
 }
 
@@ -161,7 +145,6 @@ st.markdown("""
 
     .testimony-box { background-color: #FFFFFF; border-left: 4px solid #3B82F6; padding: 15px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     
-    /* 💡 FIX: ซ่อนไอคอน expand_more ที่ทำให้ปุ่มมีตัวอักษรขยะซ้อนทับ */
     [data-testid="stPopover"] button span.material-symbols-rounded { display: none !important; }
     [data-testid="stPopover"] button svg { display: none !important; }
     </style>
@@ -172,13 +155,10 @@ st.markdown("""
 # ==========================================
 if "user_db" not in st.session_state: st.session_state.user_db = {}
 if "current_user" not in st.session_state: st.session_state.current_user = None
-
 WHITELIST = ["admin@betagro.com", "somchai@betagro.com", "auditor1@betagro.com", "auditor2@betagro.com", "investor@betagro.com"]
 
 def check_password():
-    if st.session_state.current_user is not None:
-        return True
-
+    if st.session_state.current_user is not None: return True
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         st.markdown("""
@@ -193,7 +173,6 @@ def check_password():
                 <p style="color: #D3A129; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; font-size: 12px; margin-top: 5px;">Enterprise Single Sign-On</p>
             </div>
         """, unsafe_allow_html=True)
-        
         with st.form("login_form"):
             st.markdown("<h4 style='color: #005B31; text-align: center; margin-bottom: 20px; font-weight: 600;'>🔒 ระบบประเมิน HRDD อัจฉริยะ (Simulation)</h4>", unsafe_allow_html=True)
             email = st.text_input("Corporate Email (อีเมลองค์กร)", placeholder="เช่น admin@betagro.com")
@@ -208,21 +187,18 @@ def check_password():
                                 st.session_state.user_db[email] = new_pwd
                                 st.session_state.current_user = email
                                 st.rerun()
-                            else:
-                                st.error("❌ รหัสผ่านไม่ตรงกัน หรือเว้นว่าง กรุณาลองใหม่")
+                            else: st.error("❌ รหัสผ่านไม่ตรงกัน หรือเว้นว่าง กรุณาลองใหม่")
                     else:
                         pwd = st.text_input("รหัสผ่าน (Password)", type="password", placeholder="Enter Password...")
                         c_btn1, c_btn2 = st.columns(2)
                         with c_btn1: btn_login = st.form_submit_button("LOGIN", use_container_width=True)
                         with c_btn2: btn_forgot = st.form_submit_button("ลืมรหัสผ่าน?", use_container_width=True)
-                        if btn_forgot:
-                            st.success("📩 ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลองค์กรของคุณเรียบร้อยแล้ว")
+                        if btn_forgot: st.success("📩 ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลองค์กรของคุณเรียบร้อยแล้ว")
                         elif btn_login:
                             if pwd == st.session_state.user_db[email]:
                                 st.session_state.current_user = email
                                 st.rerun()
-                            else:
-                                st.error("❌ รหัสผ่านไม่ถูกต้อง")
+                            else: st.error("❌ รหัสผ่านไม่ถูกต้อง")
                 else:
                     st.error("❌ Access Denied. อีเมลนี้ไม่ได้รับสิทธิ์การเข้าถึง")
                     st.form_submit_button("LOGIN") 
@@ -320,30 +296,26 @@ if is_tool_1_to_4:
                 st.stop() 
 
 # ==========================================
-# --- 6. TOOLS 1-4 FORMS (รายละเอียดครบ 100%) ---
+# --- 6. TOOLS 1-4 FORMS ---
 # ==========================================
 if choice.startswith("Tool 1"):
     with st.form("form_t1"):
         st.markdown("<h3 style='color:#005B31;'>Tool 1: ประเมินสถานะองค์กร (Policy Gap / Self-Assessment Checklist)</h3>", unsafe_allow_html=True)
         st.markdown("สำหรับฝ่ายบริหาร เพื่อตรวจสอบนโยบายและการดำเนินงานตามมาตรฐานสากล")
         st.markdown("<hr>", unsafe_allow_html=True)
-        
         st.markdown("#### ส่วนที่ 1: การประกาศนโยบายและความมุ่งมั่น (Policy Commitment)")
         q1_1 = st.radio("1.1 องค์กรมีการจัดทำ 'นโยบายสิทธิมนุษยชน' เป็นลายลักษณ์อักษรที่อนุมัติโดยคณะกรรมการบริษัทหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
         q1_2 = st.radio("1.2 นโยบายครอบคลุมประเด็นสำคัญ (แรงงานข้ามชาติ, สิทธิชุมชน, ความหลากหลาย) หรือไม่ และประเด็นสิ่งแวดล้อมตามเกณฑ์ OECD 2023 และ EU CSDDD?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
         q1_3 = st.radio("1.3 มีการสื่อสารนโยบายนี้ให้พนักงานและคู่ค้า (Suppliers) รับทราบในภาษาที่พวกเขาเข้าใจหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        
         st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         st.markdown("#### ส่วนที่ 2: กระบวนการตรวจสอบสิทธิมนุษยชนอย่างรอบด้าน (HR Due Diligence Process)")
         q2_1 = st.radio("2.1 องค์กรมีระบบการประเมินความเสี่ยงด้านสิทธิมนุษยชน (HRA) เป็นประจำทุกปีหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
         q2_2 = st.radio("2.2 มีกระบวนการตรวจสอบย้อนกลับ (Traceability) ในห่วงโซ่คุณค่าต้นน้ำ (คู่ค้า Tier 1-2) หรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
         q2_3 = st.radio("2.3 มีการกำหนดตัวชี้วัด (KPIs) ด้านสิทธิมนุษยชนในระดับหน่วยงานปฏิบัติการหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        
         st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         st.markdown("#### ส่วนที่ 3: กลไกการร้องเรียนและการเยียวยา (Grievance & Remediation)")
         q3_1 = st.radio("3.1 มีช่องทางรับเรื่องร้องเรียนที่ปลอดภัย เป็นความลับ และเข้าถึงได้ง่ายสำหรับพนักงานทุกคนและบุคคลภายนอกหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
         q3_2 = st.radio("3.2 มีการจัดทำขั้นตอนการเยียวยา (Remediation Protocol) อย่างชัดเจน เมื่อพบการละเมิดสิทธิมนุษยชนหรือไม่?", ["ใช่", "ไม่ใช่", "กำลังดำเนินการ"], horizontal=True)
-        
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 1"):
             if sheet:
@@ -356,31 +328,26 @@ elif choice.startswith("Tool 2"):
         st.markdown("<h3 style='color:#005B31;'>Tool 2: แบบสอบถามการปฏิบัติหน้างาน (Worker Survey)</h3>", unsafe_allow_html=True)
         st.info("💡 ระดับคะแนน: 1 = ไม่จริงเลย / ไม่เคยปฏิบัติ | 5 = เป็นความจริงที่สุด / ปฏิบัติเสมอ")
         st.markdown("<hr>", unsafe_allow_html=True)
-        
         st.markdown("#### หมวดที่ 1: สภาพการจ้างและค่าจ้าง (Wages & Employment)")
         s1_1 = st.select_slider("1.1 ท่านได้รับค่าจ้างตรงเวลาและครบถ้วนตามที่ตกลงไว้ในสัญญาจ้าง", options=[1,2,3,4,5], value=3)
         s1_2 = st.select_slider("1.2 ท่านได้รับสลิปเงินเดือน (Pay slip) ที่แจกแจงรายได้และรายการหักอย่างชัดเจน", options=[1,2,3,4,5], value=3)
         s1_3 = st.select_slider("1.3 การทำงานล่วงเวลา (OT) ของท่านเกิดจากความสมัครใจ ไม่ได้ถูกข่มขู่หรือบังคับ", options=[1,2,3,4,5], value=3)
-        
         st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         st.markdown("#### หมวดที่ 2: แรงงานบังคับและเอกสารประจำตัว (Forced Labor & Documents)")
         s2_1 = st.select_slider("2.1 ท่านเป็นผู้เก็บเอกสารประจำตัว (พาสปอร์ต, บัตรประชาชน, Work Permit) ไว้กับตัวท่านเองตลอดเวลา", options=[1,2,3,4,5], value=3)
         s2_2 = st.select_slider("2.2 ท่านไม่ต้องจ่ายค่าธรรมเนียมหรือค่านายหน้าในการเข้ามาทำงานที่นี่ (Zero Recruitment Fee)", options=[1,2,3,4,5], value=3)
         s2_3 = st.select_slider("2.3 ท่านมีอิสระในการลาออกและเดินทางกลับบ้านนอกเวลาทำงาน", options=[1,2,3,4,5], value=3)
-        
         st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         st.markdown("#### หมวดที่ 3: สุขภาพและความปลอดภัย (Occupational Health & Safety)")
         s3_1 = st.select_slider("3.1 บริษัทจัดเตรียมอุปกรณ์ป้องกันอันตราย (PPE) ให้เพียงพอ เหมาะสม และไม่มีค่าใช้จ่าย", options=[1,2,3,4,5], value=3)
         s3_2 = st.select_slider("3.2 สภาพแวดล้อมการทำงานของท่าน (แสง, เสียง, อากาศ, ฝุ่นควัน) ปลอดภัยต่อสุขภาพ", options=[1,2,3,4,5], value=3)
         s3_3 = st.select_slider("3.3 มีทางหนีไฟและอุปกรณ์ดับเพลิงที่เข้าถึงได้ง่าย ไม่มีสิ่งกีดขวางในพื้นที่ปฏิบัติงาน", options=[1,2,3,4,5], value=3)
         s3_4 = st.select_slider("3.4 โรงอาหาร น้ำดื่ม และที่พักอาศัย (ถ้ามี) มีความสะอาดและถูกสุขลักษณะ", options=[1,2,3,4,5], value=3)
-        
         st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
         st.markdown("#### หมวดที่ 4: การปฏิบัติต่อพนักงานและการร้องเรียน (Fair Treatment & Grievance)")
         s4_1 = st.select_slider("4.1 หัวหน้างานปฏิบัติต่อพนักงานทุกคนอย่างเท่าเทียม ไม่มีการล่วงละเมิดทางเพศหรือทางวาจา", options=[1,2,3,4,5], value=3)
         s4_2 = st.select_slider("4.2 ท่านมีสิทธิในการรวมกลุ่มหรือจัดตั้งคณะกรรมการสวัสดิการเพื่อต่อรองอย่างเสรี", options=[1,2,3,4,5], value=3)
         s4_3 = st.select_slider("4.3 หากมีปัญหา ท่านรู้จักช่องทางการร้องเรียนและมั่นใจว่าจะไม่ถูกกลั่นแกล้ง (Non-retaliation)", options=[1,2,3,4,5], value=3)
-
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("🚀 บันทึกข้อมูล Tool 2"):
             if sheet:
@@ -393,21 +360,13 @@ elif choice.startswith("Tool 3"):
         st.markdown("<h3 style='color:#005B31;'>Tool 3: สัมภาษณ์เชิงลึก (Evidence-based Grounding)</h3><hr>", unsafe_allow_html=True)
         st.markdown("**🔍 หัวข้อการตรวจสอบ (เลือกข้อที่ทำการสัมภาษณ์เชิงลึก)**")
         topics = st.multiselect("ประเด็นที่พูดคุย:", [
-            "การสรรหา/ค่านายหน้า/การยึดเอกสาร", 
-            "สัญญาจ้าง/ค่าจ้าง/สลิปเงินเดือน", 
-            "ชั่วโมงการทำงาน/การบังคับทำ OT",
-            "สภาพการทำงาน/ความปลอดภัย/PPE", 
-            "สวัสดิการ/หอพัก/โรงอาหาร", 
-            "การเลือกปฏิบัติ/การล่วงละเมิด", 
-            "เสรีภาพการสมาคม/สหภาพแรงงาน",
-            "กลไกการร้องเรียน/การจัดการข้อพิพาท",
-            "สิทธิชุมชน/ผลกระทบต่อสิ่งแวดล้อม"
+            "การสรรหา/ค่านายหน้า/การยึดเอกสาร", "สัญญาจ้าง/ค่าจ้าง/สลิปเงินเดือน", "ชั่วโมงการทำงาน/การบังคับทำ OT",
+            "สภาพการทำงาน/ความปลอดภัย/PPE", "สวัสดิการ/หอพัก/โรงอาหาร", "การเลือกปฏิบัติ/การล่วงละเมิด", 
+            "เสรีภาพการสมาคม/สหภาพแรงงาน", "กลไกการร้องเรียน/การจัดการข้อพิพาท", "สิทธิชุมชน/ผลกระทบต่อสิ่งแวดล้อม"
         ], label_visibility="collapsed")
-        
         st.markdown("<br>**✍️ บันทึกคำให้การ (Testimony / Direct Quote)**", unsafe_allow_html=True)
         st.caption("โปรดบันทึกคำพูดที่สะท้อนถึงประเด็นความเสี่ยงหรือแนวปฏิบัติที่ดีอย่างชัดเจน เพื่อนำไปใช้เป็นหลักฐาน (Evidence)")
         testimony = st.text_area("สรุปคำพูดหรือหลักฐานที่พบ:", height=150)
-        
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 3"):
             if sheet:
@@ -419,31 +378,23 @@ elif choice.startswith("Tool 4"):
         st.markdown("<h3 style='color:#005B31;'>Tool 4: บันทึกการสังเกตการณ์ (Site Observation Log)</h3><hr>", unsafe_allow_html=True)
         st.info("📌 ประเมินสิ่งที่พบเห็นจริงหน้างาน (Visual Inspection) และบันทึกข้อสังเกตเพิ่มเติม")
         st.markdown("<hr>", unsafe_allow_html=True)
-        
         st.markdown("#### ด้านนโยบายและกลไก (Policy & Mechanism)")
         o1 = st.radio("1. มีการติดประกาศนโยบายสิทธิมนุษยชนและช่องทางร้องเรียนในพื้นที่ที่พนักงานมองเห็นได้ชัดเจน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o1 = st.text_input("บันทึกเพิ่มเติมข้อ 1:", key="n1", label_visibility="collapsed", placeholder="ระบุตำแหน่งที่พบ หรือปัญหาที่สังเกตเห็น...")
-        
         st.markdown("#### ด้านความปลอดภัยและอาชีวอนามัย (OHS)")
         o2 = st.radio("2. ทางหนีไฟ อุปกรณ์ดับเพลิง และระบบสัญญาณเตือนภัย ไม่มีสิ่งกีดขวางและพร้อมใช้งาน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o2 = st.text_input("บันทึกเพิ่มเติมข้อ 2:", key="n2", label_visibility="collapsed", placeholder="บันทึกสภาพของอุปกรณ์...")
-        
         o3 = st.radio("3. พนักงานในสายการผลิตสวมใส่อุปกรณ์ป้องกันอันตราย (PPE) ถูกต้องและครบถ้วน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o3 = st.text_input("บันทึกเพิ่มเติมข้อ 3:", key="n3", label_visibility="collapsed", placeholder="บันทึกหากพบพนักงานละเลยการใส่ PPE...")
-        
         o4 = st.radio("4. เครื่องจักรมีการติดตั้งฝาครอบป้องกัน (Machine Guard) และระบบหยุดฉุกเฉิน", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o4 = st.text_input("บันทึกเพิ่มเติมข้อ 4:", key="n4", label_visibility="collapsed", placeholder="บันทึกรหัสเครื่องจักรที่มีความเสี่ยง...")
-        
         st.markdown("#### ด้านสภาพแวดล้อมและสวัสดิการ (Environment & Welfare)")
         o5 = st.radio("5. สภาพแวดล้อมพื้นที่ทำงานมีแสงสว่าง อุณหภูมิ และการระบายอากาศที่เหมาะสม", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o5 = st.text_input("บันทึกเพิ่มเติมข้อ 5:", key="n5", label_visibility="collapsed", placeholder="บันทึกหากพบฝุ่น ควัน หรือกลิ่นรบกวน...")
-        
         o6 = st.radio("6. สภาพห้องน้ำ โรงอาหาร และที่พักอาศัย (ถ้ามี) มีความสะอาด เพียงพอ และถูกสุขลักษณะ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o6 = st.text_input("บันทึกเพิ่มเติมข้อ 6:", key="n6", label_visibility="collapsed", placeholder="บันทึกข้อบกพร่องด้านสวัสดิการ...")
-        
         o7 = st.radio("7. ตู้ยาสามัญประจำโรงงานหรือห้องพยาบาล มีเวชภัณฑ์ครบถ้วนและไม่หมดอายุ", ["✔️ พบ (Pass)", "❌ ไม่พบ (Fail)", "➖ ไม่เกี่ยวข้อง (N/A)"], horizontal=True)
         note_o7 = st.text_input("บันทึกเพิ่มเติมข้อ 7:", key="n7", label_visibility="collapsed", placeholder="บันทึกการตรวจสอบเวชภัณฑ์...")
-
         st.markdown("<br>", unsafe_allow_html=True)
         if st.form_submit_button("💾 บันทึกข้อมูล Tool 4"):
             if sheet:
@@ -458,7 +409,7 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์ (ฉบับเต็ม) สำเร็จ")
 
-# ----------------- TOOL 5 (FOCUS ON FIXING RUBRIC & CITATION) -----------------
+# ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
 elif choice.startswith("Tool 5"):
 
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
@@ -514,64 +465,123 @@ elif choice.startswith("Tool 5"):
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
         
         numbered_issues = [f"{idx+1}. {iss}" for idx, iss in enumerate(real_issues_from_sheet)]
-        display_list = ["เลือกประเด็นความเสี่ยงเพื่อจัดการ..."] + numbered_issues
+        display_list = ["เลือกประเด็นความเสี่ยงให้ AI วิเคราะห์..."] + numbered_issues
         
         selected_option = st.selectbox("เลือกประเด็นความเสี่ยงเพื่อจัดทำแผน (Process Issue):", display_list)
 
-        if not selected_option or selected_option == "เลือกประเด็นความเสี่ยงเพื่อจัดการ...":
+        if not selected_option or selected_option == "เลือกประเด็นความเสี่ยงให้ AI วิเคราะห์...":
             st.stop()
             
         selected_issue = selected_option.split(". ", 1)[1] if ". " in selected_option else selected_option
 
     save_issue = selected_issue
     is_already_approved = save_issue in st.session_state.approved_issues
-    scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวม"
+    scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
 
-    st.markdown(f"""
-    <div style="background: #F5F3FF; border-left: 4px solid #8B5CF6; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-        <strong style="color: #6D28D9; font-size: 16px;"><i class="fa-solid fa-magnifying-glass-chart"></i> Evidence-based Grounding (หลักฐานสนับสนุนจากข้อมูลจริง):</strong>
-    </div>
-    """, unsafe_allow_html=True)
+    # 💡 2. AI ANALYTICAL ENGINE (MOCK)
+    # เราจะให้ AI ฟันธงเลยว่าเกิดอะไรขึ้น แทนที่จะแค่โชว์ข้อมูล
+    
+    st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+    st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-brain'></i> 2. ผลการวิเคราะห์และฟันธงโดย AI (AI Executive Summary)</h5>", unsafe_allow_html=True)
 
-    # 💡 THE BUG-FREE EVIDENCE CITATION (แก้ตัวหนังสือซ้อนทับ และเรื่อง Sentiment)
+    # ดึงข้อมูลมาวิเคราะห์
     evidence_count = 0
+    exec_quotes = []
+    worker_quotes = []
     
     if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
         subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
-        
-        if subset.empty or subset['รายละเอียด/คำให้การ'].str.strip().eq("").all():
-            st.info("ไม่มีคำให้การเจาะจง (ประเมินจากคะแนนแบบสอบถามหรือการสังเกตการณ์)")
-        else:
-            # 💡 แก้ไขลอจิก AI Sentiment: ตรวจจับว่ามีคำพูดแง่บวกของผู้บริหารเพื่ออธิบายเหตุผล
-            is_exec_data = subset['กลุ่มเป้าหมาย'].str.contains("ผู้บริหาร").any()
-            if is_exec_data and filter_mode != "ระดับเจาะจงกลุ่มเป้าหมาย (Stakeholder Group Level)":
-                st.markdown("""
-                <div style='background-color: #FFFBEB; color: #92400E; padding: 12px 18px; border-radius: 6px; border-left: 5px solid #F59E0B; margin-bottom: 20px; font-size: 14px;'>
-                    <b>🧠 AI Sentiment & Gap Analysis:</b> ข้อมูลที่ตรวจพบจากกลุ่มผู้บริหารมีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) 
-                    ระบบจึงดึงข้อมูลนี้มาแสดงเพื่อใช้ตั้งเป็น <b>'สมมติฐานหลัก (Baseline)'</b> สำหรับให้ผู้ตรวจสอบ (Auditor) นำไปประเมินความเสี่ยงและเทียบเคียงข้อมูล 
-                    (Cross-check) กับการปฏิบัติจริงหน้างานว่ามี <b>ช่องโหว่ทางนโยบาย (Implementation Gap)</b> หรือไม่
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with st.container():
-                for idx, row in subset.head(5).iterrows(): 
-                    if str(row['รายละเอียด/คำให้การ']).strip() != "":
-                        evidence_count += 1
-                        r_id = row['รหัสผู้ตอบ']
-                        full_text = row['รายละเอียด/คำให้การ']
-                        short_text = full_text if len(full_text) <= 60 else full_text[:60] + "..."
-                        
-                        # แยกฝั่งซ้ายข้อความ ฝั่งขวาปุ่ม Popover แบบคลีนๆ ไม่ซ้อนทับ
-                        c_txt, c_btn = st.columns([8, 2])
-                        with c_txt:
-                            st.markdown(f"<div style='padding: 8px 0; border-left: 3px solid #3B82F6; padding-left: 15px; margin-bottom: 10px; background: white; font-size: 15px;'><b>ID {r_id}:</b> {short_text}</div>", unsafe_allow_html=True)
-                        with c_btn:
-                            with st.popover(f"🔍 ดูข้อมูลดิบ"):
-                                st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {r_id}")
-                                st.write(f"**📅 วันที่เก็บข้อมูล:** {row.get('วันที่-เวลา', '-')}")
-                                st.write(f"**📍 พื้นที่สำรวจ:** {row.get('พื้นที่สำรวจ', '-')}")
-                                st.write(f"**👥 กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
-                                st.info(f"**คำให้การฉบับเต็ม:**\n\n{full_text}")
+        for idx, row in subset.iterrows(): 
+            if str(row['รายละเอียด/คำให้การ']).strip() != "":
+                evidence_count += 1
+                grp = str(row.get('กลุ่มเป้าหมาย', ''))
+                if "ผู้บริหาร" in grp or "คู่ค้า" in grp and "OS" in str(row.get('รหัสผู้ตอบ','')):
+                    exec_quotes.append(row)
+                else:
+                    worker_quotes.append(row)
+    
+    # AI ฟันธงลอจิก
+    ai_conclusion = ""
+    ai_severity_suggest = 3
+    ai_likelihood_suggest = 3
+    ai_plan_suggest = ""
+    
+    if len(exec_quotes) > 0 and len(worker_quotes) > 0:
+        # มีทั้งสองฝั่ง -> หา Gap
+        ai_conclusion = f"""
+        <div style='background-color: #FEF2F2; padding: 20px; border-radius: 8px; border-left: 5px solid #DC2626; margin-bottom: 20px;'>
+            <h4 style='color: #991B1B; margin-top:0;'>⚠️ AI ฟันธง: พบความขัดแย้งของข้อมูล (Policy Implementation Gap)</h4>
+            <p style='color: #444; font-size: 14px;'>
+            จากการทำ <b>Triangulation & Sentiment Analysis</b> ระบบตรวจพบว่านโยบายของผู้บริหาร/ตัวแทน 
+            (กล่าวอ้างเชิงบวกว่าไม่มีปัญหา) ขัดแย้งโดยตรงกับคำให้การของกลุ่มเป้าหมายระดับปฏิบัติการ (กล่าวอ้างเชิงลบว่าถูกละเมิด) 
+            นี่คือช่องโหว่ด้านการตรวจสอบย้อนกลับ (Traceability) ระบบจึงยกระดับประเด็น <b>'{selected_issue}'</b> เป็นความเสี่ยงที่ต้องตั้งคณะกรรมการสืบสวนทันที
+            </p>
+        </div>
+        """
+        ai_severity_suggest = 5 if "พาสปอร์ต" in selected_issue or "แรงงาน" in selected_issue else 4
+        ai_likelihood_suggest = 4
+        ai_plan_suggest = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงเพื่อหาช่องโหว่ของการบังคับใช้นโยบาย (Implementation Gap)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้าต้นทาง\n\nRemediation Plan:\n- เยียวยาผู้ได้รับผลกระทบทันทีหากสืบสวนพบว่าเป็นความจริง"
+    
+    elif len(exec_quotes) > 0 and len(worker_quotes) == 0:
+        # มีแต่คำพูดบวก
+        ai_conclusion = f"""
+        <div style='background-color: #F0FDF4; padding: 20px; border-radius: 8px; border-left: 5px solid #166534; margin-bottom: 20px;'>
+            <h4 style='color: #14532D; margin-top:0;'>✅ AI ฟันธง: แนวปฏิบัติที่ดี (Best Practice / No Gap Detected)</h4>
+            <p style='color: #444; font-size: 14px;'>
+            จากการวิเคราะห์ <b>Sentiment Analysis</b> ข้อมูลที่ตรวจพบจากกลุ่มผู้บริหาร/คู่ค้า มีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) 
+            และไม่พบคำให้การร้องเรียนเชิงลบจากภาคปฏิบัติการ ระบบจึงตั้งประเด็น <b>'{selected_issue}'</b> เป็น <b>'สมมติฐานหลัก (Baseline)'</b> 
+            ให้ฝ่าย Audit บันทึกไว้เป็นแนวปฏิบัติที่ดี (Best Practice)
+            </p>
+        </div>
+        """
+        ai_severity_suggest = 1
+        ai_likelihood_suggest = 1
+        ai_plan_suggest = "Maintenance Plan (แผนคงสภาพ):\n- คงมาตรการเชิงบวกในปัจจุบันไว้ และดำเนินการตรวจสอบตามวงรอบปกติอย่างน้อยปีละ 1 ครั้ง เพื่อป้องกันความเสี่ยงเกิดใหม่"
+    
+    else:
+        # เจอแต่คำบ่น
+        ai_conclusion = f"""
+        <div style='background-color: #FFFBEB; padding: 20px; border-radius: 8px; border-left: 5px solid #D97706; margin-bottom: 20px;'>
+            <h4 style='color: #92400E; margin-top:0;'>⚠️ AI ฟันธง: ตรวจพบความเสี่ยงจากภาคปฏิบัติ (Operational Risk Detected)</h4>
+            <p style='color: #444; font-size: 14px;'>
+            ระบบตรวจจับ <b>Negative Sentiment</b> จากคำให้การและการสังเกตการณ์ในพื้นที่ ประเด็น <b>'{selected_issue}'</b> 
+            สะท้อนถึงปัญหาในระดับปฏิบัติการที่ส่งผลกระทบต่อสิทธิและสวัสดิภาพโดยตรง จำเป็นต้องได้รับการแก้ไขเชิงโครงสร้าง
+            </p>
+        </div>
+        """
+        ai_severity_suggest = 5 if "ชุมชน" in selected_issue else 3
+        ai_likelihood_suggest = 3
+        ai_plan_suggest = "Preventive Action (แผนป้องกันเชิงรุก):\n- จัดอบรมทบทวนขั้นตอนการทำงาน และปรับปรุงสภาพแวดล้อม/กลไก ให้เป็นไปตามมาตรฐาน\n- ติดตามผลการปรับปรุงประสิทธิภาพอย่างใกล้ชิดภายใน 3 เดือน\n\nRemediation Plan:\n- เปิดเวทีรับฟังปัญหาและเยียวยาตามความเหมาะสม"
+
+    # แสดงผล AI Conclusion
+    st.markdown(ai_conclusion, unsafe_allow_html=True)
+
+    # 💡 SHOW EVIDENCE CITATIONS (Popovers สะอาดตา)
+    st.markdown("<strong style='color: #1E293B; font-size: 15px;'>📑 ข้อมูลอ้างอิงเชิงประจักษ์ (Citations):</strong>", unsafe_allow_html=True)
+    
+    if len(exec_quotes) > 0:
+        st.markdown("<div style='color:#005B31; font-weight:bold; margin-top:10px;'>ฝั่งนโยบาย / ตัวแทน (Policy / Management)</div>", unsafe_allow_html=True)
+        for row in exec_quotes:
+            c_txt, c_btn = st.columns([8, 2])
+            with c_txt:
+                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row['รหัสผู้ตอบ']}):</b> \"{row['รายละเอียด/คำให้การ'][:60]}...\"</div>", unsafe_allow_html=True)
+            with c_btn:
+                with st.popover(f"🔍 ดูข้อมูลดิบ"):
+                    st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {row['รหัสผู้ตอบ']}")
+                    st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
+                    st.info(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
+    
+    if len(worker_quotes) > 0:
+        st.markdown("<div style='color:#B91C1C; font-weight:bold; margin-top:10px;'>ฝั่งปฏิบัติการ / ผู้ได้รับผลกระทบ (Operations / Affected)</div>", unsafe_allow_html=True)
+        for row in worker_quotes:
+            c_txt, c_btn = st.columns([8, 2])
+            with c_txt:
+                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row['รหัสผู้ตอบ']}):</b> \"{row['รายละเอียด/คำให้การ'][:60]}...\"</div>", unsafe_allow_html=True)
+            with c_btn:
+                with st.popover(f"🔍 ดูข้อมูลดิบ"):
+                    st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {row['รหัสผู้ตอบ']}")
+                    st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
+                    st.warning(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
 
     # 💡 KNOWLEDGE BASE MATCHER (คม ชัด ลึก ตามที่ขอ)
     kb_name = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
@@ -589,11 +599,11 @@ elif choice.startswith("Tool 5"):
             kb_link = knowledge["link"]
             break
 
-    plain_evidence = f"ระบบ AI ตรวจพบความเสี่ยงจากข้อมูลจริงจำนวน {evidence_count} รายการ ในฐานข้อมูลของกลุ่ม {scope_text}"
+    plain_evidence = f"ระบบ AI วิเคราะห์ความขัดแย้งจากข้อมูลจริง {evidence_count} รายการ ในกลุ่ม {scope_text}"
     plain_standard = f"{kb_name} ({kb_clause})"
 
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-    st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 2. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
+    st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 3. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
 
     # 💡 THE STRICT RUBRIC EXPLANATION (โชว์ตารางคะแนนให้เห็นชัดเจนตามไฟล์ Docx)
     st.markdown("""
@@ -609,38 +619,31 @@ elif choice.startswith("Tool 5"):
         </div>
     </div>
     """, unsafe_allow_html=True)
-
-    # ปรับค่า Default ให้เป็น 1 เพื่อไม่ให้เด้งเป็นวิกฤตเองถ้าผู้ใช้ไม่ตั้งใจเลือก
-    def_scale, def_sco, def_rem, def_lik = 1, 1, 1, 1
-    if "แรงงาน" in selected_issue or "พาสปอร์ต" in selected_issue or "เด็ก" in selected_issue: def_scale = 5
-    if "ชุมชน" in selected_issue: def_sco = 5
     
+    st.info("💡 **AI Recommendation:** ระบบได้ปรับตั้งค่าแถบเลื่อนด้านล่างให้อัตโนมัติตามการวิเคราะห์ความเสี่ยงเบื้องต้น ท่านสามารถปรับแก้ได้ตามดุลยพินิจ")
+
     col_s1, col_s2, col_s3 = st.columns(3)
-    with col_s1: scale = st.slider("Scale (ขนาดผลกระทบ: 1 เล็กน้อย - 5 Zero Tolerance)", 1, 5, def_scale)
-    with col_s2: scope = st.slider("Scope (วงกว้าง: 1 เฉพาะบุคคล - 5 ระดับประเทศ)", 1, 5, def_sco)
-    with col_s3: remedy = st.slider("Remedy (การเยียวยา: 1 ทำได้ทันที - 5 เยียวยาไม่ได้)", 1, 5, def_rem)
+    with col_s1: scale = st.slider("Scale (ขนาดผลกระทบ: 1 เล็กน้อย - 5 Zero Tolerance)", 1, 5, ai_severity_suggest)
+    with col_s2: scope = st.slider("Scope (วงกว้าง: 1 เฉพาะบุคคล - 5 ระดับประเทศ)", 1, 5, ai_severity_suggest)
+    with col_s3: remedy = st.slider("Remedy (การเยียวยา: 1 ทำได้ทันที - 5 เยียวยาไม่ได้)", 1, 5, ai_severity_suggest)
     
     sev_max = max(scale, scope, remedy)
-    likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, def_lik)
+    likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, ai_likelihood_suggest)
     score = sev_max * likelihood
 
     # 💡 STRICT LOGIC FOR RISK LEVELS (แก้บั๊ก 15 = วิกฤต เรียบร้อย)
     if score >= 16:
         risk_zone = "RED"
         badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} (อยู่ในช่วง 16-25)</div>'
-        ai_plan = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงทันที (Zero Tolerance Policy)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้า\n\nRemediation Plan:\n- ชดเชยและเยียวยาผู้ได้รับผลกระทบอย่างเป็นธรรมและโปร่งใสภายใน 24 ชม."
     elif sev_max == 5:
         risk_zone = "RED"
         badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} แต่ถูกปรับระดับเป็นวิกฤตตามกฎ "ความร้ายแรงนำ" เนื่องจาก Severity = 5</div>'
-        ai_plan = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงทันที (Zero Tolerance Policy)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้า\n\nRemediation Plan:\n- ชดเชยและเยียวยาผู้ได้รับผลกระทบอย่างเป็นธรรมและโปร่งใสภายใน 24 ชม."
     elif score >= 8 and score <= 15:
         risk_zone = "YELLOW"
         badge_html = f'<div class="salient-badge" style="background-color: #FFFBEB; color: #D97706; border-color: #FDE68A;">⚠️ SIGNIFICANT RISK (ระดับสูง): คะแนนประเมิน {score} (อยู่ในช่วง 8-15)</div>'
-        ai_plan = "Preventive Action (แผนป้องกันเชิงรุก):\n- จัดอบรมทบทวนขั้นตอนการทำงาน และสื่อสารนโยบายให้ผู้เกี่ยวข้องรับทราบ\n- ติดตามผลการปรับปรุงประสิทธิภาพอย่างใกล้ชิดภายใน 3 เดือน\n\nRemediation Plan:\n- เปิดเวทีรับฟังปัญหาและเยียวยาตามสัดส่วนผลกระทบ"
     else:
         risk_zone = "GREEN"
         badge_html = f'<div class="salient-badge" style="background-color: #F0FDF4; color: #166534; border-color: #BBF7D0;">✅ MODERATE/MINOR RISK (ระดับเฝ้าระวัง): คะแนนประเมิน {score} (อยู่ในช่วง 1-7)</div>'
-        ai_plan = "Maintenance Plan (แผนคงสภาพ):\n- ดำเนินการตรวจสอบและติดตามผลตามวงรอบปกติอย่างน้อยปีละ 1 ครั้ง"
     
     st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
     
@@ -658,13 +661,13 @@ elif choice.startswith("Tool 5"):
 
     edit_evidence = plain_evidence
     edit_standard = plain_standard
-    edit_plan = ai_plan
+    edit_plan = ai_plan_suggest
 
     if is_already_approved and save_issue in st.session_state.saved_plans_dict:
         saved_data = st.session_state.saved_plans_dict[save_issue]
         edit_evidence = saved_data.get('evidence', plain_evidence)
         edit_standard = saved_data.get('standard', plain_standard)
-        edit_plan = saved_data.get('plan', ai_plan)
+        edit_plan = saved_data.get('plan', ai_plan_suggest)
 
     st.markdown("""
     <div class="gemini-draft-box" style="margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none;">
@@ -674,7 +677,7 @@ elif choice.startswith("Tool 5"):
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 2. NATIVE POPOVER FOR DETAILED LAW CITATION (ครบถ้วน ชื่อ มาตรา คำอธิบาย ลิงก์)
+    # 💡 2. NATIVE POPOVER FOR DETAILED LAW CITATION
     c_std1, c_std2 = st.columns([8, 2])
     with c_std1:
         st.markdown(f"<div style='background: #FFFFFF; padding: 10px 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {kb_name} ({kb_clause})</div>", unsafe_allow_html=True)
@@ -689,8 +692,8 @@ elif choice.startswith("Tool 5"):
 
     st.markdown("""
     <div style="background: #FAFAFA; border: 1px solid #D2E3FC; border-top: none; padding: 25px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; margin-bottom: 30px;">
-        <h5 style="color: #005B31; margin-top: 0; margin-bottom: 15px;"><i class="fa-solid fa-pen-to-square"></i> 3. ตรวจสอบและปรับแก้ข้อมูลโดยมนุษย์ (Human Override)</h5>
-        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">คุณสามารถปรับปรุงหลักฐาน, มาตรฐานอ้างอิง หรือแผนปฏิบัติการด้านล่างให้สมบูรณ์ก่อนอนุมัติ</p>
+        <h5 style="color: #005B31; margin-top: 0; margin-bottom: 15px;"><i class="fa-solid fa-pen-to-square"></i> 4. ทบทวนและปรับแก้ข้อมูลโดยมนุษย์ (Human Override)</h5>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">ระบบ AI ได้จัดทำร่างแผนกลยุทธ์เบื้องต้นให้แล้ว ท่านสามารถปรับแก้ให้สมบูรณ์ก่อนกดอนุมัติ</p>
     """, unsafe_allow_html=True)
     
     final_evidence = st.text_area("✍️ แก้ไขหลักฐานสนับสนุน (Triangulation Evidence):", value=edit_evidence, height=80)
