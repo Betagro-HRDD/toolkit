@@ -177,7 +177,7 @@ def check_password():
                         with c_btn1: btn_login = st.form_submit_button("LOGIN", use_container_width=True)
                         with c_btn2: btn_forgot = st.form_submit_button("ลืมรหัสผ่าน?", use_container_width=True)
                         if btn_forgot:
-                            st.success("📩 ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลองค์กรของคุณเรียบร้อยแล้ว")
+                            st.success("📩 ระบบได้ส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลองค์กรของคุณเรียบร้อยแล้ว (โปรดตรวจสอบใน Inbox)")
                         elif btn_login:
                             if pwd == st.session_state.user_db[email]:
                                 st.session_state.current_user = email
@@ -185,10 +185,11 @@ def check_password():
                             else:
                                 st.error("❌ รหัสผ่านไม่ถูกต้อง")
                 else:
-                    st.error("❌ Access Denied. อีเมลนี้ไม่ได้รับสิทธิ์การเข้าถึง")
+                    st.error("❌ Access Denied. อีเมลนี้ไม่ได้รับสิทธิ์การเข้าถึง (Not in Whitelist)")
                     st.form_submit_button("LOGIN") 
             else:
                 st.form_submit_button("ตรวจสอบสิทธิ์")
+                st.caption("💡 **คำแนะนำ:** กรุณากรอกอีเมลองค์กรเพื่อตรวจสอบสิทธิ์ (อีเมลทดสอบระบบ: admin@betagro.com)")
     return False
 
 if not check_password(): st.stop()
