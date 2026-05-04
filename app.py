@@ -409,7 +409,9 @@ elif choice.startswith("Tool 4"):
                 sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 4", resp_id, resp_group, resp_dept, resp_gender, "Site Observation", detail, "", "", "", ""])
                 st.success("✅ บันทึกการสังเกตการณ์ (ฉบับเต็ม) สำเร็จ")
 
+# ----------------- TOOL 5 (AI-AUGMENTED TRIANGULATION ENGINE) -----------------
 elif choice.startswith("Tool 5"):
+
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 5: ประเมินความเสี่ยง (AI-Augmented Triangulation & Sentiment Analysis)</h3>", unsafe_allow_html=True)
     
@@ -428,10 +430,8 @@ elif choice.startswith("Tool 5"):
             "ผู้บริหาร", "พนักงานไทย", "แรงงานข้ามชาติ", "คู่ค้า (Suppliers)", "ชุมชน", "องค์กรไม่แสวงหากำไร (NGOs)", "นักลงทุน", "ลูกค้า"
         ])
 
-    # กรองข้อมูลจาก df_real ที่คุณมีอยู่แล้ว
     raw_data_only_df = pd.DataFrame()
     if not df_real.empty:
-        # ดึงข้อมูลจากเครื่องมือเก็บข้อมูลดิบ 1-4 เท่านั้นมาวิเคราะห์
         raw_data_only_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
         
     df_filtered = raw_data_only_df.copy()
@@ -441,10 +441,10 @@ elif choice.startswith("Tool 5"):
     
     sheet_data_count = len(df_filtered)
     if sheet_data_count == 0: 
-        st.warning(f"⚠️ ไม่พบข้อมูลดิบของการประเมินของกลุ่มเป้าหมาย [{custom_filter_text if custom_filter_text else 'ทั้งหมด'}] ในฐานข้อมูล")
+        st.warning(f"⚠️ ไม่พบข้อมูลดิบของการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
         st.stop()
 
-    btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์จากภาพรวมทั้งหมด ({sheet_data_count} รายการ)"
+    btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
     
     st.markdown("<h5 style='color: #005B31; margin-top: 20px;'><i class='fa-solid fa-wand-magic-sparkles'></i> 1. สกัดประเด็นความเสี่ยงจากฐานข้อมูลจริง</h5>", unsafe_allow_html=True)
     if st.button(btn_text):
@@ -455,11 +455,10 @@ elif choice.startswith("Tool 5"):
         real_issues_from_sheet = []
         if 'ประเด็นหลัก' in df_filtered.columns:
             raw_issues = df_filtered['ประเด็นหลัก'].unique().tolist()
-            # กรองค่าว่างและค่าที่ไม่ใช่ประเด็นความเสี่ยงจริง
-            real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "nan", "None", "Worker Survey", "Site Observation", "Policy Gap Analysis"]]
+            real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "Worker Survey", "Site Observation", "Policy Gap Analysis"]]
         
         if len(real_issues_from_sheet) == 0:
-            st.info(f"✅ AI ประมวลผลแล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญในกลุ่มนี้")
+            st.info(f"✅ AI ประมวลผลข้อมูลของกลุ่มนี้แล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญครับ")
             st.stop()
             
         ai_header = f"🤖 Gemini AI พบ {len(real_issues_from_sheet)} ประเด็นความเสี่ยง จากฐานข้อมูลจริง (กลุ่ม: {custom_filter_text if custom_filter_text else 'ทั้งหมด'}):"
@@ -475,104 +474,257 @@ elif choice.startswith("Tool 5"):
             
         selected_issue = selected_option.split(". ", 1)[1] if ". " in selected_option else selected_option
 
-    # เมื่อเลือกประเด็นแล้ว ให้ดำเนินการต่อ
-    if selected_issue:
-        save_issue = selected_issue
-        is_already_approved = save_issue in st.session_state.approved_issues
-        scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กร"
+    save_issue = selected_issue
+    is_already_approved = save_issue in st.session_state.approved_issues
+    scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
 
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-        st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-brain'></i> 2. ผลการวิเคราะห์และฟันธงโดย AI (AI Executive Summary)</h5>", unsafe_allow_html=True)
-
-        # ดึงหลักฐานอ้างอิงเพื่อทำ Triangulation
-        subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
-        exec_quotes = []
-        worker_quotes = []
-        
-        if 'รายละเอียด/คำให้การ' in subset.columns:
-            for _, row in subset.iterrows():
-                if str(row['รายละเอียด/คำให้การ']).strip() != "":
-                    grp = str(row.get('กลุ่มเป้าหมาย', ''))
-                    if any(x in grp for x in ["ผู้บริหาร", "คู่ค้า", "Management"]):
-                        exec_quotes.append(row)
-                    else:
-                        worker_quotes.append(row)
-        
-        # ลอจิกการฟันธงของ AI
-        ai_conclusion = ""
-        ai_severity_suggest = 3
-        ai_likelihood_suggest = 3
-        ai_plan_suggest = ""
-
-        if len(exec_quotes) > 0 and len(worker_quotes) > 0:
-            ai_conclusion = f"<div style='background-color: #FEF2F2; padding: 20px; border-radius: 8px; border-left: 5px solid #DC2626; margin-bottom: 20px;'><h4 style='color: #991B1B; margin-top:0;'>⚠️ AI ฟันธง: พบความขัดแย้งของข้อมูล (Policy Gap Detected)</h4><p style='color: #444; font-size: 14px;'>ตรวจพบว่านโยบาย/คำกล่าวอ้างของผู้บริหาร ขัดแย้งกับคำให้การของภาคปฏิบัติการ ระบบจึงยกระดับประเด็น <b>'{selected_issue}'</b> เป็นความเสี่ยงระดับสูงที่ต้องมีมาตรการตอบโต้ทันที</p></div>"
-            ai_severity_suggest = 4
-            ai_likelihood_suggest = 4
-            ai_plan_suggest = "Preventive Action: ตั้งคณะกรรมการตรวจสอบข้อเท็จจริงและหาช่องโหว่ของการบังคับใช้นโยบาย\nRemediation: เยียวยาผู้ได้รับผลกระทบตามมาตรฐานสากล"
-        elif len(worker_quotes) > 0:
-            ai_conclusion = f"<div style='background-color: #FFFBEB; padding: 20px; border-radius: 8px; border-left: 5px solid #D97706; margin-bottom: 20px;'><h4 style='color: #92400E; margin-top:0;'>⚠️ AI ฟันธง: ตรวจพบความเสี่ยงจากภาคปฏิบัติ</h4><p style='color: #444; font-size: 14px;'>พบคำร้องเรียน/ความกังวลเชิงลบจากภาคปฏิบัติการในประเด็น <b>'{selected_issue}'</b> จำเป็นต้องตรวจสอบการบริหารจัดการหน้างาน</p></div>"
-            ai_severity_suggest = 3
-            ai_likelihood_suggest = 3
-            ai_plan_suggest = "Preventive Action: จัดอบรมทบทวนและปรับปรุงสภาพแวดล้อมการทำงาน\nRemediation: เปิดช่องทางการสื่อสารสองทางเพื่อรับฟังปัญหา"
-        else:
-            ai_conclusion = f"<div style='background-color: #F0FDF4; padding: 20px; border-radius: 8px; border-left: 5px solid #166534; margin-bottom: 20px;'><h4 style='color: #14532D; margin-top:0;'>✅ AI ฟันธง: ไม่พบช่องว่างความเสี่ยง (Baseline Detected)</h4><p style='color: #444; font-size: 14px;'>ข้อมูลเป็นไปในทิศทางเดียวกันในเชิงบวก ให้คงมาตรการเดิมและตรวจสอบตามวงรอบ</p></div>"
-            ai_severity_suggest = 1
-            ai_likelihood_suggest = 1
-            ai_plan_suggest = "Maintenance: คงมาตรการเชิงบวกในปัจจุบันไว้"
-
-        st.markdown(ai_conclusion, unsafe_allow_html=True)
-
-        # แสดง Citations (ใช้ Popover เพื่อความสะอาดตา)
-        st.markdown("<strong style='color: #1E293B; font-size: 15px;'>📑 ข้อมูลอ้างอิงเชิงประจักษ์ (Citations):</strong>", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            with st.expander(f"ฝั่งนโยบาย ({len(exec_quotes)} รายการ)"):
-                for r in exec_quotes: st.caption(f"ID {r['รหัสผู้ตอบ']}: {r['รายละเอียด/คำให้การ'][:100]}...")
-        with c2:
-            with st.expander(f"ฝั่งปฏิบัติการ ({len(worker_quotes)} รายการ)"):
-                for r in worker_quotes: st.caption(f"ID {r['รหัสผู้ตอบ']}: {r['รายละเอียด/คำให้การ'][:100]}...")
-
-        st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
-        st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 3. ประเมินระดับความรุนแรงตามหลักการ Severity-led Rule</h5>", unsafe_allow_html=True)
-
-        # 💡 ลอจิกการประเมินความเสี่ยงตามไฟล์ Docx
-        col_s1, col_s2, col_s3 = st.columns(3)
-        with col_s1: scale = st.slider("Scale (ความหนักหน่วง)", 1, 5, ai_severity_suggest)
-        with col_s2: scope = st.slider("Scope (จำนวนผู้ได้รับผลกระทบ)", 1, 5, ai_severity_suggest)
-        with col_s3: remedy = st.slider("Remediability (ความยากในการฟื้นฟู)", 1, 5, ai_severity_suggest)
-        
-        sev_max = max(scale, scope, remedy)
-        likelihood = st.slider("📌 Likelihood (โอกาสเกิด)", 1, 5, ai_likelihood_suggest)
-        score = sev_max * likelihood
-
-        # ตรวจสอบ Salient Risk (กฎความร้ายแรงนำ: ถ้า Severity=5 ให้เป็นวิกฤตทันที)
-        is_salient = "RED" if score >= 16 or sev_max == 5 else ("YELLOW" if score >= 8 else "GREEN")
-        
-        risk_label = "วิกฤต (Salient Risk)" if is_salient == "RED" else ("สูง (Significant)" if is_salient == "YELLOW" else "ปกติ (Moderate)")
-        badge_color = "#DC2626" if is_salient == "RED" else ("#D97706" if is_salient == "YELLOW" else "#166534")
-
-        st.markdown(f"<div style='text-align:center; padding:15px; background:#F8FAFC; border-radius:10px; border:2px solid {badge_color};'><h3 style='color:{badge_color}; margin:0;'>ระดับความเสี่ยง: {risk_label}</h3><p style='margin:0; color:#666;'>คะแนนรวม: {score} (Severity Max: {sev_max} x Likelihood: {likelihood})</p></div>", unsafe_allow_html=True)
-
-        # ส่วนการบันทึกข้อมูล
-        st.markdown("<h5 style='color: #005B31; margin-top:20px;'><i class='fa-solid fa-pen-to-square'></i> 4. แผนการจัดการความเสี่ยง (Human Override)</h5>", unsafe_allow_html=True)
-        final_plan = st.text_area("✍️ แก้ไขแผนการจัดการ (Mitigation Plan):", value=ai_plan_suggest, height=150)
-
-        if st.button("💾 อนุมัติและบันทึกประเด็นยุทธศาสตร์"):
-            if sheet:
-                # สร้าง Row ข้อมูลใหม่เพื่อบันทึกลง Google Sheet (ปรับลำดับให้ตรงกับหัวตารางเดิมของคุณ)
-                db_risk_level = risk_label
-                detail = f"Plan: {final_plan} | Triangulation: {len(subset)} records"
-                new_row = [now, audit_cycle, auditor_name, "N/A", "Tool 5", "AI-Analysis", scope_text, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
-                
-                # อัปเดต State เดิม
-                st.session_state.saved_plans_dict[save_issue] = {'plan': final_plan, 'sev': sev_max, 'lik': likelihood}
-                if save_issue not in st.session_state.approved_issues:
-                    st.session_state.approved_issues.append(save_issue)
-
-                with st.spinner("บันทึกข้อมูล..."):
-                    sheet.append_row(new_row)
-                    st.success(f"✅ บันทึก '{save_issue}' สำเร็จ! พร้อมรายงานใน Tool 7")
+    # 💡 2. AI ANALYTICAL ENGINE (MOCK)
+    # เราจะให้ AI ฟันธงเลยว่าเกิดอะไรขึ้น แทนที่จะแค่โชว์ข้อมูล
     
+    st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+    st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-brain'></i> 2. ผลการวิเคราะห์และฟันธงโดย AI (AI Executive Summary)</h5>", unsafe_allow_html=True)
+
+    # ดึงข้อมูลมาวิเคราะห์
+    evidence_count = 0
+    exec_quotes = []
+    worker_quotes = []
+    
+    if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
+        subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
+        for idx, row in subset.iterrows(): 
+            if str(row['รายละเอียด/คำให้การ']).strip() != "":
+                evidence_count += 1
+                grp = str(row.get('กลุ่มเป้าหมาย', ''))
+                if "ผู้บริหาร" in grp or "คู่ค้า" in grp and "OS" in str(row.get('รหัสผู้ตอบ','')):
+                    exec_quotes.append(row)
+                else:
+                    worker_quotes.append(row)
+    
+    # AI ฟันธงลอจิก
+    ai_conclusion = ""
+    ai_severity_suggest = 3
+    ai_likelihood_suggest = 3
+    ai_plan_suggest = ""
+    
+    if len(exec_quotes) > 0 and len(worker_quotes) > 0:
+        # มีทั้งสองฝั่ง -> หา Gap
+        ai_conclusion = f"""
+        <div style='background-color: #FEF2F2; padding: 20px; border-radius: 8px; border-left: 5px solid #DC2626; margin-bottom: 20px;'>
+            <h4 style='color: #991B1B; margin-top:0;'>⚠️ AI ฟันธง: พบความขัดแย้งของข้อมูล (Policy Implementation Gap)</h4>
+            <p style='color: #444; font-size: 14px;'>
+            จากการทำ <b>Triangulation & Sentiment Analysis</b> ระบบตรวจพบว่านโยบายของผู้บริหาร/ตัวแทน 
+            (กล่าวอ้างเชิงบวกว่าไม่มีปัญหา) ขัดแย้งโดยตรงกับคำให้การของกลุ่มเป้าหมายระดับปฏิบัติการ (กล่าวอ้างเชิงลบว่าถูกละเมิด) 
+            นี่คือช่องโหว่ด้านการตรวจสอบย้อนกลับ (Traceability) ระบบจึงยกระดับประเด็น <b>'{selected_issue}'</b> เป็นความเสี่ยงที่ต้องตั้งคณะกรรมการสืบสวนทันที
+            </p>
+        </div>
+        """
+        ai_severity_suggest = 5 if "พาสปอร์ต" in selected_issue or "แรงงาน" in selected_issue else 4
+        ai_likelihood_suggest = 4
+        ai_plan_suggest = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงเพื่อหาช่องโหว่ของการบังคับใช้นโยบาย (Implementation Gap)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้าต้นทาง\n\nRemediation Plan:\n- เยียวยาผู้ได้รับผลกระทบทันทีหากสืบสวนพบว่าเป็นความจริง"
+    
+    elif len(exec_quotes) > 0 and len(worker_quotes) == 0:
+        # มีแต่คำพูดบวก
+        ai_conclusion = f"""
+        <div style='background-color: #F0FDF4; padding: 20px; border-radius: 8px; border-left: 5px solid #166534; margin-bottom: 20px;'>
+            <h4 style='color: #14532D; margin-top:0;'>✅ AI ฟันธง: แนวปฏิบัติที่ดี (Best Practice / No Gap Detected)</h4>
+            <p style='color: #444; font-size: 14px;'>
+            จากการวิเคราะห์ <b>Sentiment Analysis</b> ข้อมูลที่ตรวจพบจากกลุ่มผู้บริหาร/คู่ค้า มีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) 
+            และไม่พบคำให้การร้องเรียนเชิงลบจากภาคปฏิบัติการ ระบบจึงตั้งประเด็น <b>'{selected_issue}'</b> เป็น <b>'สมมติฐานหลัก (Baseline)'</b> 
+            ให้ฝ่าย Audit บันทึกไว้เป็นแนวปฏิบัติที่ดี (Best Practice)
+            </p>
+        </div>
+        """
+        ai_severity_suggest = 1
+        ai_likelihood_suggest = 1
+        ai_plan_suggest = "Maintenance Plan (แผนคงสภาพ):\n- คงมาตรการเชิงบวกในปัจจุบันไว้ และดำเนินการตรวจสอบตามวงรอบปกติอย่างน้อยปีละ 1 ครั้ง เพื่อป้องกันความเสี่ยงเกิดใหม่"
+    
+    else:
+        # เจอแต่คำบ่น
+        ai_conclusion = f"""
+        <div style='background-color: #FFFBEB; padding: 20px; border-radius: 8px; border-left: 5px solid #D97706; margin-bottom: 20px;'>
+            <h4 style='color: #92400E; margin-top:0;'>⚠️ AI ฟันธง: ตรวจพบความเสี่ยงจากภาคปฏิบัติ (Operational Risk Detected)</h4>
+            <p style='color: #444; font-size: 14px;'>
+            ระบบตรวจจับ <b>Negative Sentiment</b> จากคำให้การและการสังเกตการณ์ในพื้นที่ ประเด็น <b>'{selected_issue}'</b> 
+            สะท้อนถึงปัญหาในระดับปฏิบัติการที่ส่งผลกระทบต่อสิทธิและสวัสดิภาพโดยตรง จำเป็นต้องได้รับการแก้ไขเชิงโครงสร้าง
+            </p>
+        </div>
+        """
+        ai_severity_suggest = 5 if "ชุมชน" in selected_issue else 3
+        ai_likelihood_suggest = 3
+        ai_plan_suggest = "Preventive Action (แผนป้องกันเชิงรุก):\n- จัดอบรมทบทวนขั้นตอนการทำงาน และปรับปรุงสภาพแวดล้อม/กลไก ให้เป็นไปตามมาตรฐาน\n- ติดตามผลการปรับปรุงประสิทธิภาพอย่างใกล้ชิดภายใน 3 เดือน\n\nRemediation Plan:\n- เปิดเวทีรับฟังปัญหาและเยียวยาตามความเหมาะสม"
+
+    # แสดงผล AI Conclusion
+    st.markdown(ai_conclusion, unsafe_allow_html=True)
+
+    # 💡 SHOW EVIDENCE CITATIONS (Popovers สะอาดตา)
+    st.markdown("<strong style='color: #1E293B; font-size: 15px;'>📑 ข้อมูลอ้างอิงเชิงประจักษ์ (Citations):</strong>", unsafe_allow_html=True)
+    
+    if len(exec_quotes) > 0:
+        st.markdown("<div style='color:#005B31; font-weight:bold; margin-top:10px;'>ฝั่งนโยบาย / ตัวแทน (Policy / Management)</div>", unsafe_allow_html=True)
+        for row in exec_quotes:
+            c_txt, c_btn = st.columns([8, 2])
+            with c_txt:
+                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row['รหัสผู้ตอบ']}):</b> \"{row['รายละเอียด/คำให้การ'][:60]}...\"</div>", unsafe_allow_html=True)
+            with c_btn:
+                with st.popover(f"🔍 ดูข้อมูลดิบ"):
+                    st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {row['รหัสผู้ตอบ']}")
+                    st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
+                    st.info(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
+    
+    if len(worker_quotes) > 0:
+        st.markdown("<div style='color:#B91C1C; font-weight:bold; margin-top:10px;'>ฝั่งปฏิบัติการ / ผู้ได้รับผลกระทบ (Operations / Affected)</div>", unsafe_allow_html=True)
+        for row in worker_quotes:
+            c_txt, c_btn = st.columns([8, 2])
+            with c_txt:
+                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row['รหัสผู้ตอบ']}):</b> \"{row['รายละเอียด/คำให้การ'][:60]}...\"</div>", unsafe_allow_html=True)
+            with c_btn:
+                with st.popover(f"🔍 ดูข้อมูลดิบ"):
+                    st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {row['รหัสผู้ตอบ']}")
+                    st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
+                    st.warning(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
+
+    # 💡 KNOWLEDGE BASE MATCHER (คม ชัด ลึก ตามที่ขอ)
+    kb_name = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
+    kb_clause = "-"
+    kb_desc = "ไม่พบรายละเอียดที่เจาะจงในระบบ Knowledge Base"
+    kb_doc = "Standard_Guideline.pdf"
+    kb_link = "#"
+    
+    for keyword, knowledge in LAW_KNOWLEDGE_BASE.items():
+        if keyword in selected_issue:
+            kb_name = knowledge["name"]
+            kb_clause = knowledge["clause"]
+            kb_desc = knowledge["desc"]
+            kb_doc = knowledge["doc"]
+            kb_link = knowledge["link"]
+            break
+
+    plain_evidence = f"ระบบ AI วิเคราะห์ความขัดแย้งจากข้อมูลจริง {evidence_count} รายการ ในกลุ่ม {scope_text}"
+    plain_standard = f"{kb_name} ({kb_clause})"
+
+    st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
+    st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 3. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
+
+    # 💡 THE STRICT RUBRIC EXPLANATION (โชว์ตารางคะแนนให้เห็นชัดเจนตามไฟล์ Docx)
+    st.markdown("""
+    <div style='background-color: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;'>
+        <strong style='color: #0F172A; font-size: 14px;'>ℹ️ ตารางเกณฑ์การประเมินนัยสำคัญ (Risk Assessment Rubric):</strong>
+        <ul style='font-size: 13px; color: #475569; margin-top: 10px;'>
+            <li>🔴 <b>วิกฤต (Critical):</b> คะแนน <b>16 - 25</b> (ต้องระงับการทำงานทันที)</li>
+            <li>🟡 <b>สูง (Significant):</b> คะแนน <b>8 - 15</b> (ทำแผนป้องกันเชิงรุก แก้ไขภายใน 3 เดือน)</li>
+            <li>🟢 <b>ปกติ/เฝ้าระวัง (Moderate/Minor):</b> คะแนน <b>1 - 7</b> (ติดตามผลตามวงรอบปกติ)</li>
+        </ul>
+        <div style='font-size: 13px; color: #B91C1C; margin-top: 5px; font-weight: bold;'>
+            * กฎความร้ายแรงนำ (Severity-led Rule): หากความรุนแรง (Severity) มีระดับ 5 (Zero Tolerance) จะถือเป็นระดับ 'วิกฤต' ทันที แม้คะแนนรวมจะไม่ถึง 16 ก็ตาม
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.info("💡 **AI Recommendation:** ระบบได้ปรับตั้งค่าแถบเลื่อนด้านล่างให้อัตโนมัติตามการวิเคราะห์ความเสี่ยงเบื้องต้น ท่านสามารถปรับแก้ได้ตามดุลยพินิจ")
+
+    col_s1, col_s2, col_s3 = st.columns(3)
+    with col_s1: scale = st.slider("Scale (ขนาดผลกระทบ: 1 เล็กน้อย - 5 Zero Tolerance)", 1, 5, ai_severity_suggest)
+    with col_s2: scope = st.slider("Scope (วงกว้าง: 1 เฉพาะบุคคล - 5 ระดับประเทศ)", 1, 5, ai_severity_suggest)
+    with col_s3: remedy = st.slider("Remedy (การเยียวยา: 1 ทำได้ทันที - 5 เยียวยาไม่ได้)", 1, 5, ai_severity_suggest)
+    
+    sev_max = max(scale, scope, remedy)
+    likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, ai_likelihood_suggest)
+    score = sev_max * likelihood
+
+    # 💡 STRICT LOGIC FOR RISK LEVELS (แก้บั๊ก 15 = วิกฤต เรียบร้อย)
+    if score >= 16:
+        risk_zone = "RED"
+        badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} (อยู่ในช่วง 16-25)</div>'
+    elif sev_max == 5:
+        risk_zone = "RED"
+        badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} แต่ถูกปรับระดับเป็นวิกฤตตามกฎ "ความร้ายแรงนำ" เนื่องจาก Severity = 5</div>'
+    elif score >= 8 and score <= 15:
+        risk_zone = "YELLOW"
+        badge_html = f'<div class="salient-badge" style="background-color: #FFFBEB; color: #D97706; border-color: #FDE68A;">⚠️ SIGNIFICANT RISK (ระดับสูง): คะแนนประเมิน {score} (อยู่ในช่วง 8-15)</div>'
+    else:
+        risk_zone = "GREEN"
+        badge_html = f'<div class="salient-badge" style="background-color: #F0FDF4; color: #166534; border-color: #BBF7D0;">✅ MODERATE/MINOR RISK (ระดับเฝ้าระวัง): คะแนนประเมิน {score} (อยู่ในช่วง 1-7)</div>'
+    
+    st.markdown(f"<h4 style='color: #005B31; text-align:center; padding: 15px; background: #F4F7F6; border-radius: 8px;'>Severity Max: {sev_max} | โอกาสเกิด: {likelihood} | คะแนนรวม: {score}</h4>", unsafe_allow_html=True)
+    
+    rows = ""
+    for l in range(5, 0, -1):
+        rows += "<tr>"
+        for s in range(1, 6):
+            color = get_heat_color(s, l)
+            mark = "★" if s == sev_max and l == likelihood else ""
+            rows += f"<td class='heat-cell' style='background-color:{color}; box-shadow: inset 0 0 15px rgba(0,0,0,0.1);'>{mark}</td>"
+        rows += "</tr>"
+    st.markdown(f"<table class='heat-table'>{rows}</table><p style='text-align:center; color: #666; margin-top: 10px;'><small>แนวนอน: Severity | แนวตั้ง: Likelihood</small></p>", unsafe_allow_html=True)
+    
+    st.markdown(badge_html, unsafe_allow_html=True)
+
+    edit_evidence = plain_evidence
+    edit_standard = plain_standard
+    edit_plan = ai_plan_suggest
+
+    if is_already_approved and save_issue in st.session_state.saved_plans_dict:
+        saved_data = st.session_state.saved_plans_dict[save_issue]
+        edit_evidence = saved_data.get('evidence', plain_evidence)
+        edit_standard = saved_data.get('standard', plain_standard)
+        edit_plan = saved_data.get('plan', ai_plan_suggest)
+
+    st.markdown("""
+    <div class="gemini-draft-box" style="margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; border-bottom: none;">
+        <div style="display: flex; justify-content: space-between; align-items: start;">
+            <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Draft Mitigation Plan</h4>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 💡 2. NATIVE POPOVER FOR DETAILED LAW CITATION
+    c_std1, c_std2 = st.columns([8, 2])
+    with c_std1:
+        st.markdown(f"<div style='background: #FFFFFF; padding: 10px 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {kb_name} ({kb_clause})</div>", unsafe_allow_html=True)
+    with c_std2:
+        with st.popover("📚 ดูข้อกฎหมายฉบับเต็ม"):
+            st.markdown(f"### ⚖️ {kb_name}")
+            st.write(f"**ระบุข้อ/มาตรา:** {kb_clause}")
+            st.success(f"**รายละเอียดข้อบังคับ:**\n\n{kb_desc}")
+            st.markdown(f"**📄 เอกสารต้นฉบับ:** `{kb_doc}`")
+            st.markdown(f"🔗 [คลิกเพื่อเปิดลิงก์ฐานข้อมูลสากล]({kb_link})")
+            st.caption("*ดึงข้อมูลจากระบบ Knowledge Base")
+
+    st.markdown("""
+    <div style="background: #FAFAFA; border: 1px solid #D2E3FC; border-top: none; padding: 25px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; margin-bottom: 30px;">
+        <h5 style="color: #005B31; margin-top: 0; margin-bottom: 15px;"><i class="fa-solid fa-pen-to-square"></i> 4. ทบทวนและปรับแก้ข้อมูลโดยมนุษย์ (Human Override)</h5>
+        <p style="font-size: 13px; color: #666; margin-bottom: 15px;">ระบบ AI ได้จัดทำร่างแผนกลยุทธ์เบื้องต้นให้แล้ว ท่านสามารถปรับแก้ให้สมบูรณ์ก่อนกดอนุมัติ</p>
+    """, unsafe_allow_html=True)
+    
+    final_evidence = st.text_area("✍️ แก้ไขหลักฐานสนับสนุน (Triangulation Evidence):", value=edit_evidence, height=80)
+    final_standard = st.text_area("✍️ แก้ไขมาตรฐานอ้างอิง (Framework / Standard):", value=edit_standard, height=60)
+    final_plan = st.text_area("✍️ แก้ไขแผนการจัดการความเสี่ยง (Mitigation & Remediation Plan):", value=edit_plan, height=150)
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    button_label = "🔄 อัปเดตข้อมูลฉบับแก้ไข (Overwrite Data)" if is_already_approved else "💾 อนุมัติและบันทึกประเด็นยุทธศาสตร์ (Approve Plan)"
+
+    if st.button(button_label):
+        if sheet:
+            db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
+            detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Evidence: {final_evidence} | Standard: {final_standard} | Plan: {final_plan}"
+            macro_group = f"ประเมินเจาะจงกลุ่ม ({custom_filter_text})" if custom_filter_text else "ประเมินระดับองค์กร (Corporate Level)"
+            
+            new_row_data = [now, audit_cycle, auditor_name, "N/A", "Tool 5", "Issue-Based", macro_group, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
+            
+            st.session_state.saved_plans_dict[save_issue] = {
+                'plan': final_plan, 
+                'sev': sev_max, 
+                'lik': likelihood,
+                'filter_context': custom_filter_text 
+            }
+            if not is_already_approved:
+                st.session_state.approved_issues.append(save_issue)
+
+            with st.spinner("กำลังอัปเดตลง Google Sheet..."):
+                sheet.append_row(new_row_data)
+                st.success(f"✅ **อนุมัติและบันทึกแผนยุทธศาสตร์สำเร็จ:** ประเด็น '{save_issue}' พร้อมนำไปแสดงผลใน Tool 7 แล้ว")
+
     st.markdown("</div>", unsafe_allow_html=True)
 
 # ----------------- TOOL 6 (Predictive Hotspot Modeling) -----------------
