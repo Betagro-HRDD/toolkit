@@ -1019,13 +1019,39 @@ elif choice.startswith("Tool 7"):
 6. ข้อสรุปเชิงยุทธศาสตร์ (Executive Conclusion)
 องค์กรได้พิสูจน์ให้เห็นถึงการยกระดับกระบวนทัศน์จากการมอง "ความเสี่ยงต่อธุรกิจ (Risk to Business)" ไปสู่การปกป้อง "ความเสี่ยงต่อผู้คน (Risk to People)" อย่างแท้จริง การบูรณาการเทคโนโลยี AI เข้ากับกระบวนการ HRDD ทำให้องค์กรสามารถดักจับความเสี่ยงที่มองไม่เห็น (Invisible Risks) เพิ่มขีดความสามารถในการตรวจสอบย้อนกลับ (Traceability) และยกระดับคุณภาพชีวิตของผู้มีส่วนได้เสียตลอดห่วงโซ่อุปทาน อันเป็นรากฐานสำคัญของการเติบโตอย่างยั่งยืนในเวทีโลก"""
 
+       # ค้นหาจุดนี้ในโค้ดเดิมแล้ววางทับลงไป
         st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานยุทธศาสตร์ก่อนการอนุมัติขั้นสุดท้าย:**")
-        report_text_final = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=800, label_visibility="collapsed")
         
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
-            if sheet:
-                sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", "ภาพรวมองค์กร", "N/A", "N/A", f"Strategic HRDD Report: {audit_cycle}", report_text_final, "", "", "", "Approved"])
-                st.success("✅ อนุมัติยุทธศาสตร์องค์กรและบันทึกรายงานประเมินความเสี่ยงฉบับสมบูรณ์เข้าสู่ฐานข้อมูลเรียบร้อยแล้ว!")
+        # --- 🟢 ส่วนที่แก้ไขใหม่: เช็คว่ามีรายงานในฐานข้อมูลแล้วหรือยัง ---
+        # สมมติว่าข้อมูลดิบของคุณอยู่ในตัวแปร df_real (หรือ df) ให้กรองหา Tool 7
+        df_tool7_report = df_real[df_real['เครื่องมือ'] == 'Tool 7 - Report']
+        
+        # ถ้ามีข้อมูล Tool 7 ในชีตแล้ว ให้แสดงหน้า "อนุมัติแล้ว"
+        if not df_tool7_report.empty:
+            # ดึงรายงานบรรทัดล่าสุดมาแสดง
+            latest_report = df_tool7_report.iloc[-1]
+            st.success("✅ รายงานยุทธศาสตร์ฉบับนี้ได้รับการอนุมัติและบันทึกลงระบบแล้ว")
+            
+            # แสดงข้อมูลรายงาน (ดึงจากคอลัมน์ รายละเอียด/คำให้การ หรือคอลัมน์ที่คุณบันทึก report_text_final ลงไป)
+            st.info(latest_report['รายละเอียด/คำให้การ'])
+            
+            # ถ้าอยากให้มีปุ่มกลับไปแก้ไขได้
+            if st.button("📝 สร้างรายงานฉบับใหม่ / เขียนทับ"):
+                # ให้ลบแคชเผื่ออยากโหลดใหม่ แต่เคสนี้เราแค่หลอกให้พิมพ์ใหม่
+                pass # ถ้าจะให้มีลอจิกแก้ข้อมูล ค่อยมาเติมตรงนี้
                 
-    st.markdown("</div>", unsafe_allow_html=True)
+        # ถ้ายังไม่มีรายงานในชีต ให้แสดงหน้า "ร่างรายงานและปุ่มอนุมัติ"
+        else:
+            report_text_final = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=800, label_visibility="collapsed")
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
+                if sheet:
+                    # โค้ดบันทึกข้อมูลเดิมของคุณ (ตรวจสอบให้แน่ใจว่าคอลัมน์ตรงกับโครงสร้างคุณ)
+                    sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", "ภาพรวมองค์กร", "N/A", "N/A", "รายงานยุทธศาสตร์", report_text_final, "N/A", "N/A", "N/A", "N/A", "N/A"])
+                    
+                    # ==========================================
+                    # 🔴 หัวใจสำคัญของการแก้ปัญหาอยู่ตรง 2 บรรทัดนี้
+                    # ==========================================
+                    st.cache_data.clear() # 1. สั่งล้างข้อมูลเก่าที่จำไว้ทิ้ง เพื่อให้ไปดึงจาก Google Sheet ใหม่
+                    st.rerun() # 2. สั่งรีเฟรชหน้าจอทันที เพื่อให้เงื่อนไข (if not df_tool7_report.empty) ด้านบนทำงาน
