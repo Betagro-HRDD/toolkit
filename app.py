@@ -983,11 +983,11 @@ elif choice.startswith("Tool 7"):
 
         # 🟢 ฟังก์ชันค้นหาคำอ้างอิงและหลักฐานจากฐานข้อมูล
         def get_evidence_quote(topic, df_raw):
-            clean_topic = str(topic).replace("Early Warning", "").replace("(", "").replace(")", "").strip()
+            clean_topic = str(topic).replace("Early Warning", "").replace("🚩", "").replace("สัญญาณเตือนภัยล่วงหน้า", "").replace("(", "").replace(")", "").replace(":", "").strip()
             
             # กรณีเฉพาะ Recruitment Fee (สร้าง Policy Mismatch)
-            if "Recruitment" in clean_topic or "นายหน้า" in clean_topic:
-                 return "พบความขัดแย้งเชิงนโยบาย (Policy Mismatch): ข้อมูลองค์กร (Tool 1) ระบุ \"มีนโยบาย Zero Recruitment Fee ชัดเจน\" แต่ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ) กลับระบุว่า \"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้... ต้องจ่ายค่านายหน้า 15,000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\""
+            if "Recruitment" in clean_topic or "นายหน้า" in clean_topic or "ค่าธรรมเนียม" in clean_topic:
+                 return "พบความขัดแย้งเชิงนโยบาย (Policy Mismatch): ข้อมูลองค์กร (Tool 1) ระบุ \"บริษัทมีนโยบาย Zero Recruitment Fee ชัดเจน แรงงานทุกคนไม่ต้องเสียค่าใช้จ่าย\" แต่ข้อมูลปฏิบัติจริง (Tool 3: แรงงานข้ามชาติ) พบคำให้การระบุว่า \"เอเจนซี่ขอยึดพาสปอร์ตไปเก็บไว้... ต้องจ่ายค่านายหน้า 15,000 บาท ตอนนี้ยังใช้หนี้ไม่หมด\""
             
             # กรณีอื่นๆ พยายามดึงคำให้การจาก Tool 3, 4 จริงๆ มาแสดง
             if not df_raw.empty:
@@ -1071,22 +1071,26 @@ elif choice.startswith("Tool 7"):
             for _, row in df_ew.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 raw_plan = str(row.get('รายละเอียด/คำให้การ', ''))
-                issue_topic = iss.replace('Early Warning', '').strip('() ')
                 
                 # ค้นหาคำอ้างอิง
-                evidence_str = get_evidence_quote(issue_topic, df_real)
+                evidence_str = get_evidence_quote(iss, df_real)
                 
                 # แปลง Log เป็นคำแนะนำ
                 if "Anomaly" in raw_plan or raw_plan.strip() == "":
                     note_part = raw_plan.split("Note:")[-1].strip() if "Note:" in raw_plan else ""
+                    # ตัดเอาแค่ชื่อหัวข้อไปเขียนแผน (ซ่อนคำว่า Early warning)
+                    clean_iss_name = iss.replace('🚩', '').replace('สัญญาณเตือนภัยล่วงหน้า', '').replace('(Early Warning)', '').replace(':', '').strip()
                     if not note_part:
-                        plan_display = f"ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี {issue_topic} เพื่อป้องกันการยกระดับความรุนแรงตามกฎหมายสากล"
+                        plan_display = f"ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี {clean_iss_name} เพื่อป้องกันการยกระดับความรุนแรงตามกฎหมายสากล"
                     else:
                         plan_display = f"ข้อสั่งการเพิ่มเติม: {note_part}"
                 else:
                     plan_display = raw_plan
 
-                ew_bullets += f"🚨 สัญญาณเตือนภัย (Alert): ความเปราะบางเชิงโครงสร้างเรื่อง {issue_topic}\n  🔍 หลักฐานเชิงประจักษ์ (Evidence Citation): {evidence_str}\n  🛡️ แนวทางสืบสวนเชิงลึก (Investigation Protocol): {plan_display}\n\n"
+                # 🟢 ดึงชื่อประเด็นหลักมาแสดงเป๊ะๆ ตามที่คุณ Approved ไว้
+                display_iss = iss if "สัญญาณเตือนภัยล่วงหน้า" in iss else f"🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): {iss}"
+
+                ew_bullets += f"{display_iss}\n  🔍 หลักฐานเชิงประจักษ์ (Evidence Citation): {evidence_str}\n  🛡️ แนวทางสืบสวนเชิงลึก (Investigation Protocol): {plan_display}\n\n"
 
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_ew)} ประเด็นหลัก:
