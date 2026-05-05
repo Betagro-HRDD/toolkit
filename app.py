@@ -8,9 +8,6 @@ import altair as alt
 # ==========================================
 # --- 1. SETTING UP THE PAGE ---
 # ==========================================
-st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢", layout="wide")
-
-# --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix ทะลวง Streamlit Flexbox) ---
 st.markdown("""
 <style>
     /* แก้ไขส่วน Header/Hero ให้ยืดหยุ่นตามหน้าจอ */
@@ -79,7 +76,6 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
-# --------------------------------------------------------
 
 # ==========================================
 # --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบาย) ---
