@@ -924,7 +924,7 @@ elif choice.startswith("Tool 6"):
             
     st.markdown("</div>", unsafe_allow_html=True)
 
----------------- TOOL 7 (Executive Dashboard & STRATEGIC AI Report) -----------------
+# ----------------- TOOL 7 (Executive Dashboard & STRATEGIC AI Report) -----------------
 elif choice.startswith("Tool 7"):
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     
