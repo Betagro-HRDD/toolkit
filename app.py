@@ -13,46 +13,71 @@ st.set_page_config(page_title="Betagro Smart HRDD Simulation", page_icon="🟢",
 # --- เพิ่ม CSS แก้ปัญหาหน้าจอมือถือตกขอบ (Responsive Fix ทะลวง Streamlit Flexbox) ---
 st.markdown("""
 <style>
-    /* 1. รีเซ็ต Box Sizing ป้องกัน Padding ดันขอบจอ และตัด Scroll แนวนอนระดับราก */
-    html, body, .stApp, .main, .block-container {
-        overflow-x: hidden !important;
-        max-width: 100vw !important;
+    /* แก้ไขส่วน Header/Hero ให้ยืดหยุ่นตามหน้าจอ */
+    .main-header {
+        background: linear-gradient(135deg, #005B31 0%, #009245 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden; /* ป้องกันเนื้อหาแลบออกนอกกรอบ */
+        display: flex;
+        flex-wrap: wrap; /* สำคัญ: ให้ของข้างในตัดบรรทัดได้ถ้าที่ไมพอ */
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
     }
-    
-    /* 2. กฎเฉพาะสำหรับหน้าจอมือถือและแท็บเล็ต */
+
+    /* ปรับแต่งกล่องข้อความฝั่งซ้าย */
+    .header-content {
+        flex: 1 1 300px; /* ยืดหดได้ และมีขนาดเริ่มต้นที่พอดี */
+    }
+
+    /* แก้ไขกล่องฝั่งขวา (ที่มักจะตกขอบ) */
+    .header-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 10px 20px;
+        border-radius: 50px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.3);
+        font-size: 0.9rem;
+        white-space: nowrap; /* ป้องกันตัวอักษรตัดบรรทัดแบบแปลกๆ */
+        max-width: fit-content; /* ให้กว้างเท่าที่จำเป็น */
+    }
+
+    /* CSS Media Query สำหรับมือถือโดยเฉพาะ */
     @media (max-width: 768px) {
-        /* หักดิบ Streamlit: บังคับแท็กรูปภาพทั่วไปและกล่องรูปภาพของ Streamlit ให้พอดีจอ */
-        img {
-            max-width: 100% !important;
-            height: auto !important;
+        .main-header {
+            padding: 1.5rem;
+            text-align: center; /* บนมือถือจัดกลางจะดูดีกว่า */
+            justify-content: center;
         }
         
-        div[data-testid="stImage"], 
-        div[data-testid="stImage"] > div,
-        div[data-testid="stImage"] img {
-            width: 100% !important;
-            max-width: 100vw !important;
-            object-fit: contain !important;
+        .header-badge {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            padding: 5px 15px;
         }
-
-        /* บังคับตัวห่อหุ้มคอลัมน์หลักให้เรียงจากบนลงล่างแทนซ้ายไปขวา */
-        div[data-testid="stHorizontalBlock"] {
-            flex-direction: column !important;
-            width: 100% !important;
-            gap: 1rem !important;
-        }
-
-        /* บังคับคอลัมน์ย่อยทุกอันให้กว้าง 100% เต็มจอ */
-        div[data-testid="column"] {
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: 100% !important;
-            flex: 1 1 100% !important;
-            display: block !important;
-            margin-bottom: 1rem !important;
+        
+        h1 {
+            font-size: 1.8rem !important; /* ปรับขนาดหัวข้อให้เล็กลงหน่อยบนมือถือ */
         }
     }
 </style>
+""", unsafe_allow_html=True)
+
+# ส่วนการแสดงผล Hero (ตัวอย่างโครงสร้างที่ควรใช้คู่กับ CSS ด้านบน)
+st.markdown("""
+<div class="main-header">
+    <div class="header-content">
+        <h1 style="margin:0; color:white;">RiskSearch 360°</h1>
+        <p style="margin:0; opacity:0.9;">Strategic Human Rights Due Diligence Platform</p>
+    </div>
+    <div class="header-badge">
+        🚀 AI Powered System v2.5
+    </div>
+</div>
 """, unsafe_allow_html=True)
 # --------------------------------------------------------
 
