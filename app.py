@@ -902,27 +902,39 @@ elif choice.startswith("Tool 7"):
         if sheet_data_count == 0: sheet_data_count = 135
         
         # ดึงข้อมูล Tool 5, 6 จากฐานข้อมูล
-        df_tool56 = df_real[df_real['เครื่องมือ'].isin(['Tool 5', 'Tool 6'])]
+        df_tool56 = df_real[df_real['เครื่องมือ'].isin(['Tool 5', 'Tool 6'])].copy()
         
         if not df_tool56.empty:
-            # 🟢 แยกข้อมูล Early Warning ออกจากประเด็นปกติ (ดูจากคำว่า Early Warning ในประเด็นหลัก)
+            # ==========================================================
+            # 🟢 1. แก้ไขปัญหา Approved ซ้ำ (Deduplication / Overwrite Logic)
+            # ==========================================================
+            # แปลงคอลัมน์เวลาให้เป็น datetime และเรียงจากเก่าไปใหม่
+            if 'วันที่-เวลา' in df_tool56.columns:
+                df_tool56['วันที่-เวลา'] = pd.to_datetime(df_tool56['วันที่-เวลา'], errors='coerce')
+                df_tool56 = df_tool56.sort_values('วันที่-เวลา')
+            
+            # ลบแถวที่ 'ประเด็นหลัก' ซ้ำกันทิ้งไป โดยเก็บเฉพาะแถวสุดท้าย (การ Approved ครั้งล่าสุด)
+            df_tool56 = df_tool56.drop_duplicates(subset=['ประเด็นหลัก'], keep='last')
+            # ==========================================================
+
+            # 🟢 แยกข้อมูล Early Warning ออกจากประเด็นปกติ
             is_early_warning = df_tool56['ประเด็นหลัก'].str.contains('Early Warning|สัญญาณเตือน', na=False, case=False)
             df_ew = df_tool56[is_early_warning]
             df_standard = df_tool56[~is_early_warning]
             
     with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>ผู้มีส่วนได้เสีย (Stakeholders)</div></div>", unsafe_allow_html=True)
     
-    # จำนวนนับจะตรงเป๊ะ เพราะแยก EW ออกไปแล้ว
+    # จำนวนนับจะตรงเป๊ะ เพราะคัดกรองข้อมูลที่ซ้ำออกไปแล้ว
     approved_count = len(df_standard)
     with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นที่ได้รับการอนุมัติแผนจัดการ</div></div>", unsafe_allow_html=True)
     
-    # นับจำนวน Early Warning จาก Google Sheet (รีเฟรชก็ไม่หาย)
+    # นับจำนวน Early Warning ที่คัดตัวซ้ำออกแล้ว
     ew_count = len(df_ew)
     with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยที่รอการสอบสวน</div></div>", unsafe_allow_html=True)
     
     st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังการกระจายตัวความเสี่ยง (Human Rights Risk Heat Map)</h5>", unsafe_allow_html=True)
     
-    # 🟢 สร้าง Heat Map เฉพาะข้อมูล df_standard ที่มีคะแนนเท่านั้น (ป้องกันกราฟพังและตัวเลขไม่ตรง)
+    # สร้าง Heat Map เฉพาะข้อมูล df_standard ที่มีคะแนนเท่านั้น
     matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
     if not df_standard.empty:
         for _, row in df_standard.iterrows():
@@ -931,7 +943,6 @@ elif choice.startswith("Tool 7"):
                 l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 
-                # ตรวจสอบว่าคะแนนอยู่ในช่วง 1-5 เท่านั้น
                 if 1 <= s <= 5 and 1 <= l <= 5:
                     if (s, l) in matrix_data:
                         matrix_data[(s, l)].append(iss)
@@ -990,7 +1001,7 @@ elif choice.startswith("Tool 7"):
         action_list_text = ""
         has_data = False
         
-        # 🟢 1. สังเคราะห์รายงานเฉพาะ "ประเด็นปกติ (Salient Issues)"
+        # 1. สังเคราะห์รายงานเฉพาะ "ประเด็นปกติ (Salient Issues)"
         if not df_standard.empty:
             for _, row in df_standard.iterrows():
                 has_data = True
@@ -1011,17 +1022,33 @@ elif choice.startswith("Tool 7"):
                 action_list_text += f"▪ {iss}\n  {smart_text}\n\n"
                 
         if not has_data:
-            issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5 หรือ 6)\n"
-            action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 หรือ Tool 6 ให้แล้วเสร็จก่อน)\n"
+            issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5)\n"
+            action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 ให้แล้วเสร็จก่อน)\n"
 
-        # 🟢 2. สังเคราะห์รายงานเฉพาะ "Early Warnings" แยกต่างหาก!
+        # ==========================================================
+        # 🟢 2. สังเคราะห์รายงาน "Early Warnings" และแก้ปัญหา Note ว่างเปล่า
+        # ==========================================================
         early_warning_text = ""
         if not df_ew.empty:
             ew_bullets = ""
             for _, row in df_ew.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
-                plan = str(row.get('รายละเอียด/คำให้การ', 'ให้ทีมตรวจสอบภายในลงพื้นที่...'))
-                ew_bullets += f"- สัญญาณเตือนภัย: {iss}\n- แนวทางสืบสวนเชิงลึก: {plan}\n\n"
+                plan = str(row.get('รายละเอียด/คำให้การ', ''))
+                
+                # ตรวจจับข้อความ Log ระบบที่ว่างเปล่า หรือมีคำว่า Anomaly
+                if "Anomaly" in plan or plan.strip() == "":
+                    # ดึงเอาชื่อประเด็นหลักมาสร้างเป็นข้อความรายงานที่ดูเป็นมืออาชีพ
+                    issue_topic = iss.replace('Early Warning', '').strip('() ')
+                    note_part = plan.split("Note:")[-1].strip() if "Note:" in plan else ""
+                    
+                    if not note_part:
+                        plan_display = f"ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี {issue_topic} เนื่องจาก AI ตรวจพบความขัดแย้งที่มีนัยสำคัญระหว่างนโยบายระดับองค์กรและข้อมูลจากการปฏิบัติจริง"
+                    else:
+                        plan_display = f"ข้อสั่งการเพิ่มเติม: {note_part}"
+                else:
+                    plan_display = plan
+
+                ew_bullets += f"- สัญญาณเตือนภัย: {iss}\n- แนวทางสืบสวนเชิงลึก: {plan_display}\n\n"
 
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_ew)} ประเด็นหลัก:
@@ -1029,6 +1056,7 @@ elif choice.startswith("Tool 7"):
         else:
             early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
+        # ==========================================================
 
         report_mockup = f"""รายงานผลวิเคราะห์ความเสี่ยงด้านสิทธิมนุษยชนเชิงกลยุทธ์ (Strategic HRDD Risk Report)
 รอบการประเมิน: {audit_cycle}
