@@ -483,11 +483,8 @@ elif choice.startswith("Tool 5"):
     df_filtered = raw_data_only_df.copy()
     if not raw_data_only_df.empty:
         if custom_filter_text:
-            # --- ส่วนที่แก้ไขแล้ว ---
-            # 1. ตัดเอาเฉพาะคำหลักภาษาไทยไปค้นหา ป้องกันปัญหาชื่อที่มีวงเล็บภาษาอังกฤษต่อท้าย
             search_keyword = custom_filter_text.split(" ")[0]
             
-            # 2. ค้นหาแบบยืดหยุ่นด้วย regex (|) ครอบคลุมทั้งกรณีบันทึกเป็นไทยและอังกฤษในฐานข้อมูล
             if search_keyword == "องค์กรไม่แสวงหากำไร":
                 df_filtered = raw_data_only_df[
                     raw_data_only_df['กลุ่มเป้าหมาย'].str.contains("องค์กรไม่แสวงหากำไร|NGO", na=False, case=False, regex=True)
@@ -498,11 +495,16 @@ elif choice.startswith("Tool 5"):
                 ]
             else:
                 df_filtered = raw_data_only_df[raw_data_only_df['กลุ่มเป้าหมาย'].str.contains(search_keyword, na=False, case=False)]
-            # ---------------------
     
     sheet_data_count = len(df_filtered)
+    
+    # 🟢 ดักจับ Bias ที่ 1: ไม่มีข้อมูลตอบกลับจากกลุ่มนี้เลย
     if sheet_data_count == 0: 
-        st.warning(f"⚠️ ไม่พบข้อมูลดิบของการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
+        if custom_filter_text in ["ผู้บริหาร", "คู่ค้า (Suppliers)", "ลูกค้า"]:
+            st.warning(f"⚠️ ผลการวิเคราะห์ข้อมูลเฉพาะกลุ่ม [{custom_filter_text}]: ไม่พบการรายงานความเสี่ยง (Zero Self-Reported Risks)")
+            st.info("🚨 **ข้อควรระวังตามมาตรฐาน HRDD (Blind-spot Alert):** การที่กลุ่มระดับบริหารหรือคู่ค้าประเมินตนเองว่า 'ไม่มีความเสี่ยง' อาจเกิดจาก Self-reporting Bias ระบบไม่อนุญาตให้ถือว่าองค์กรปลอดภัยจนกว่าจะทำการครอสเช็คข้อมูล แนะนำให้คุณไปสแกนข้อมูลกลุ่ม **'แรงงานข้ามชาติ'** หรือ **'ภาพรวมองค์กร'** เพื่อเปรียบเทียบข้อเท็จจริง!")
+        else:
+            st.warning(f"⚠️ ไม่พบข้อมูลดิบของการประเมินของกลุ่มเป้าหมาย [{custom_filter_text}] ในฐานข้อมูล (Google Sheet)")
         st.stop()
 
     btn_text = f"✨ ให้ Gemini AI ดึงข้อมูลของกลุ่ม [{custom_filter_text}] จำนวน {sheet_data_count} รายการ มาวิเคราะห์ความเสี่ยง" if custom_filter_text else f"✨ ให้ Gemini AI วิเคราะห์ประเด็นจากภาพรวมองค์กรทั้งหมด ({sheet_data_count} รายการ)"
@@ -516,13 +518,18 @@ elif choice.startswith("Tool 5"):
         real_issues_from_sheet = []
         if 'ประเด็นหลัก' in df_filtered.columns:
             raw_issues = df_filtered['ประเด็นหลัก'].unique().tolist()
-            real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "Worker Survey", "Site Observation", "Policy Gap Analysis"]]
+            real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "nan", "Worker Survey", "Site Observation", "Policy Gap Analysis"]]
         
+        # 🟢 ดักจับ Bias ที่ 2: มีข้อมูล แต่ประเมินตัวเองว่า "ไม่เสี่ยงเลย"
         if len(real_issues_from_sheet) == 0:
-            st.info(f"✅ AI ประมวลผลข้อมูลของกลุ่มนี้แล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญครับ")
+            if custom_filter_text in ["ผู้บริหาร", "คู่ค้า (Suppliers)"]:
+                st.warning(f"⚠️ ผลการวิเคราะห์ข้อมูลเฉพาะกลุ่ม [{custom_filter_text}]: ไม่พบประเด็นความเสี่ยงจากการประเมินตนเอง")
+                st.info("🚨 **ข้อควรระวังตามมาตรฐาน HRDD (Blind-spot Alert):** กลุ่มเป้าหมายนี้มีแนวโน้มเกิด Self-reporting Bias ระบบไม่อนุญาตให้ถือว่าองค์กรปลอดภัยจนกว่าจะครอสเช็คกับเสียงของผู้ได้รับผลกระทบ แนะนำให้สแกน **'ภาพรวมองค์กร'** เพื่อดึงประเด็นขึ้นมาพิจารณา!")
+            else:
+                st.info(f"✅ AI ประมวลผลข้อมูลของกลุ่มนี้แล้ว ไม่พบประเด็นความเสี่ยงที่มีนัยสำคัญครับ")
             st.stop()
             
-        ai_header = f"🤖 Gemini AI พบ {len(real_issues_from_sheet)} ประเด็นความเสี่ยง จากฐานข้อมูลจริง (กลุ่ม: {custom_filter_text if custom_filter_text else 'ทั้งหมด'}):"
+        ai_header = f"🤖 Gemini AI พบ {len(real_issues_from_sheet)} ประเด็นความเสี่ยง จากฐานข้อมูลจริง (กลุ่ม: {custom_filter_text if custom_filter_text else 'ภาพรวมทั้งหมด'}):"
         st.markdown(f'<div style="background: #E8F0FE; padding: 15px; border-radius: 8px; border-left: 4px solid #1967D2; margin-bottom: 20px;"><span style="color: #1967D2; font-weight: 700; font-size: 14px;">{ai_header}</span></div>', unsafe_allow_html=True)
         
         numbered_issues = [f"{idx+1}. {iss}" for idx, iss in enumerate(real_issues_from_sheet)]
@@ -536,22 +543,21 @@ elif choice.startswith("Tool 5"):
         selected_issue = selected_option.split(". ", 1)[1] if ". " in selected_option else selected_option
 
     save_issue = selected_issue
-    is_already_approved = save_issue in st.session_state.approved_issues
-    scope_text = f"กลุ่ม {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
+    is_already_approved = save_issue in st.session_state.get("approved_issues", [])
+    scope_text = f"กลุ่มเป้าหมาย: {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
 
-    # 💡 2. AI ANALYTICAL ENGINE (MOCK)
-    # เราจะให้ AI ฟันธงเลยว่าเกิดอะไรขึ้น แทนที่จะแค่โชว์ข้อมูล
-    
+    # 💡 2. AI ANALYTICAL ENGINE (MOCK) - GLOBAL TRIANGULATION
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-brain'></i> 2. ผลการวิเคราะห์และฟันธงโดย AI (AI Executive Summary)</h5>", unsafe_allow_html=True)
 
-    # ดึงข้อมูลมาวิเคราะห์
     evidence_count = 0
     exec_quotes = []
     worker_quotes = []
     
-    if not df_filtered.empty and 'รายละเอียด/คำให้การ' in df_filtered.columns:
-        subset = df_filtered[df_filtered['ประเด็นหลัก'] == selected_issue]
+    # 🟢 หัวใจสำคัญ: ดึงข้อมูลจาก "ภาพรวมองค์กร (raw_data_only_df)" เสมอ เพื่อครอสเช็คข้ามกลุ่ม (Triangulation) 
+    # ป้องกันปัญหาคะแนนไม่ตรงกันเมื่อเปลี่ยนกลุ่ม
+    if not raw_data_only_df.empty and 'รายละเอียด/คำให้การ' in raw_data_only_df.columns:
+        subset = raw_data_only_df[raw_data_only_df['ประเด็นหลัก'] == selected_issue]
         for idx, row in subset.iterrows(): 
             if str(row['รายละเอียด/คำให้การ']).strip() != "":
                 evidence_count += 1
@@ -573,9 +579,8 @@ elif choice.startswith("Tool 5"):
         <div style='background-color: #FEF2F2; padding: 20px; border-radius: 8px; border-left: 5px solid #DC2626; margin-bottom: 20px;'>
             <h4 style='color: #991B1B; margin-top:0;'>⚠️ AI ฟันธง: พบความขัดแย้งของข้อมูล (Policy Implementation Gap)</h4>
             <p style='color: #444; font-size: 14px;'>
-            จากการทำ <b>Triangulation & Sentiment Analysis</b> ระบบตรวจพบว่านโยบายของผู้บริหาร/ตัวแทน 
-            (กล่าวอ้างเชิงบวกว่าไม่มีปัญหา) ขัดแย้งโดยตรงกับคำให้การของกลุ่มเป้าหมายระดับปฏิบัติการ (กล่าวอ้างเชิงลบว่าถูกละเมิด) 
-            นี่คือช่องโหว่ด้านการตรวจสอบย้อนกลับ (Traceability) ระบบจึงยกระดับประเด็น <b>'{selected_issue}'</b> เป็นความเสี่ยงที่ต้องตั้งคณะกรรมการสืบสวนทันที
+            จากการทำ <b>Triangulation & Sentiment Analysis</b> ระดับองค์กรภาพรวม (Global Fact) ระบบตรวจพบว่านโยบายของผู้บริหาร/ตัวแทน 
+            ขัดแย้งโดยตรงกับคำให้การของกลุ่มปฏิบัติการ นี่คือช่องโหว่ด้านการตรวจสอบย้อนกลับ (Traceability) ระบบจึงยกระดับประเด็น <b>'{selected_issue}'</b> เป็นความเสี่ยงระดับสูง
             </p>
         </div>
         """
@@ -589,9 +594,9 @@ elif choice.startswith("Tool 5"):
         <div style='background-color: #F0FDF4; padding: 20px; border-radius: 8px; border-left: 5px solid #166534; margin-bottom: 20px;'>
             <h4 style='color: #14532D; margin-top:0;'>✅ AI ฟันธง: แนวปฏิบัติที่ดี (Best Practice / No Gap Detected)</h4>
             <p style='color: #444; font-size: 14px;'>
-            จากการวิเคราะห์ <b>Sentiment Analysis</b> ข้อมูลที่ตรวจพบจากกลุ่มผู้บริหาร/คู่ค้า มีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) 
+            จากการวิเคราะห์ <b>Sentiment Analysis</b> ข้อมูลที่ตรวจพบมีลักษณะเป็นคำกล่าวอ้างเชิงบวก (Positive Policy Statement) 
             และไม่พบคำให้การร้องเรียนเชิงลบจากภาคปฏิบัติการ ระบบจึงตั้งประเด็น <b>'{selected_issue}'</b> เป็น <b>'สมมติฐานหลัก (Baseline)'</b> 
-            ให้ฝ่าย Audit บันทึกไว้เป็นแนวปฏิบัติที่ดี (Best Practice)
+            ให้ฝ่าย Audit บันทึกไว้เป็นแนวปฏิบัติที่ดี
             </p>
         </div>
         """
@@ -614,11 +619,10 @@ elif choice.startswith("Tool 5"):
         ai_likelihood_suggest = 3
         ai_plan_suggest = "Preventive Action (แผนป้องกันเชิงรุก):\n- จัดอบรมทบทวนขั้นตอนการทำงาน และปรับปรุงสภาพแวดล้อม/กลไก ให้เป็นไปตามมาตรฐาน\n- ติดตามผลการปรับปรุงประสิทธิภาพอย่างใกล้ชิดภายใน 3 เดือน\n\nRemediation Plan:\n- เปิดเวทีรับฟังปัญหาและเยียวยาตามความเหมาะสม"
 
-    # แสดงผล AI Conclusion
     st.markdown(ai_conclusion, unsafe_allow_html=True)
 
-    # 💡 SHOW EVIDENCE CITATIONS (Popovers สะอาดตา)
-    st.markdown("<strong style='color: #1E293B; font-size: 15px;'>📑 ข้อมูลอ้างอิงเชิงประจักษ์ (Citations):</strong>", unsafe_allow_html=True)
+    # 💡 SHOW EVIDENCE CITATIONS
+    st.markdown("<strong style='color: #1E293B; font-size: 15px;'>📑 ข้อมูลอ้างอิงเชิงประจักษ์ (Triangulation Evidence):</strong>", unsafe_allow_html=True)
     
     if len(exec_quotes) > 0:
         st.markdown("<div style='color:#005B31; font-weight:bold; margin-top:10px;'>ฝั่งนโยบาย / ตัวแทน (Policy / Management)</div>", unsafe_allow_html=True)
@@ -644,7 +648,7 @@ elif choice.startswith("Tool 5"):
                     st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
                     st.warning(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
 
-    # 💡 KNOWLEDGE BASE MATCHER (คม ชัด ลึก ตามที่ขอ)
+    # 💡 KNOWLEDGE BASE MATCHER 
     kb_name = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     kb_clause = "-"
     kb_desc = "ไม่พบรายละเอียดที่เจาะจงในระบบ Knowledge Base"
@@ -660,13 +664,12 @@ elif choice.startswith("Tool 5"):
             kb_link = knowledge["link"]
             break
 
-    plain_evidence = f"ระบบ AI วิเคราะห์ความขัดแย้งจากข้อมูลจริง {evidence_count} รายการ ในกลุ่ม {scope_text}"
+    plain_evidence = f"ระบบ AI วิเคราะห์ความขัดแย้งจากข้อมูลจริง {evidence_count} รายการ (ประเมินบนฐานข้อมูลภาพรวมองค์กรเพื่อป้องกันอคติ)"
     plain_standard = f"{kb_name} ({kb_clause})"
 
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-sliders'></i> 3. ประเมินระดับความรุนแรง (Severity) และ โอกาสเกิด (Likelihood)</h5>", unsafe_allow_html=True)
 
-    # 💡 THE STRICT RUBRIC EXPLANATION (โชว์ตารางคะแนนให้เห็นชัดเจนตามไฟล์ Docx)
     st.markdown("""
     <div style='background-color: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;'>
         <strong style='color: #0F172A; font-size: 14px;'>ℹ️ ตารางเกณฑ์การประเมินนัยสำคัญ (Risk Assessment Rubric):</strong>
@@ -692,7 +695,6 @@ elif choice.startswith("Tool 5"):
     likelihood = st.slider("📌 Likelihood (โอกาสที่จะเกิด: 1 ต่ำมาก - 5 สูงมาก)", 1, 5, ai_likelihood_suggest)
     score = sev_max * likelihood
 
-    # 💡 STRICT LOGIC FOR RISK LEVELS (แก้บั๊ก 15 = วิกฤต เรียบร้อย)
     if score >= 16:
         risk_zone = "RED"
         badge_html = f'<div class="salient-badge" style="background-color: #FEF2F2; color: #DC2626; border-color: #FECACA;">🚨 SALIENT RISK (ระดับวิกฤต): คะแนนประเมิน {score} (อยู่ในช่วง 16-25)</div>'
@@ -724,7 +726,7 @@ elif choice.startswith("Tool 5"):
     edit_standard = plain_standard
     edit_plan = ai_plan_suggest
 
-    if is_already_approved and save_issue in st.session_state.saved_plans_dict:
+    if is_already_approved and save_issue in st.session_state.get("saved_plans_dict", {}):
         saved_data = st.session_state.saved_plans_dict[save_issue]
         edit_evidence = saved_data.get('evidence', plain_evidence)
         edit_standard = saved_data.get('standard', plain_standard)
@@ -738,7 +740,6 @@ elif choice.startswith("Tool 5"):
     </div>
     """, unsafe_allow_html=True)
 
-    # 💡 2. NATIVE POPOVER FOR DETAILED LAW CITATION
     c_std1, c_std2 = st.columns([8, 2])
     with c_std1:
         st.markdown(f"<div style='background: #FFFFFF; padding: 10px 15px; border-radius: 6px; border: 1px solid #EAEAEA; font-size: 14px; color: #005B31;'>⚖️ <b>อ้างอิงมาตรฐาน:</b> {kb_name} ({kb_clause})</div>", unsafe_allow_html=True)
@@ -769,10 +770,16 @@ elif choice.startswith("Tool 5"):
         if sheet:
             db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
             detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Evidence: {final_evidence} | Standard: {final_standard} | Plan: {final_plan}"
-            macro_group = f"ประเมินเจาะจงกลุ่ม ({custom_filter_text})" if custom_filter_text else "ประเมินระดับองค์กร (Corporate Level)"
             
-            new_row_data = [now, audit_cycle, auditor_name, "N/A", "Tool 5", "Issue-Based", macro_group, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
+            scope_to_save = custom_filter_text if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
             
+            new_row_data = [now, audit_cycle, auditor_name, "N/A", "Tool 5", "Issue-Based", scope_to_save, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
+            
+            if "saved_plans_dict" not in st.session_state:
+                st.session_state.saved_plans_dict = {}
+            if "approved_issues" not in st.session_state:
+                st.session_state.approved_issues = []
+                
             st.session_state.saved_plans_dict[save_issue] = {
                 'plan': final_plan, 
                 'sev': sev_max, 
@@ -784,7 +791,9 @@ elif choice.startswith("Tool 5"):
 
             with st.spinner("กำลังอัปเดตลง Google Sheet..."):
                 sheet.append_row(new_row_data)
-                st.success(f"✅ **อนุมัติและบันทึกแผนยุทธศาสตร์สำเร็จ:** ประเด็น '{save_issue}' พร้อมนำไปแสดงผลใน Tool 7 แล้ว")
+                st.success(f"✅ **อนุมัติและบันทึกแผนยุทธศาสตร์สำเร็จ:** ประเด็น '{save_issue}' ถูกบันทึกภายใต้กลุ่ม '{scope_to_save}'")
+                st.cache_data.clear()
+                st.rerun()
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -918,8 +927,6 @@ elif choice.startswith("Tool 7"):
             st.rerun()
     st.markdown("<hr style='margin-top:0;'>", unsafe_allow_html=True)
 
-    c1, c2, c3 = st.columns(3)
-    
     sheet_data_count = 0
     df_standard = pd.DataFrame() 
     df_ew = pd.DataFrame()       
@@ -940,30 +947,52 @@ elif choice.startswith("Tool 7"):
                 df_tool56['วันที่-เวลา'] = pd.to_datetime(df_tool56['วันที่-เวลา'], errors='coerce')
                 df_tool56 = df_tool56.sort_values('วันที่-เวลา')
             
-            df_tool56 = df_tool56.drop_duplicates(subset=['ประเด็นหลัก'], keep='last')
+            # 🟢 แก้ไขการนับเบิ้ล: จัดการให้ 1 ประเด็น ต่อ 1 กลุ่มเป้าหมาย ถือเป็น 1 รายการ 
+            # ป้องกันการบันทึกทับแล้วนับเพิ่ม และแยกภาพรวมกับกลุ่มเจาะจงออกจากกัน
+            df_tool56['กลุ่มเป้าหมาย'] = df_tool56['กลุ่มเป้าหมาย'].fillna('ไม่ระบุ')
+            df_tool56 = df_tool56.drop_duplicates(subset=['ประเด็นหลัก', 'กลุ่มเป้าหมาย'], keep='last')
 
             is_early_warning = df_tool56['ประเด็นหลัก'].str.contains('Early Warning|สัญญาณเตือน', na=False, case=False)
             df_ew = df_tool56[is_early_warning]
             df_standard = df_tool56[~is_early_warning]
-            
-    with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>ผู้มีส่วนได้เสีย (Stakeholders)</div></div>", unsafe_allow_html=True)
+
+    st.markdown("<div style='background-color:#F0FDF4; padding:15px; border-radius:8px; border:1px solid #BBF7D0; margin-bottom: 20px;'>", unsafe_allow_html=True)
+    st.markdown("##### 🔍 ตัวกรองผลการวิเคราะห์เชิงลึก (Stakeholder Drill-down)")
     
-    approved_count = len(df_standard)
-    with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นที่ได้รับการอนุมัติแผนจัดการ</div></div>", unsafe_allow_html=True)
+    available_groups = ["ภาพรวมทั้งหมด (All Stakeholders)"]
+    if not df_tool56.empty and 'กลุ่มเป้าหมาย' in df_tool56.columns:
+        groups = df_tool56['กลุ่มเป้าหมาย'].dropna().unique().tolist()
+        available_groups.extend([g for g in groups if str(g).strip() not in ["", "nan", "N/A"]])
+        
+    selected_group = st.selectbox("เจาะจงกลุ่มเป้าหมายเพื่อดูผลลัพธ์เฉพาะกลุ่ม:", available_groups)
+    st.markdown("</div>", unsafe_allow_html=True)
     
-    ew_count = len(df_ew)
-    with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยที่รอการสอบสวน</div></div>", unsafe_allow_html=True)
+    df_dash_ew = df_ew.copy()
+    df_dash_standard = df_standard.copy()
+    
+    if selected_group != "ภาพรวมทั้งหมด (All Stakeholders)":
+        search_keyword = selected_group.split(" ")[0]
+        df_dash_ew = df_ew[df_ew['กลุ่มเป้าหมาย'].astype(str).str.contains(search_keyword, na=False, case=False)]
+        df_dash_standard = df_standard[df_standard['กลุ่มเป้าหมาย'].astype(str).str.contains(search_keyword, na=False, case=False)]
+
+    c1, c2, c3 = st.columns(3)
+    with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>ผู้มีส่วนได้เสียทั้งหมด</div></div>", unsafe_allow_html=True)
+    
+    approved_count = len(df_dash_standard)
+    with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นความเสี่ยงของกลุ่มนี้</div></div>", unsafe_allow_html=True)
+    
+    ew_count = len(df_dash_ew)
+    with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยของกลุ่มนี้</div></div>", unsafe_allow_html=True)
     
     st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังและสถิติความเสี่ยง (Risk Analytics Dashboard)</h5>", unsafe_allow_html=True)
     
-    # 🟢 เพิ่ม Layout แบ่ง 2 คอลัมน์ (ซ้าย Heat Map, ขวา Stakeholder Chart)
     col_heat, col_stake = st.columns([3, 2])
     
     with col_heat:
-        st.markdown("<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>Human Rights Risk Heat Map</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>Human Rights Risk Heat Map<br><span style='font-size:12px; font-weight:normal;'>({selected_group})</span></div>", unsafe_allow_html=True)
         matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
-        if not df_standard.empty:
-            for _, row in df_standard.iterrows():
+        if not df_dash_standard.empty:
+            for _, row in df_dash_standard.iterrows():
                 try:
                     s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
                     l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
@@ -996,25 +1025,39 @@ elif choice.startswith("Tool 7"):
         """, unsafe_allow_html=True)
 
     with col_stake:
-        # 🟢 กราฟแสดงความเสี่ยงจำแนกตามกลุ่มเป้าหมาย (Stakeholder Level Analysis)
-        st.markdown("<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>การกระจายตัวตามกลุ่มเป้าหมาย (Stakeholder Distribution)</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>ความรุนแรงตามกลุ่มเป้าหมาย (Stakeholder Heat Map)</div>", unsafe_allow_html=True)
         
+        # 🟢 เปลี่ยนกราฟแท่งเป็น Stakeholder Heat Map ด้วย Altair
         if not df_standard.empty and 'กลุ่มเป้าหมาย' in df_standard.columns:
-            # ดึงข้อมูลมานับจำนวน
-            stake_counts = df_standard['กลุ่มเป้าหมาย'].value_counts().reset_index()
-            stake_counts.columns = ['Stakeholder', 'Issues Count']
+            heat_df = df_standard.copy()
+            heat_df['กลุ่มเป้าหมาย'] = heat_df['กลุ่มเป้าหมาย'].replace({'nan': 'ภาพรวมองค์กร', '': 'ภาพรวมองค์กร', 'ภาพรวมองค์กรและห่วงโซ่อุปทาน': 'ภาพรวมองค์กร'})
             
-            # ล้างค่า NaN ให้เป็นคำว่า 'ไม่ระบุ'
-            stake_counts['Stakeholder'] = stake_counts['Stakeholder'].replace({'nan': 'ภาพรวมองค์กร / ไม่ระบุ'})
+            def get_risk_level(row):
+                try:
+                    s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
+                    l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
+                    if s == 5 or s*l >= 16: return '1. วิกฤต (Critical)'
+                    elif s*l >= 8: return '2. สูง (Significant)'
+                    else: return '3. ปานกลาง (Moderate)'
+                except:
+                    return '3. ปานกลาง (Moderate)'
+                    
+            heat_df['ระดับความเสี่ยง'] = heat_df.apply(get_risk_level, axis=1)
+            stake_heat = heat_df.groupby(['กลุ่มเป้าหมาย', 'ระดับความเสี่ยง']).size().reset_index(name='จำนวนประเด็น')
             
-            # สร้างกราฟแท่งด้วย Altair
-            chart = alt.Chart(stake_counts).mark_bar(color='#DC2626', cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
-                y=alt.Y('Stakeholder:N', sort='-x', title='', axis=alt.Axis(labelLimit=150)),
-                x=alt.X('Issues Count:Q', title='จำนวนความเสี่ยง (ประเด็น)'),
-                tooltip=['Stakeholder', 'Issues Count']
+            chart = alt.Chart(stake_heat).mark_rect(stroke='white', strokeWidth=2).encode(
+                y=alt.Y('กลุ่มเป้าหมาย:N', title='', sort='-x', axis=alt.Axis(labelLimit=150)),
+                x=alt.X('ระดับความเสี่ยง:N', title='', sort=['1. วิกฤต (Critical)', '2. สูง (Significant)', '3. ปานกลาง (Moderate)'], axis=alt.Axis(labelAngle=-15)),
+                color=alt.Color('จำนวนประเด็น:Q', scale=alt.Scale(scheme='reds'), legend=None),
+                tooltip=['กลุ่มเป้าหมาย', 'ระดับความเสี่ยง', 'จำนวนประเด็น']
             ).properties(height=280)
             
-            st.altair_chart(chart, use_container_width=True)
+            text = chart.mark_text(baseline='middle').encode(
+                text='จำนวนประเด็น:Q',
+                color=alt.condition(alt.datum.จำนวนประเด็น > 1, alt.value('white'), alt.value('black'))
+            )
+            
+            st.altair_chart(chart + text, use_container_width=True)
         else:
             st.info("ยังไม่มีข้อมูลสำหรับสร้างกราฟแสดงกลุ่มเป้าหมาย")
             
@@ -1025,10 +1068,10 @@ elif choice.startswith("Tool 7"):
         st.session_state.ai_report_drafted = True
 
     if st.session_state.get("ai_report_drafted", False):
-        st.markdown("""
+        st.markdown(f"""
         <div class="gemini-draft-box">
             <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Strategic Insight & Executive Summary</h4>
-            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ระบบได้ประมวลผลและสร้างรายงานพร้อมระบุแหล่งอ้างอิงและการจำแนกผู้ได้รับผลกระทบ (Stakeholder Impact Breakdown)</p>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ระบบได้ประมวลผลและสร้างรายงาน (มุมมองการวิเคราะห์: <b>{selected_group}</b>)</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1060,60 +1103,66 @@ elif choice.startswith("Tool 7"):
             strategy = f"ยุทธศาสตร์การจัดการ (Strategic Mitigation):\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
             return f"{analysis}\n  {strategy}"
 
-        issue_list_text = ""
-        action_list_text = ""
-        has_data = False
+        # 🟢 การจัดรูปแบบรายงานใหม่ (3.1 ภาพรวม และ 3.2 รายกลุ่ม)
+        corp_issues_df = df_dash_standard[df_dash_standard['กลุ่มเป้าหมาย'].str.contains('ภาพรวมองค์กร', na=False, case=False)]
+        stake_issues_df = df_dash_standard[~df_dash_standard['กลุ่มเป้าหมาย'].str.contains('ภาพรวมองค์กร', na=False, case=False)]
         
-        if not df_standard.empty:
-            for _, row in df_standard.iterrows():
-                has_data = True
+        issue_list_3_1 = ""
+        issue_list_3_2 = ""
+        action_list_text = ""
+        
+        # 3.1 Corporate Level
+        if not corp_issues_df.empty:
+            for _, row in corp_issues_df.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 raw_plan = str(row.get('รายละเอียด/คำให้การ', ''))
-                filter_context = str(row.get('กลุ่มเป้าหมาย', ''))
-                
-                evidence_str = ""
-                standard_str = "UNGPs, ILO Core Conventions"
-                clean_plan = raw_plan
-                
-                if "| Evidence:" in raw_plan or "Plan:" in raw_plan:
-                    parts = raw_plan.split("|")
-                    clean_plan = ""
-                    for p in parts:
-                        p = p.strip()
-                        if p.startswith("Evidence:"): evidence_str = p.replace("Evidence:", "").strip()
-                        elif p.startswith("Standard:"): standard_str = p.replace("Standard:", "").strip()
-                        elif p.startswith("Plan:"): clean_plan += p.replace("Plan:", "").strip() + "\n"
-                        elif p.startswith("Remediation Plan:"): clean_plan += p + "\n"
-                        elif "Scale:" not in p and "Anomaly" not in p: clean_plan += p + "\n"
-                
-                if not evidence_str:
-                    evidence_str = get_evidence_quote(iss, df_real)
-                if not clean_plan.strip():
-                    clean_plan = raw_plan
-                    
+                evidence_str = get_evidence_quote(iss, df_real)
                 try:
                     sev = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
                     lik = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
                 except:
                     sev, lik = 1, 1
-                
                 risk_level = "ระดับวิกฤต (Critical)" if (sev == 5 or sev*lik >= 16) else "ระดับสูง (Significant)" if sev*lik >= 8 else "ระดับปานกลาง (Moderate)"
                 
-                # 🟢 ระบุกลุ่มเป้าหมายในรายงานชัดเจนขึ้น
-                scope_label = f"กลุ่มเป้าหมายที่ได้รับผลกระทบ: {filter_context}" if filter_context and str(filter_context).lower() not in ["nan", ""] else "ภาพรวมระดับองค์กร / ไม่ระบุ"
+                issue_list_3_1 += f"- ประเด็น: {iss}\n  การประเมิน: ความรุนแรง ระดับ {sev} | โอกาสเกิด ระดับ {lik} => {risk_level}\n  🔍 หลักฐานอ้างอิง: {evidence_str}\n\n"
                 
-                issue_list_text += f"- ประเด็น: {iss}\n  ({scope_label})\n  การประเมิน: ความรุนแรง ระดับ {sev} | โอกาสเกิด ระดับ {lik} => {risk_level}\n  🔍 หลักฐานอ้างอิง: {evidence_str}\n  📜 มาตรฐานสากล: {standard_str}\n\n"
+                clean_plan = raw_plan.split("| Plan:")[-1].strip() if "| Plan:" in raw_plan else raw_plan
                 smart_text = generate_deep_consultant_text(iss, clean_plan, sev, lik)
-                action_list_text += f"▪ {iss} [{scope_label}]\n  {smart_text}\n\n"
-                
-        if not has_data:
-            issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5)\n"
+                action_list_text += f"▪ {iss} [ภาพรวมองค์กร]\n  {smart_text}\n\n"
+        else:
+            issue_list_3_1 = "- (ไม่มีข้อมูลประเด็นที่วิเคราะห์ในระดับภาพรวมองค์กร)\n"
+
+        # 3.2 Stakeholder Level
+        if not stake_issues_df.empty:
+            grouped = stake_issues_df.groupby('กลุ่มเป้าหมาย')
+            for group_name, group_df in grouped:
+                issue_list_3_2 += f"🔹 **กลุ่มเป้าหมาย: {group_name}** (จำนวน {len(group_df)} ประเด็น)\n"
+                for _, row in group_df.iterrows():
+                    iss = str(row.get('ประเด็นหลัก', 'Unknown'))
+                    raw_plan = str(row.get('รายละเอียด/คำให้การ', ''))
+                    evidence_str = get_evidence_quote(iss, df_real)
+                    try:
+                        sev = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
+                        lik = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
+                    except:
+                        sev, lik = 1, 1
+                    risk_level = "ระดับวิกฤต (Critical)" if (sev == 5 or sev*lik >= 16) else "ระดับสูง (Significant)" if sev*lik >= 8 else "ระดับปานกลาง (Moderate)"
+                    
+                    issue_list_3_2 += f"  - ประเด็น: {iss} ({risk_level})\n    🔍 หลักฐานอ้างอิง: {evidence_str}\n\n"
+                    
+                    clean_plan = raw_plan.split("| Plan:")[-1].strip() if "| Plan:" in raw_plan else raw_plan
+                    smart_text = generate_deep_consultant_text(iss, clean_plan, sev, lik)
+                    action_list_text += f"▪ {iss} [กลุ่มเป้าหมาย: {group_name}]\n  {smart_text}\n\n"
+        else:
+            issue_list_3_2 = "- (ไม่มีข้อมูลประเด็นความเสี่ยงที่เจาะจงกลุ่มเป้าหมาย)\n"
+            
+        if corp_issues_df.empty and stake_issues_df.empty:
             action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 ให้แล้วเสร็จก่อน)\n"
 
         early_warning_text = ""
-        if not df_ew.empty:
+        if not df_dash_ew.empty:
             ew_bullets = ""
-            for _, row in df_ew.iterrows():
+            for _, row in df_dash_ew.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 raw_plan = str(row.get('รายละเอียด/คำให้การ', ''))
                 
@@ -1135,50 +1184,53 @@ elif choice.startswith("Tool 7"):
                     plan_display = raw_plan
 
                 display_iss = f"🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): {display_topic_name}"
-
                 ew_bullets += f"{display_iss}\n  🔍 หลักฐานเชิงประจักษ์ (Evidence Citation): {evidence_str}\n  🛡️ แนวทางสืบสวนเชิงลึก (Investigation Protocol): {plan_display}\n\n"
 
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
-ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_ew)} ประเด็นหลัก:
+ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_dash_ew)} ประเด็นหลัก:
 
 {ew_bullets}"""
         else:
-            early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
-ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
+            early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
+ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างสำหรับกลุ่ม {selected_group}"""
 
         report_mockup = f"""รายงานผลวิเคราะห์ความเสี่ยงด้านสิทธิมนุษยชนเชิงกลยุทธ์ (Strategic HRDD Risk Report)
 รอบการประเมิน: {actual_audit_cycle}
-ขอบเขตพื้นที่: ภาพรวมระดับองค์กรและห่วงโซ่คุณค่า (Corporate & Value Chain Overview)
+ขอบเขตการวิเคราะห์ (Scope of Analysis): {selected_group}
 ผู้รับผิดชอบการประเมิน: {auditor_name}
 
 บทสรุปผู้บริหาร (Executive Summary)
-สถานะความเสี่ยงที่มีนัยสำคัญขององค์กร ถูกประมวลผลด้วยระเบียบวิธีวิจัยแบบผสานวิธีที่เสริมพลังด้วยปัญญาประดิษฐ์ (AI-Augmented Mixed Methods Research) โดยนำรายงานผลการดำเนินงานย้อนหลัง มาวิเคราะห์ร่วมกับข้อมูลภาคสนามจากผู้มีส่วนได้เสียจำนวน {sheet_data_count} ราย ผ่านนวัตกรรม "ระบบประเมินความเสี่ยงสิทธิมนุษยชนอัจฉริยะ" เพื่อสร้างระบบนิเวศแห่งความไว้วางใจ และยกระดับการบริหารความเสี่ยงตลอดห่วงโซ่คุณค่าให้สอดคล้องกับบริบทความยั่งยืนระดับโลก
+สถานะความเสี่ยงที่มีนัยสำคัญขององค์กร ถูกประมวลผลด้วยระเบียบวิธีวิจัยแบบผสานวิธีที่เสริมพลังด้วยปัญญาประดิษฐ์ (AI-Augmented Mixed Methods Research) โดยนำรายงานผลการดำเนินงานย้อนหลัง มาวิเคราะห์ร่วมกับข้อมูลภาคสนามจากผู้มีส่วนได้เสียจำนวน {sheet_data_count} ราย ผ่านนวัตกรรม "ระบบประเมินความเสี่ยงสิทธิมนุษยชนอัจฉริยะ" เพื่อสร้างระบบนิเวศแห่งความไว้วางใจ และยกระดับการบริหารความเสี่ยงให้สอดคล้องกับบริบทความยั่งยืนระดับโลก
 
 1. วัตถุประสงค์และภาพรวม (Objectives & Overview)
-องค์กรดำเนินการตรวจสอบสถานะสิทธิมนุษยชนอย่างรอบด้าน (HRDD) เพื่อระบุ ป้องกัน และบรรเทาผลกระทบเชิงลบต่อผู้มีส่วนได้เสียตลอดห่วงโซ่คุณค่า โดยมุ่งเน้นการเปลี่ยนผ่านจากกระบวนการตรวจประเมินแบบดั้งเดิม (Compliance-based) สู่การประเมินเชิงลึกที่ใช้ "เครื่องมือคำนวณผลกระทบเชิงประจักษ์ (Quantitative Impact Assessment)" เพื่อตอบสนองต่อกฎระเบียบการค้าระดับโลก อาทิ EU CSDDD, มาตรฐาน OECD (2023) และรักษาความเป็นผู้นำด้านความยั่งยืนระดับ AAA
+องค์กรดำเนินการตรวจสอบสถานะสิทธิมนุษยชนอย่างรอบด้าน (HRDD) เพื่อระบุ ป้องกัน และบรรเทาผลกระทบเชิงลบต่อผู้มีส่วนได้เสีย โดยมุ่งเน้นการเปลี่ยนผ่านจากกระบวนการตรวจประเมินแบบดั้งเดิม (Compliance-based) สู่การประเมินเชิงลึกที่ใช้ "เครื่องมือคำนวณผลกระทบเชิงประจักษ์ (Quantitative Impact Assessment)" 
 
 2. เกณฑ์การประเมินความเสี่ยง (Assessment Criteria)
-รายงานฉบับนี้ใช้โครงสร้างการประเมินความเสี่ยง (5x5 Risk Matrix) ตามมาตรฐาน SET 2567 และกรอบการทำงานระดับสากล (UNGPs) ภายใต้หลักการ "ความร้ายแรงนำ (Severity-led Rule)" ซึ่งให้น้ำหนักสูงสุดกับประเด็นที่กระทบต่อศักดิ์ศรีความเป็นมนุษย์เหนือความเสี่ยงทางธุรกิจ
+รายงานฉบับนี้ใช้โครงสร้างการประเมินความเสี่ยง (5x5 Risk Matrix) ตามมาตรฐาน SET 2567 และกรอบการทำงานระดับสากล (UNGPs) ภายใต้หลักการ "ความร้ายแรงนำ (Severity-led Rule)" 
 
 3. ข้อค้นพบและผลการวิเคราะห์นัยสำคัญทางสิทธิมนุษยชน (Key Findings on Salient Issues)
-จากการให้ AI บูรณาการข้อมูลแบบสามเส้า (Triangulation) ระหว่างนโยบาย, แบบสอบถาม และคำให้การเชิงลึก พบประเด็นความเสี่ยงระดับโครงสร้างที่ได้รับการอนุมัติให้ยกระดับการจัดการเป็นกรณีพิเศษ จำนวน {len(df_standard)} ประเด็น โดยมีการกระจายตัวของผลกระทบตามกลุ่มเป้าหมาย ดังนี้:
+จากการให้ AI บูรณาการข้อมูลแบบสามเส้า (Triangulation) พบประเด็นความเสี่ยงระดับโครงสร้างที่ได้รับการอนุมัติให้ยกระดับการจัดการเป็นกรณีพิเศษ ดังนี้:
 
-{issue_list_text}
+3.1 วิเคราะห์ภาพรวมองค์กร (Corporate Level Analysis)
+พบประเด็นความเสี่ยงระดับภาพรวมองค์กรและห่วงโซ่อุปทาน จำนวน {len(corp_issues_df)} ประเด็น ดังนี้:
+{issue_list_3_1}
+3.2 วิเคราะห์ตามกลุ่มเป้าหมาย (Stakeholder Level Analysis)
+พบประเด็นความเสี่ยงที่เจาะจงผลกระทบตามกลุ่มเป้าหมาย จำนวน {len(stake_issues_df)} ประเด็น มีรายละเอียดการกระจายตัว ดังนี้:
+{issue_list_3_2}
 {early_warning_text}
 
 5. มาตรการและการตอบสนองเชิงยุทธศาสตร์ (Strategic Mitigation & Remediation Roadmap)
-เพื่อให้บรรลุพันธกิจความยั่งยืน (Sustainable Life) องค์กรได้กำหนดแผนปฏิบัติการเชิงลึกแยกตามกลุ่มเป้าหมาย สำหรับประเด็นความเสี่ยงข้างต้น ดังนี้:
+เพื่อให้บรรลุพันธกิจความยั่งยืน องค์กรได้กำหนดแผนปฏิบัติการเชิงลึก ดังนี้:
 
 {action_list_text}
 [มาตรการระดับโครงสร้างองค์กร (Systemic Corporate Measures)]
 เพื่อป้องกันการเกิดซ้ำ (Zero Recurrence) องค์กรได้ประกาศกรอบยุทธศาสตร์ระยะยาวเพิ่มเติม ได้แก่:
 1. การจัดการทันที (Immediate Action): พัฒนาระบบร้องเรียนดิจิทัล (Smart Grievance) ที่รองรับหลายภาษาและเชื่อมโยงทั่วภูมิภาคภายใน 3 ปี เพื่ออุดช่องว่างความเสี่ยงระดับวิกฤต
-2. การใช้ปัญญาประดิษฐ์เฝ้าระวัง (AI-Driven Monitoring): ขับเคลื่อนระบบ RiskSearch360° และ AI วิเคราะห์อารมณ์ความรู้สึก (Sentiment Analysis) เพื่อตรวจจับสัญญาณความกังวลของกลุ่มเปราะบางที่ไม่ปรากฏในเอกสารตรวจสอบทั่วไป
-3. การยกระดับคู่ค้า (Supplier Engagement): ขยายผลการทำ HRDD แบบ 100% ครอบคลุมธุรกิจที่มีความเสี่ยงสูงตลอดห่วงโซ่คุณค่า ภายในปี 2571
-4. หลักการความร้ายแรงนำ (Severity-led Rule): คงมาตรการ Zero Accident และระบบการจัดการความปลอดภัยกระบวนการผลิต (PSM) อย่างเข้มงวด แม้ในประเด็นที่สถิติการเกิดต่ำ เพื่อป้องกันความเสียหายระดับที่ไม่อาจเยียวยาได้
+2. การใช้ปัญญาประดิษฐ์เฝ้าระวัง (AI-Driven Monitoring): ขับเคลื่อนระบบ RiskSearch360° และ AI วิเคราะห์อารมณ์ความรู้สึก เพื่อตรวจจับสัญญาณความกังวลของกลุ่มเปราะบาง
+3. หลักการความร้ายแรงนำ (Severity-led Rule): คงมาตรการ Zero Accident และระบบการจัดการความปลอดภัยกระบวนการผลิต (PSM) อย่างเข้มงวด 
 
 6. ข้อสรุปเชิงยุทธศาสตร์ (Executive Conclusion)
-องค์กรได้พิสูจน์ให้เห็นถึงการยกระดับกระบวนทัศน์จากการมอง "ความเสี่ยงต่อธุรกิจ (Risk to Business)" ไปสู่การปกป้อง "ความเสี่ยงต่อผู้คน (Risk to People)" อย่างแท้จริง การบูรณาการเทคโนโลยี AI เข้ากับกระบวนการ HRDD ทำให้องค์กรสามารถดักจับความเสี่ยงที่มองไม่เห็น (Invisible Risks) เพิ่มขีดความสามารถในการตรวจสอบย้อนกลับ (Traceability) และยกระดับคุณภาพชีวิตของผู้มีส่วนได้เสียตลอดห่วงโซ่อุปทาน อันเป็นรากฐานสำคัญของการเติบโตอย่างยั่งยืนในเวทีโลก"""
+องค์กรได้พิสูจน์ให้เห็นถึงการยกระดับกระบวนทัศน์จากการมอง "ความเสี่ยงต่อธุรกิจ (Risk to Business)" ไปสู่การปกป้อง "ความเสี่ยงต่อผู้คน (Risk to People)" อย่างแท้จริง อันเป็นรากฐานสำคัญของการเติบโตอย่างยั่งยืนในเวทีโลก"""
 
         st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานยุทธศาสตร์ก่อนการอนุมัติขั้นสุดท้าย:**")
         
@@ -1200,6 +1252,6 @@ elif choice.startswith("Tool 7"):
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
                 if sheet:
-                    sheet.append_row([now, actual_audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", "ภาพรวมองค์กร", "N/A", "N/A", "รายงานยุทธศาสตร์", report_text_final, "N/A", "N/A", "N/A", "N/A", "N/A"])
+                    sheet.append_row([now, actual_audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", selected_group, "N/A", "N/A", "รายงานยุทธศาสตร์", report_text_final, "N/A", "N/A", "N/A", "N/A", "N/A"])
                     st.cache_data.clear() 
                     st.rerun()
