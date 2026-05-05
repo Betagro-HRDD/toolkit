@@ -879,43 +879,62 @@ elif choice.startswith("Tool 6"):
 # ----------------- TOOL 7 (Executive Dashboard & STRATEGIC AI Report) -----------------
 elif choice.startswith("Tool 7"):
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
-    st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)</h3><p style='color:#666;'>สรุปผลประเมินนัยสำคัญของความเสี่ยง (Salient Risk) ระดับองค์กร</p><hr>", unsafe_allow_html=True)
+    
+    # เพิ่มปุ่มรีเฟรช เพื่อแก้ปัญหาเปิดหลาย Browser
+    col_title, col_refresh = st.columns([4, 1])
+    with col_title:
+        st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)</h3><p style='color:#666;'>สรุปผลประเมินนัยสำคัญของความเสี่ยง (Salient Risk) ระดับองค์กร</p>", unsafe_allow_html=True)
+    with col_refresh:
+        if st.button("🔄 ดึงข้อมูลล่าสุด"):
+            st.cache_data.clear()
+            st.rerun()
+    st.markdown("<hr style='margin-top:0;'>", unsafe_allow_html=True)
 
     c1, c2, c3 = st.columns(3)
     
     sheet_data_count = 0
-    df_tool56 = pd.DataFrame() # 🟢 ตัวแปรสำหรับเก็บข้อมูล Tool 5 และ 6 จากชีต
+    df_standard = pd.DataFrame() # สำหรับประเด็นปกติที่มีคะแนน
+    df_ew = pd.DataFrame()       # สำหรับ Early Warnings
     
     if not df_real.empty:
         raw_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
         sheet_data_count = len(raw_df)
+        if sheet_data_count == 0: sheet_data_count = 135
         
-        # 🟢 ดึงข้อมูลที่เคยอนุมัติแผน (Tool 5, 6) จากฐานข้อมูลโดยตรง
+        # ดึงข้อมูล Tool 5, 6 จากฐานข้อมูล
         df_tool56 = df_real[df_real['เครื่องมือ'].isin(['Tool 5', 'Tool 6'])]
+        
+        if not df_tool56.empty:
+            # 🟢 แยกข้อมูล Early Warning ออกจากประเด็นปกติ (ดูจากคำว่า Early Warning ในประเด็นหลัก)
+            is_early_warning = df_tool56['ประเด็นหลัก'].str.contains('Early Warning|สัญญาณเตือน', na=False, case=False)
+            df_ew = df_tool56[is_early_warning]
+            df_standard = df_tool56[~is_early_warning]
             
-    if sheet_data_count == 0: sheet_data_count = 135
-    
     with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>ผู้มีส่วนได้เสีย (Stakeholders)</div></div>", unsafe_allow_html=True)
     
-    # 🟢 นับจำนวนประเด็น Salient Issue ที่ approved แล้วจาก Google Sheet แทนการใช้ session_state
-    approved_count = len(df_tool56)
+    # จำนวนนับจะตรงเป๊ะ เพราะแยก EW ออกไปแล้ว
+    approved_count = len(df_standard)
     with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นที่ได้รับการอนุมัติแผนจัดการ</div></div>", unsafe_allow_html=True)
     
-    ew_count = 1 if st.session_state.get("early_warning_approved", False) else 0
+    # นับจำนวน Early Warning จาก Google Sheet (รีเฟรชก็ไม่หาย)
+    ew_count = len(df_ew)
     with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยที่รอการสอบสวน</div></div>", unsafe_allow_html=True)
     
     st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังการกระจายตัวความเสี่ยง (Human Rights Risk Heat Map)</h5>", unsafe_allow_html=True)
     
-    # 🟢 จัดการข้อมูล Heat Map โดยดึงจาก df_tool56 โดยตรง (ทำให้รีเฟรชหน้าก็ยังอยู่)
+    # 🟢 สร้าง Heat Map เฉพาะข้อมูล df_standard ที่มีคะแนนเท่านั้น (ป้องกันกราฟพังและตัวเลขไม่ตรง)
     matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
-    if not df_tool56.empty:
-        for _, row in df_tool56.iterrows():
+    if not df_standard.empty:
+        for _, row in df_standard.iterrows():
             try:
                 s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
                 l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
-                if (s, l) in matrix_data:
-                    matrix_data[(s, l)].append(iss)
+                
+                # ตรวจสอบว่าคะแนนอยู่ในช่วง 1-5 เท่านั้น
+                if 1 <= s <= 5 and 1 <= l <= 5:
+                    if (s, l) in matrix_data:
+                        matrix_data[(s, l)].append(iss)
             except:
                 pass
 
@@ -971,9 +990,9 @@ elif choice.startswith("Tool 7"):
         action_list_text = ""
         has_data = False
         
-        # 🟢 ดึงข้อมูลรายงาน AI จาก Tool 5 และ 6 ใน Sheet (ไม่ใช้ session_state)
-        if not df_tool56.empty:
-            for _, row in df_tool56.iterrows():
+        # 🟢 1. สังเคราะห์รายงานเฉพาะ "ประเด็นปกติ (Salient Issues)"
+        if not df_standard.empty:
+            for _, row in df_standard.iterrows():
                 has_data = True
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 plan = str(row.get('รายละเอียด/คำให้การ', ''))
@@ -982,14 +1001,12 @@ elif choice.startswith("Tool 7"):
                     sev = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
                     lik = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
                 except:
-                    sev, lik = 0, 0
+                    sev, lik = 1, 1
                 
                 risk_level = "ระดับวิกฤต (Critical)" if (sev == 5 or sev*lik >= 16) else "ระดับสูง (Significant)" if sev*lik >= 8 else "ระดับปานกลาง (Moderate)"
-                
                 scope_label = f"ผู้ได้รับผลกระทบหลัก: {filter_context}" if filter_context and str(filter_context).lower() != "nan" else "ผลกระทบระดับองค์กรภาพรวม"
                 
                 issue_list_text += f"- ประเด็น: {iss}\n  ({scope_label})\n  การประเมิน: ความรุนแรง (Severity) ระดับ {sev} | โอกาสเกิด (Likelihood) ระดับ {lik}\n  การจัดระดับความเสี่ยง: {risk_level}\n\n"
-                
                 smart_text = generate_deep_consultant_text(iss, plan, sev, lik)
                 action_list_text += f"▪ {iss}\n  {smart_text}\n\n"
                 
@@ -997,13 +1014,18 @@ elif choice.startswith("Tool 7"):
             issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5 หรือ 6)\n"
             action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 หรือ Tool 6 ให้แล้วเสร็จก่อน)\n"
 
+        # 🟢 2. สังเคราะห์รายงานเฉพาะ "Early Warnings" แยกต่างหาก!
         early_warning_text = ""
-        if st.session_state.get("early_warning_approved", False):
-            ew_note = st.session_state.get("early_warning_note", "ให้ทีมตรวจสอบภายใน (Internal Audit) ลงพื้นที่ตรวจสอบคู่ค้าและเอเจนซี่ทั้งหมดทันที")
+        if not df_ew.empty:
+            ew_bullets = ""
+            for _, row in df_ew.iterrows():
+                iss = str(row.get('ประเด็นหลัก', 'Unknown'))
+                plan = str(row.get('รายละเอียด/คำให้การ', 'ให้ทีมตรวจสอบภายในลงพื้นที่...'))
+                ew_bullets += f"- สัญญาณเตือนภัย: {iss}\n- แนวทางสืบสวนเชิงลึก: {plan}\n\n"
+
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
-ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) 1 ประเด็นหลัก:
-- สัญญาณเตือนภัย: พบช่องว่างการนำนโยบายไปปฏิบัติจริง (Policy Implementation Gap) 
-- แนวทางสืบสวนเชิงลึก (Investigation Resolution): อนุมัติดำเนินการตรวจสอบข้อเท็จจริง โดยมีมติสั่งการเชิงยุทธศาสตร์ว่า "{ew_note}" เพื่อป้องกันการยกระดับความรุนแรงตามกฎหมายสากล"""
+ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_ew)} ประเด็นหลัก:
+{ew_bullets}"""
         else:
             early_warning_text = """4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
 ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่ต้องจัดตั้งคณะกรรมการสืบสวนฉุกเฉิน"""
@@ -1044,12 +1066,10 @@ elif choice.startswith("Tool 7"):
 
         st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานยุทธศาสตร์ก่อนการอนุมัติขั้นสุดท้าย:**")
         
-        # --- 🟢 เช็คว่ามีรายงานในฐานข้อมูลแล้วหรือยัง ---
         df_tool7_report = pd.DataFrame()
         if not df_real.empty:
             df_tool7_report = df_real[df_real['เครื่องมือ'] == 'Tool 7 - Report']
         
-        # ถ้ามีข้อมูล Tool 7 ในชีตแล้ว ให้แสดงหน้า "อนุมัติแล้ว"
         if not df_tool7_report.empty:
             latest_report = df_tool7_report.iloc[-1]
             st.success("✅ รายงานยุทธศาสตร์ฉบับนี้ได้รับการอนุมัติและบันทึกลงระบบแล้ว")
@@ -1058,7 +1078,6 @@ elif choice.startswith("Tool 7"):
             if st.button("📝 สร้างรายงานฉบับใหม่ / เขียนทับ"):
                 pass 
                 
-        # ถ้ายังไม่มีรายงานในชีต ให้แสดงหน้า "ร่างรายงานและปุ่มอนุมัติ"
         else:
             report_text_final = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=800, label_visibility="collapsed")
             
@@ -1066,6 +1085,5 @@ elif choice.startswith("Tool 7"):
             if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
                 if sheet:
                     sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", "ภาพรวมองค์กร", "N/A", "N/A", "รายงานยุทธศาสตร์", report_text_final, "N/A", "N/A", "N/A", "N/A", "N/A"])
-                    
-                    st.cache_data.clear() # ล้างข้อมูลเก่าที่จำไว้ทิ้ง เพื่อให้ไปดึงจาก Google Sheet ใหม่
-                    st.rerun() # สั่งรีเฟรชหน้าจอทันที เพื่อให้เงื่อนไขแสดงผลทำงาน
+                    st.cache_data.clear() 
+                    st.rerun()
