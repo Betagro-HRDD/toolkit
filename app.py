@@ -61,35 +61,6 @@ st.markdown("""
             font-size: 1.8rem !important; /* ปรับขนาดหัวข้อให้เล็กลงหน่อยบนมือถือ */
         }
     }
-</style>
-""", unsafe_allow_html=True)
-
-# ส่วนการแสดงผล Hero (ตัวอย่างโครงสร้างที่ควรใช้คู่กับ CSS ด้านบน)
-st.markdown("""
-<div class="main-header">
-    <div class="header-content">
-        <h1 style="margin:0; color:white;">RiskSearch 360°</h1>
-        <p style="margin:0; opacity:0.9;">Strategic Human Rights Due Diligence Platform</p>
-    </div>
-    <div class="header-badge">
-        🚀 AI Powered System v2.5
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
-# ส่วนการแสดงผล Hero (ตัวอย่างโครงสร้างที่ควรใช้คู่กับ CSS ด้านบน)
-st.markdown("""
-<div class="main-header">
-    <div class="header-content">
-        <h1 style="margin:0; color:white;">RiskSearch 360°</h1>
-        <p style="margin:0; opacity:0.9;">Strategic Human Rights Due Diligence Platform</p>
-    </div>
-    <div class="header-badge">
-        🚀 AI Powered System v2.5
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 # ==========================================
 # --- 1.1 KNOWLEDGE BASE (ฐานข้อมูลกฎหมายและนโยบาย) ---
 # ==========================================
