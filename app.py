@@ -884,15 +884,21 @@ elif choice.startswith("Tool 7"):
     c1, c2, c3 = st.columns(3)
     
     sheet_data_count = 0
+    df_tool56 = pd.DataFrame() # 🟢 ตัวแปรสำหรับเก็บข้อมูล Tool 5 และ 6 จากชีต
+    
     if not df_real.empty:
         raw_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
         sheet_data_count = len(raw_df)
+        
+        # 🟢 ดึงข้อมูลที่เคยอนุมัติแผน (Tool 5, 6) จากฐานข้อมูลโดยตรง
+        df_tool56 = df_real[df_real['เครื่องมือ'].isin(['Tool 5', 'Tool 6'])]
             
     if sheet_data_count == 0: sheet_data_count = 135
     
     with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>ผู้มีส่วนได้เสีย (Stakeholders)</div></div>", unsafe_allow_html=True)
     
-    approved_count = len(st.session_state.get("approved_issues", []))
+    # 🟢 นับจำนวนประเด็น Salient Issue ที่ approved แล้วจาก Google Sheet แทนการใช้ session_state
+    approved_count = len(df_tool56)
     with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นที่ได้รับการอนุมัติแผนจัดการ</div></div>", unsafe_allow_html=True)
     
     ew_count = 1 if st.session_state.get("early_warning_approved", False) else 0
@@ -900,10 +906,18 @@ elif choice.startswith("Tool 7"):
     
     st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังการกระจายตัวความเสี่ยง (Human Rights Risk Heat Map)</h5>", unsafe_allow_html=True)
     
+    # 🟢 จัดการข้อมูล Heat Map โดยดึงจาก df_tool56 โดยตรง (ทำให้รีเฟรชหน้าก็ยังอยู่)
     matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
-    for iss, data in st.session_state.get("saved_plans_dict", {}).items():
-        if (data['sev'], data['lik']) in matrix_data:
-            matrix_data[(data['sev'], data['lik'])].append(iss)
+    if not df_tool56.empty:
+        for _, row in df_tool56.iterrows():
+            try:
+                s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
+                l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
+                iss = str(row.get('ประเด็นหลัก', 'Unknown'))
+                if (s, l) in matrix_data:
+                    matrix_data[(s, l)].append(iss)
+            except:
+                pass
 
     rows = ""
     for l in range(5, 0, -1):
@@ -955,24 +969,33 @@ elif choice.startswith("Tool 7"):
 
         issue_list_text = ""
         action_list_text = ""
-        saved_dict = st.session_state.get("saved_plans_dict", {})
-        
         has_data = False
-        for iss, data in saved_dict.items():
-            has_data = True
-            risk_level = "ระดับวิกฤต (Critical)" if (data['sev'] == 5 or data['sev']*data['lik'] >= 16) else "ระดับสูง (Significant)" if data['sev']*data['lik'] >= 8 else "ระดับปานกลาง (Moderate)"
-            
-            filter_context = data.get('filter_context', '')
-            scope_label = f"ผู้ได้รับผลกระทบหลัก: {filter_context}" if filter_context else "ผลกระทบระดับองค์กรภาพรวม"
-            
-            issue_list_text += f"- ประเด็น: {iss}\n  ({scope_label})\n  การประเมิน: ความรุนแรง (Severity) ระดับ {data['sev']} | โอกาสเกิด (Likelihood) ระดับ {data['lik']}\n  การจัดระดับความเสี่ยง: {risk_level}\n\n"
-            
-            smart_text = generate_deep_consultant_text(iss, data['plan'], data['sev'], data['lik'])
-            action_list_text += f"▪ {iss}\n  {smart_text}\n\n"
-            
+        
+        # 🟢 ดึงข้อมูลรายงาน AI จาก Tool 5 และ 6 ใน Sheet (ไม่ใช้ session_state)
+        if not df_tool56.empty:
+            for _, row in df_tool56.iterrows():
+                has_data = True
+                iss = str(row.get('ประเด็นหลัก', 'Unknown'))
+                plan = str(row.get('รายละเอียด/คำให้การ', ''))
+                filter_context = str(row.get('กลุ่มเป้าหมาย', ''))
+                try:
+                    sev = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
+                    lik = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
+                except:
+                    sev, lik = 0, 0
+                
+                risk_level = "ระดับวิกฤต (Critical)" if (sev == 5 or sev*lik >= 16) else "ระดับสูง (Significant)" if sev*lik >= 8 else "ระดับปานกลาง (Moderate)"
+                
+                scope_label = f"ผู้ได้รับผลกระทบหลัก: {filter_context}" if filter_context and str(filter_context).lower() != "nan" else "ผลกระทบระดับองค์กรภาพรวม"
+                
+                issue_list_text += f"- ประเด็น: {iss}\n  ({scope_label})\n  การประเมิน: ความรุนแรง (Severity) ระดับ {sev} | โอกาสเกิด (Likelihood) ระดับ {lik}\n  การจัดระดับความเสี่ยง: {risk_level}\n\n"
+                
+                smart_text = generate_deep_consultant_text(iss, plan, sev, lik)
+                action_list_text += f"▪ {iss}\n  {smart_text}\n\n"
+                
         if not has_data:
-            issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5)\n"
-            action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 ให้แล้วเสร็จก่อน)\n"
+            issue_list_text = "- (ข้อมูลว่างเปล่า: ยังไม่มีประเด็นที่ได้รับการอนุมัติเชิงยุทธศาสตร์จาก Tool 5 หรือ 6)\n"
+            action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 หรือ Tool 6 ให้แล้วเสร็จก่อน)\n"
 
         early_warning_text = ""
         if st.session_state.get("early_warning_approved", False):
@@ -1019,26 +1042,21 @@ elif choice.startswith("Tool 7"):
 6. ข้อสรุปเชิงยุทธศาสตร์ (Executive Conclusion)
 องค์กรได้พิสูจน์ให้เห็นถึงการยกระดับกระบวนทัศน์จากการมอง "ความเสี่ยงต่อธุรกิจ (Risk to Business)" ไปสู่การปกป้อง "ความเสี่ยงต่อผู้คน (Risk to People)" อย่างแท้จริง การบูรณาการเทคโนโลยี AI เข้ากับกระบวนการ HRDD ทำให้องค์กรสามารถดักจับความเสี่ยงที่มองไม่เห็น (Invisible Risks) เพิ่มขีดความสามารถในการตรวจสอบย้อนกลับ (Traceability) และยกระดับคุณภาพชีวิตของผู้มีส่วนได้เสียตลอดห่วงโซ่อุปทาน อันเป็นรากฐานสำคัญของการเติบโตอย่างยั่งยืนในเวทีโลก"""
 
-       # ค้นหาจุดนี้ในโค้ดเดิมแล้ววางทับลงไป
         st.markdown("**✍️ ตรวจสอบความถูกต้องของรายงานยุทธศาสตร์ก่อนการอนุมัติขั้นสุดท้าย:**")
         
-        # --- 🟢 ส่วนที่แก้ไขใหม่: เช็คว่ามีรายงานในฐานข้อมูลแล้วหรือยัง ---
-        # สมมติว่าข้อมูลดิบของคุณอยู่ในตัวแปร df_real (หรือ df) ให้กรองหา Tool 7
-        df_tool7_report = df_real[df_real['เครื่องมือ'] == 'Tool 7 - Report']
+        # --- 🟢 เช็คว่ามีรายงานในฐานข้อมูลแล้วหรือยัง ---
+        df_tool7_report = pd.DataFrame()
+        if not df_real.empty:
+            df_tool7_report = df_real[df_real['เครื่องมือ'] == 'Tool 7 - Report']
         
         # ถ้ามีข้อมูล Tool 7 ในชีตแล้ว ให้แสดงหน้า "อนุมัติแล้ว"
         if not df_tool7_report.empty:
-            # ดึงรายงานบรรทัดล่าสุดมาแสดง
             latest_report = df_tool7_report.iloc[-1]
             st.success("✅ รายงานยุทธศาสตร์ฉบับนี้ได้รับการอนุมัติและบันทึกลงระบบแล้ว")
-            
-            # แสดงข้อมูลรายงาน (ดึงจากคอลัมน์ รายละเอียด/คำให้การ หรือคอลัมน์ที่คุณบันทึก report_text_final ลงไป)
             st.info(latest_report['รายละเอียด/คำให้การ'])
             
-            # ถ้าอยากให้มีปุ่มกลับไปแก้ไขได้
             if st.button("📝 สร้างรายงานฉบับใหม่ / เขียนทับ"):
-                # ให้ลบแคชเผื่ออยากโหลดใหม่ แต่เคสนี้เราแค่หลอกให้พิมพ์ใหม่
-                pass # ถ้าจะให้มีลอจิกแก้ข้อมูล ค่อยมาเติมตรงนี้
+                pass 
                 
         # ถ้ายังไม่มีรายงานในชีต ให้แสดงหน้า "ร่างรายงานและปุ่มอนุมัติ"
         else:
@@ -1047,11 +1065,7 @@ elif choice.startswith("Tool 7"):
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
                 if sheet:
-                    # โค้ดบันทึกข้อมูลเดิมของคุณ (ตรวจสอบให้แน่ใจว่าคอลัมน์ตรงกับโครงสร้างคุณ)
                     sheet.append_row([now, audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", "ภาพรวมองค์กร", "N/A", "N/A", "รายงานยุทธศาสตร์", report_text_final, "N/A", "N/A", "N/A", "N/A", "N/A"])
                     
-                    # ==========================================
-                    # 🔴 หัวใจสำคัญของการแก้ปัญหาอยู่ตรง 2 บรรทัดนี้
-                    # ==========================================
-                    st.cache_data.clear() # 1. สั่งล้างข้อมูลเก่าที่จำไว้ทิ้ง เพื่อให้ไปดึงจาก Google Sheet ใหม่
-                    st.rerun() # 2. สั่งรีเฟรชหน้าจอทันที เพื่อให้เงื่อนไข (if not df_tool7_report.empty) ด้านบนทำงาน
+                    st.cache_data.clear() # ล้างข้อมูลเก่าที่จำไว้ทิ้ง เพื่อให้ไปดึงจาก Google Sheet ใหม่
+                    st.rerun() # สั่งรีเฟรชหน้าจอทันที เพื่อให้เงื่อนไขแสดงผลทำงาน
