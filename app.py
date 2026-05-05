@@ -1075,20 +1075,28 @@ elif choice.startswith("Tool 7"):
                 # ค้นหาคำอ้างอิง
                 evidence_str = get_evidence_quote(iss, df_real)
                 
+                # 🟢 ทำความสะอาดชื่อประเด็น ตัดคำว่า Early Warning ที่ซ้ำซ้อนออก
+                clean_iss_name = iss.replace('🚩', '').replace('สัญญาณเตือนภัยล่วงหน้า', '').replace('(Early Warning)', '').replace('Early Warning', '').replace(':', '').strip()
+                
+                # 🟢 ตรวจจับและแมปปิ้งชื่อให้เป็นทางการ (ตามที่คุณผู้ใช้ต้องการเป๊ะๆ)
+                if "Recruitment" in clean_iss_name or "นายหน้า" in clean_iss_name:
+                    display_topic_name = "การเรียกเก็บค่าธรรมเนียมสรรหา (Debt Bondage Indicator)"
+                else:
+                    display_topic_name = clean_iss_name
+                
                 # แปลง Log เป็นคำแนะนำ
                 if "Anomaly" in raw_plan or raw_plan.strip() == "":
                     note_part = raw_plan.split("Note:")[-1].strip() if "Note:" in raw_plan else ""
-                    # ตัดเอาแค่ชื่อหัวข้อไปเขียนแผน (ซ่อนคำว่า Early warning)
-                    clean_iss_name = iss.replace('🚩', '').replace('สัญญาณเตือนภัยล่วงหน้า', '').replace('(Early Warning)', '').replace(':', '').strip()
+                    
                     if not note_part:
-                        plan_display = f"ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี {clean_iss_name} เพื่อป้องกันการยกระดับความรุนแรงตามกฎหมายสากล"
+                        plan_display = f"ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี {display_topic_name} เพื่อป้องกันการยกระดับความรุนแรงตามกฎหมายสากล"
                     else:
                         plan_display = f"ข้อสั่งการเพิ่มเติม: {note_part}"
                 else:
                     plan_display = raw_plan
 
-                # 🟢 ดึงชื่อประเด็นหลักมาแสดงเป๊ะๆ ตามที่คุณ Approved ไว้
-                display_iss = iss if "สัญญาณเตือนภัยล่วงหน้า" in iss else f"🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): {iss}"
+                # 🟢 ดึงชื่อประเด็นหลักมาแสดงเป๊ะๆ ไม่มีการซ้ำซ้อน
+                display_iss = f"🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): {display_topic_name}"
 
                 ew_bullets += f"{display_iss}\n  🔍 หลักฐานเชิงประจักษ์ (Evidence Citation): {evidence_str}\n  🛡️ แนวทางสืบสวนเชิงลึก (Investigation Protocol): {plan_display}\n\n"
 
