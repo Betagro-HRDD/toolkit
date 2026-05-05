@@ -924,7 +924,7 @@ elif choice.startswith("Tool 6"):
             
     st.markdown("</div>", unsafe_allow_html=True)
 
-# ----------------- TOOL 7 (Executive Dashboard & STRATEGIC AI Report) -----------------
+---------------- TOOL 7 (Executive Dashboard & STRATEGIC AI Report) -----------------
 elif choice.startswith("Tool 7"):
     st.markdown("<div class='standalone-form'>", unsafe_allow_html=True)
     
@@ -946,7 +946,7 @@ elif choice.startswith("Tool 7"):
     if not df_real.empty:
         if 'รอบการประเมิน' in df_real.columns:
             val = df_real['รอบการประเมิน'].dropna().iloc[-1] if not df_real['รอบการประเมิน'].dropna().empty else "N/A"
-            actual_audit_cycle = str(val) # ป้องกัน Numpy Float หลุดไปทำแอปแครช
+            actual_audit_cycle = str(val) 
             
         raw_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
         sheet_data_count = len(raw_df)
@@ -959,51 +959,64 @@ elif choice.startswith("Tool 7"):
                 df_tool56['วันที่-เวลา'] = pd.to_datetime(df_tool56['วันที่-เวลา'], errors='coerce')
                 df_tool56 = df_tool56.sort_values('วันที่-เวลา')
             
-            # เติมค่าว่างด้วยคำว่าภาพรวมองค์กร จะได้จัดกลุ่มได้ถูกต้อง
-            df_tool56['กลุ่มเป้าหมาย'] = df_tool56['กลุ่มเป้าหมาย'].fillna('ภาพรวมองค์กร').replace({'nan': 'ภาพรวมองค์กร', '': 'ภาพรวมองค์กร'})
-            df_tool56 = df_tool56.drop_duplicates(subset=['ประเด็นหลัก', 'กลุ่มเป้าหมาย'], keep='last')
+            def clean_target_group(x):
+                x = str(x).strip()
+                if x in ['nan', '', 'N/A', 'None']: return 'ภาพรวมองค์กร (Corporate Level)'
+                if 'องค์กร' in x or 'Corporate' in x or 'ภาพรวม' in x: 
+                    if 'ไม่แสวงหา' not in x and 'NGO' not in x: 
+                        return 'ภาพรวมองค์กร (Corporate Level)'
+                if 'เจาะจงกลุ่ม' in x:
+                    import re
+                    m = re.search(r'\((.*?)\)', x)
+                    if m: return m.group(1).strip()
+                return x
+
+            df_tool56['กลุ่มเป้าหมาย_Clean'] = df_tool56['กลุ่มเป้าหมาย'].apply(clean_target_group)
+            
+            df_tool56 = df_tool56.drop_duplicates(subset=['ประเด็นหลัก', 'กลุ่มเป้าหมาย_Clean'], keep='last')
 
             is_early_warning = df_tool56['ประเด็นหลัก'].str.contains('Early Warning|สัญญาณเตือน', na=False, case=False)
             df_ew = df_tool56[is_early_warning]
             df_standard = df_tool56[~is_early_warning]
 
+    df_corp = pd.DataFrame()
+    df_stake_all = pd.DataFrame()
+    if not df_standard.empty:
+        df_corp = df_standard[df_standard['กลุ่มเป้าหมาย_Clean'] == 'ภาพรวมองค์กร (Corporate Level)']
+        df_stake_all = df_standard[df_standard['กลุ่มเป้าหมาย_Clean'] != 'ภาพรวมองค์กร (Corporate Level)']
+
     st.markdown("<div style='background-color:#F0FDF4; padding:15px; border-radius:8px; border:1px solid #BBF7D0; margin-bottom: 20px;'>", unsafe_allow_html=True)
-    st.markdown("##### 🔍 ตัวกรองผลการวิเคราะห์เชิงลึก (Stakeholder Drill-down)")
+    st.markdown("##### 🔍 ตัวกรองผลการวิเคราะห์เจาะจงกลุ่ม (Stakeholder Drill-down)")
     
-    available_groups = ["ภาพรวมทั้งหมด (All Stakeholders)"]
-    if not df_tool56.empty and 'กลุ่มเป้าหมาย' in df_tool56.columns:
-        groups = df_tool56['กลุ่มเป้าหมาย'].dropna().unique().tolist()
-        available_groups.extend([g for g in groups if str(g).strip() not in ["", "nan", "N/A"]])
+    available_groups = ["รวมกลุ่มเป้าหมายทั้งหมด (All Stakeholders)"]
+    if not df_stake_all.empty:
+        groups = df_stake_all['กลุ่มเป้าหมาย_Clean'].unique().tolist()
+        available_groups.extend(groups)
         
-    selected_group = st.selectbox("เจาะจงกลุ่มเป้าหมายเพื่อดูผลลัพธ์เฉพาะกลุ่ม:", available_groups)
+    selected_group = st.selectbox("เลือกกลุ่มเป้าหมายเพื่อนำมาเปรียบเทียบใน Heat Map ฝั่งขวา:", available_groups)
     st.markdown("</div>", unsafe_allow_html=True)
     
-    df_dash_ew = df_ew.copy()
-    df_dash_standard = df_standard.copy()
-    
-    if selected_group != "ภาพรวมทั้งหมด (All Stakeholders)":
-        search_keyword = selected_group.split(" ")[0]
-        df_dash_ew = df_ew[df_ew['กลุ่มเป้าหมาย'].astype(str).str.contains(search_keyword, na=False, case=False)]
-        df_dash_standard = df_standard[df_standard['กลุ่มเป้าหมาย'].astype(str).str.contains(search_keyword, na=False, case=False)]
+    df_dash_stake = df_stake_all.copy()
+    if selected_group != "รวมกลุ่มเป้าหมายทั้งหมด (All Stakeholders)" and not df_stake_all.empty:
+        df_dash_stake = df_stake_all[df_stake_all['กลุ่มเป้าหมาย_Clean'] == selected_group]
 
     c1, c2, c3 = st.columns(3)
     with c1: st.markdown(f"<div class='dash-card'><div class='dash-label'>ข้อมูลที่สืบค้นจากระบบ</div><div class='dash-number'>{sheet_data_count}</div><div style='color: #005B31; font-size:12px;'>ผู้มีส่วนได้เสียทั้งหมด</div></div>", unsafe_allow_html=True)
     
-    approved_count = len(df_dash_standard)
-    with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นความเสี่ยงของกลุ่มนี้</div></div>", unsafe_allow_html=True)
+    approved_count = len(df_standard)
+    with c2: st.markdown(f"<div class='dash-card'><div class='dash-label'>Salient Issues</div><div class='dash-number' style='color:#DC2626;'>{approved_count}</div><div style='color: #666; font-size:12px;'>ประเด็นความเสี่ยงทั้งหมด (ไม่นับซ้ำ)</div></div>", unsafe_allow_html=True)
     
-    ew_count = len(df_dash_ew)
-    with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยของกลุ่มนี้</div></div>", unsafe_allow_html=True)
+    ew_count = len(df_ew)
+    with c3: st.markdown(f"<div class='dash-card'><div class='dash-label'>Early Warnings</div><div class='dash-number' style='color:#D97706;'>{ew_count}</div><div style='color: #666; font-size:12px;'>สัญญาณเตือนภัยล่วงหน้า</div></div>", unsafe_allow_html=True)
     
-    st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังและสถิติความเสี่ยง (Risk Analytics Dashboard)</h5>", unsafe_allow_html=True)
+    st.markdown("<br><h5 style='color: #005B31; text-align:center;'>📊 แผนผังระดับความเสี่ยง (Risk Heat Map Comparison)</h5>", unsafe_allow_html=True)
     
-    col_heat, col_stake = st.columns([3, 2])
+    col_heat_corp, col_heat_stake = st.columns(2)
     
-    with col_heat:
-        st.markdown(f"<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>Human Rights Risk Heat Map<br><span style='font-size:12px; font-weight:normal;'>({selected_group})</span></div>", unsafe_allow_html=True)
+    def build_heat_map_html(df_input):
         matrix_data = {(s, l): [] for s in range(1,6) for l in range(1,6)}
-        if not df_dash_standard.empty:
-            for _, row in df_dash_standard.iterrows():
+        if not df_input.empty:
+            for _, row in df_input.iterrows():
                 try:
                     s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
                     l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
@@ -1013,7 +1026,6 @@ elif choice.startswith("Tool 7"):
                             matrix_data[(s, l)].append(iss)
                 except:
                     pass
-
         rows = ""
         for l in range(5, 0, -1):
             rows += "<tr>"
@@ -1023,51 +1035,20 @@ elif choice.startswith("Tool 7"):
                 content = ""
                 if len(issues) > 0:
                     issue_text = "&#10;".join([f"- {i}" for i in issues])
-                    content = f"<div class='matrix-bubble' title='ประเด็นสิทธิมนุษยชนที่ตกอยู่ในพิกัดนี้:&#10;{issue_text}'>{len(issues)}</div>"
+                    content = f"<div class='matrix-bubble' title='ประเด็นที่ตกอยู่ในพิกัดนี้:&#10;{issue_text}'>{len(issues)}</div>"
                 rows += f"<td class='heat-cell' style='background-color:{color}; border: 1px solid rgba(0,0,0,0.05);'>{content}</td>"
             rows += "</tr>"
-            
-        st.markdown(f"""
-            <table class='heat-table' style='width: 100%; margin: 0 auto;'>{rows}</table>
-            <div style='display: flex; justify-content: space-between; width: 100%; margin: 5px auto 0 auto; color: #666; font-weight: bold; font-size: 11px;'>
-                <span>< โอกาสเกิด (Likelihood)</span>
-                <span>ผลกระทบ (Severity) ></span>
-            </div>
-        """, unsafe_allow_html=True)
+        return f"<table class='heat-table' style='width: 100%; margin: 0 auto;'>{rows}</table>"
 
-    with col_stake:
-        st.markdown("<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>ความรุนแรงตามกลุ่มเป้าหมาย (Stakeholder Heat Map)</div>", unsafe_allow_html=True)
-        
-        if not df_standard.empty and 'กลุ่มเป้าหมาย' in df_standard.columns:
-            heat_df = df_standard.copy()
-            def get_risk_level(row):
-                try:
-                    s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
-                    l = int(pd.to_numeric(row.get('โอกาส (Lik)', 0), errors='coerce'))
-                    if s == 5 or s*l >= 16: return '1. วิกฤต (Critical)'
-                    elif s*l >= 8: return '2. สูง (Significant)'
-                    else: return '3. ปานกลาง (Moderate)'
-                except:
-                    return '3. ปานกลาง (Moderate)'
-                    
-            heat_df['ระดับความเสี่ยง'] = heat_df.apply(get_risk_level, axis=1)
-            stake_heat = heat_df.groupby(['กลุ่มเป้าหมาย', 'ระดับความเสี่ยง']).size().reset_index(name='จำนวนประเด็น')
-            
-            chart = alt.Chart(stake_heat).mark_rect(stroke='white', strokeWidth=2).encode(
-                y=alt.Y('กลุ่มเป้าหมาย:N', title='', sort='-x', axis=alt.Axis(labelLimit=150)),
-                x=alt.X('ระดับความเสี่ยง:N', title='', sort=['1. วิกฤต (Critical)', '2. สูง (Significant)', '3. ปานกลาง (Moderate)'], axis=alt.Axis(labelAngle=-15)),
-                color=alt.Color('จำนวนประเด็น:Q', scale=alt.Scale(scheme='reds'), legend=None),
-                tooltip=['กลุ่มเป้าหมาย', 'ระดับความเสี่ยง', 'จำนวนประเด็น']
-            ).properties(height=280)
-            
-            text = chart.mark_text(baseline='middle').encode(
-                text='จำนวนประเด็น:Q',
-                color=alt.condition(alt.datum.จำนวนประเด็น > 1, alt.value('white'), alt.value('black'))
-            )
-            
-            st.altair_chart(chart + text, use_container_width=True)
-        else:
-            st.info("ยังไม่มีข้อมูลสำหรับสร้างกราฟแสดงกลุ่มเป้าหมาย")
+    with col_heat_corp:
+        st.markdown(f"<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>ระดับภาพรวมองค์กร (Corporate Level)<br><span style='font-size:12px; font-weight:normal; color:#DC2626;'>พบความเสี่ยง {len(df_corp)} ประเด็น</span></div>", unsafe_allow_html=True)
+        st.markdown(build_heat_map_html(df_corp), unsafe_allow_html=True)
+        st.markdown("""<div style='display: flex; justify-content: space-between; width: 100%; margin: 5px auto 0 auto; color: #666; font-weight: bold; font-size: 11px;'><span>< โอกาสเกิด</span><span>ผลกระทบ ></span></div>""", unsafe_allow_html=True)
+
+    with col_heat_stake:
+        st.markdown(f"<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>ระดับเจาะจงกลุ่ม ({selected_group})<br><span style='font-size:12px; font-weight:normal; color:#D97706;'>พบความเสี่ยง {len(df_dash_stake)} ประเด็น</span></div>", unsafe_allow_html=True)
+        st.markdown(build_heat_map_html(df_dash_stake), unsafe_allow_html=True)
+        st.markdown("""<div style='display: flex; justify-content: space-between; width: 100%; margin: 5px auto 0 auto; color: #666; font-weight: bold; font-size: 11px;'><span>< โอกาสเกิด</span><span>ผลกระทบ ></span></div>""", unsafe_allow_html=True)
             
     st.markdown("<hr style='border: 2px solid #005B31; margin: 40px 0;'>", unsafe_allow_html=True)
     st.markdown("<h3 style='color:#005B31; margin-top:0;'>📑 ร่างรายงานการบริหารจัดการความเสี่ยง (Comprehensive HRDD Report)</h3>", unsafe_allow_html=True)
@@ -1079,7 +1060,7 @@ elif choice.startswith("Tool 7"):
         st.markdown(f"""
         <div class="gemini-draft-box">
             <h4 class="gemini-title"><span class="gemini-icon">✨</span> Gemini AI: Strategic Insight & Executive Summary</h4>
-            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ระบบได้ประมวลผลและสร้างรายงาน (มุมมองการวิเคราะห์: <b>{selected_group}</b>)</p>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px;">ระบบได้ประมวลผลและจำแนกข้อมูลตามระดับองค์กร และระดับกลุ่มผู้มีส่วนได้เสียให้โดยอัตโนมัติ</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -1111,15 +1092,12 @@ elif choice.startswith("Tool 7"):
             strategy = f"ยุทธศาสตร์การจัดการ (Strategic Mitigation):\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
             return f"{analysis}\n  {strategy}"
 
-        corp_issues_df = df_dash_standard[df_dash_standard['กลุ่มเป้าหมาย'].str.contains('ภาพรวมองค์กร', na=False, case=False)]
-        stake_issues_df = df_dash_standard[~df_dash_standard['กลุ่มเป้าหมาย'].str.contains('ภาพรวมองค์กร', na=False, case=False)]
-        
         issue_list_3_1 = ""
         issue_list_3_2 = ""
         action_list_text = ""
         
-        if not corp_issues_df.empty:
-            for _, row in corp_issues_df.iterrows():
+        if not df_corp.empty:
+            for _, row in df_corp.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 raw_plan = str(row.get('รายละเอียด/คำให้การ', ''))
                 evidence_str = get_evidence_quote(iss, df_real)
@@ -1138,8 +1116,8 @@ elif choice.startswith("Tool 7"):
         else:
             issue_list_3_1 = "- (ไม่มีข้อมูลประเด็นที่วิเคราะห์ในระดับภาพรวมองค์กร)\n"
 
-        if not stake_issues_df.empty:
-            grouped = stake_issues_df.groupby('กลุ่มเป้าหมาย')
+        if not df_stake_all.empty:
+            grouped = df_stake_all.groupby('กลุ่มเป้าหมาย_Clean')
             for group_name, group_df in grouped:
                 issue_list_3_2 += f"🔹 **กลุ่มเป้าหมาย: {group_name}** (จำนวน {len(group_df)} ประเด็น)\n"
                 for _, row in group_df.iterrows():
@@ -1157,17 +1135,17 @@ elif choice.startswith("Tool 7"):
                     
                     clean_plan = raw_plan.split("| Plan:")[-1].strip() if "| Plan:" in raw_plan else raw_plan
                     smart_text = generate_deep_consultant_text(iss, clean_plan, sev, lik)
-                    action_list_text += f"▪ {iss} [กลุ่มเป้าหมาย: {group_name}]\n  {smart_text}\n\n"
+                    action_list_text += f"▪ {iss} [{group_name}]\n  {smart_text}\n\n"
         else:
             issue_list_3_2 = "- (ไม่มีข้อมูลประเด็นความเสี่ยงที่เจาะจงกลุ่มเป้าหมาย)\n"
             
-        if corp_issues_df.empty and stake_issues_df.empty:
+        if df_corp.empty and df_stake_all.empty:
             action_list_text = "- (ข้อมูลว่างเปล่า: โปรดทำการประเมินแผนยุทธศาสตร์ใน Tool 5 ให้แล้วเสร็จก่อน)\n"
 
         early_warning_text = ""
-        if not df_dash_ew.empty:
+        if not df_ew.empty:
             ew_bullets = ""
-            for _, row in df_dash_ew.iterrows():
+            for _, row in df_ew.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
                 raw_plan = str(row.get('รายละเอียด/คำให้การ', ''))
                 
@@ -1192,16 +1170,16 @@ elif choice.startswith("Tool 7"):
                 ew_bullets += f"{display_iss}\n  🔍 หลักฐานเชิงประจักษ์ (Evidence Citation): {evidence_str}\n  🛡️ แนวทางสืบสวนเชิงลึก (Investigation Protocol): {plan_display}\n\n"
 
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
-ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_dash_ew)} ประเด็นหลัก:
+ระบบ AI ครอสเช็คข้อมูลข้ามส่วนงาน (Triangulation) ตรวจพบความเปราะบางเชิงระบบ (Systemic Vulnerability) จำนวน {len(df_ew)} ประเด็นหลัก:
 
 {ew_bullets}"""
         else:
             early_warning_text = f"""4. การพยากรณ์และสัญญาณเตือนภัยล่วงหน้า (Early Warning & Foresight)
-ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างสำหรับกลุ่ม {selected_group}"""
+ในรอบการประเมินปัจจุบัน ระบบยังไม่พบสัญญาณขัดแย้งของข้อมูลที่มีนัยสำคัญระดับโครงสร้างที่รอดำเนินการ"""
 
         report_mockup = f"""รายงานผลวิเคราะห์ความเสี่ยงด้านสิทธิมนุษยชนเชิงกลยุทธ์ (Strategic HRDD Risk Report)
 รอบการประเมิน: {actual_audit_cycle}
-ขอบเขตการวิเคราะห์ (Scope of Analysis): {selected_group}
+ขอบเขตการวิเคราะห์: ภาพรวมองค์กรและการจำแนกกลุ่มผู้มีส่วนได้เสีย (Corporate & Stakeholder Drill-down)
 ผู้รับผิดชอบการประเมิน: {auditor_name if 'auditor_name' in globals() else 'N/A'}
 
 บทสรุปผู้บริหาร (Executive Summary)
@@ -1217,10 +1195,10 @@ elif choice.startswith("Tool 7"):
 จากการให้ AI บูรณาการข้อมูลแบบสามเส้า (Triangulation) พบประเด็นความเสี่ยงระดับโครงสร้างที่ได้รับการอนุมัติให้ยกระดับการจัดการเป็นกรณีพิเศษ ดังนี้:
 
 3.1 วิเคราะห์ภาพรวมองค์กร (Corporate Level Analysis)
-พบประเด็นความเสี่ยงระดับภาพรวมองค์กรและห่วงโซ่อุปทาน จำนวน {len(corp_issues_df)} ประเด็น ดังนี้:
+พบประเด็นความเสี่ยงระดับภาพรวมองค์กรและห่วงโซ่อุปทาน จำนวน {len(df_corp)} ประเด็น ดังนี้:
 {issue_list_3_1}
 3.2 วิเคราะห์ตามกลุ่มเป้าหมาย (Stakeholder Level Analysis)
-พบประเด็นความเสี่ยงที่เจาะจงผลกระทบตามกลุ่มเป้าหมาย จำนวน {len(stake_issues_df)} ประเด็น มีรายละเอียดการกระจายตัว ดังนี้:
+พบประเด็นความเสี่ยงที่เจาะจงผลกระทบตามกลุ่มเป้าหมาย จำนวน {len(df_stake_all)} ประเด็น มีรายละเอียดการกระจายตัว ดังนี้:
 {issue_list_3_2}
 {early_warning_text}
 
@@ -1261,7 +1239,6 @@ elif choice.startswith("Tool 7"):
                 if sheet:
                     try:
                         import traceback
-                        # 🟢 บังคับใช้ค่า Default สำหรับตัวแปรที่มีโอกาสหลุด (NameError)
                         try: val_now = now
                         except NameError: val_now = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
                         
@@ -1271,11 +1248,10 @@ elif choice.startswith("Tool 7"):
                         try: val_location = location
                         except NameError: val_location = "N/A"
 
-                        # 🟢 บังคับใส่ข้อมูลให้ครบ 16 คอลัมน์เป๊ะๆ ป้องกัน API Crash
                         new_row_data = [
                             str(val_now), str(actual_audit_cycle), str(val_auditor_name), str(val_location), 
-                            "Tool 7 - Report", "Executive Summary", str(selected_group), "N/A", "N/A", 
-                            "รายงานยุทธศาสตร์", str(report_text_final), "N/A", "N/A", "N/A", "N/A", "N/A" # <-- คอลัมน์ที่ 16
+                            "Tool 7 - Report", "Executive Summary", "ภาพรวมองค์กร", "N/A", "N/A", 
+                            "รายงานยุทธศาสตร์", str(report_text_final), "N/A", "N/A", "N/A", "N/A", "N/A"
                         ]
                         
                         with st.spinner("กำลังบันทึกรายงาน..."):
@@ -1288,7 +1264,6 @@ elif choice.startswith("Tool 7"):
                             if hasattr(st, 'rerun'): st.rerun()
                             elif hasattr(st, 'experimental_rerun'): st.experimental_rerun()
                     except Exception as e:
-                        # 🟢 หากเซฟไม่ได้ จะโชว์กรอบสีแดงพร้อมโค้ดให้เห็นจะๆ
                         st.error(f"❌ ระบบเกิดข้อผิดพลาดในการบันทึกข้อมูล: {type(e).__name__} - {str(e)}")
                         with st.expander("ดูรายละเอียดข้อผิดพลาด (Technical Details)"):
                             st.code(traceback.format_exc())
