@@ -498,7 +498,6 @@ elif choice.startswith("Tool 5"):
     
     sheet_data_count = len(df_filtered)
     
-    # 🟢 ดักจับ Bias ที่ 1: ไม่มีข้อมูลตอบกลับจากกลุ่มนี้เลย
     if sheet_data_count == 0: 
         if custom_filter_text in ["ผู้บริหาร", "คู่ค้า (Suppliers)", "ลูกค้า"]:
             st.warning(f"⚠️ ผลการวิเคราะห์ข้อมูลเฉพาะกลุ่ม [{custom_filter_text}]: ไม่พบการรายงานความเสี่ยง (Zero Self-Reported Risks)")
@@ -520,7 +519,6 @@ elif choice.startswith("Tool 5"):
             raw_issues = df_filtered['ประเด็นหลัก'].unique().tolist()
             real_issues_from_sheet = [i for i in raw_issues if str(i).strip() not in ["", "nan", "Worker Survey", "Site Observation", "Policy Gap Analysis"]]
         
-        # 🟢 ดักจับ Bias ที่ 2: มีข้อมูล แต่ประเมินตัวเองว่า "ไม่เสี่ยงเลย"
         if len(real_issues_from_sheet) == 0:
             if custom_filter_text in ["ผู้บริหาร", "คู่ค้า (Suppliers)"]:
                 st.warning(f"⚠️ ผลการวิเคราะห์ข้อมูลเฉพาะกลุ่ม [{custom_filter_text}]: ไม่พบประเด็นความเสี่ยงจากการประเมินตนเอง")
@@ -546,7 +544,6 @@ elif choice.startswith("Tool 5"):
     is_already_approved = save_issue in st.session_state.get("approved_issues", [])
     scope_text = f"กลุ่มเป้าหมาย: {custom_filter_text}" if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
 
-    # 💡 2. AI ANALYTICAL ENGINE (MOCK) - GLOBAL TRIANGULATION
     st.markdown("<hr style='border: 1px dashed #ccc;'>", unsafe_allow_html=True)
     st.markdown("<h5 style='color: #005B31;'><i class='fa-solid fa-brain'></i> 2. ผลการวิเคราะห์และฟันธงโดย AI (AI Executive Summary)</h5>", unsafe_allow_html=True)
 
@@ -554,8 +551,6 @@ elif choice.startswith("Tool 5"):
     exec_quotes = []
     worker_quotes = []
     
-    # 🟢 หัวใจสำคัญ: ดึงข้อมูลจาก "ภาพรวมองค์กร (raw_data_only_df)" เสมอ เพื่อครอสเช็คข้ามกลุ่ม (Triangulation) 
-    # ป้องกันปัญหาคะแนนไม่ตรงกันเมื่อเปลี่ยนกลุ่ม
     if not raw_data_only_df.empty and 'รายละเอียด/คำให้การ' in raw_data_only_df.columns:
         subset = raw_data_only_df[raw_data_only_df['ประเด็นหลัก'] == selected_issue]
         for idx, row in subset.iterrows(): 
@@ -567,14 +562,12 @@ elif choice.startswith("Tool 5"):
                 else:
                     worker_quotes.append(row)
     
-    # AI ฟันธงลอจิก
     ai_conclusion = ""
     ai_severity_suggest = 3
     ai_likelihood_suggest = 3
     ai_plan_suggest = ""
     
     if len(exec_quotes) > 0 and len(worker_quotes) > 0:
-        # มีทั้งสองฝั่ง -> หา Gap
         ai_conclusion = f"""
         <div style='background-color: #FEF2F2; padding: 20px; border-radius: 8px; border-left: 5px solid #DC2626; margin-bottom: 20px;'>
             <h4 style='color: #991B1B; margin-top:0;'>⚠️ AI ฟันธง: พบความขัดแย้งของข้อมูล (Policy Implementation Gap)</h4>
@@ -589,7 +582,6 @@ elif choice.startswith("Tool 5"):
         ai_plan_suggest = "Preventive Action:\n- ระงับการปฏิบัติงานและตั้งคณะกรรมการสืบสวนข้อเท็จจริงเพื่อหาช่องโหว่ของการบังคับใช้นโยบาย (Implementation Gap)\n- แทรกแซงกระบวนการบริหารจัดการของคู่ค้าต้นทาง\n\nRemediation Plan:\n- เยียวยาผู้ได้รับผลกระทบทันทีหากสืบสวนพบว่าเป็นความจริง"
     
     elif len(exec_quotes) > 0 and len(worker_quotes) == 0:
-        # มีแต่คำพูดบวก
         ai_conclusion = f"""
         <div style='background-color: #F0FDF4; padding: 20px; border-radius: 8px; border-left: 5px solid #166534; margin-bottom: 20px;'>
             <h4 style='color: #14532D; margin-top:0;'>✅ AI ฟันธง: แนวปฏิบัติที่ดี (Best Practice / No Gap Detected)</h4>
@@ -605,7 +597,6 @@ elif choice.startswith("Tool 5"):
         ai_plan_suggest = "Maintenance Plan (แผนคงสภาพ):\n- คงมาตรการเชิงบวกในปัจจุบันไว้ และดำเนินการตรวจสอบตามวงรอบปกติอย่างน้อยปีละ 1 ครั้ง เพื่อป้องกันความเสี่ยงเกิดใหม่"
     
     else:
-        # เจอแต่คำบ่น
         ai_conclusion = f"""
         <div style='background-color: #FFFBEB; padding: 20px; border-radius: 8px; border-left: 5px solid #D97706; margin-bottom: 20px;'>
             <h4 style='color: #92400E; margin-top:0;'>⚠️ AI ฟันธง: ตรวจพบความเสี่ยงจากภาคปฏิบัติ (Operational Risk Detected)</h4>
@@ -621,7 +612,6 @@ elif choice.startswith("Tool 5"):
 
     st.markdown(ai_conclusion, unsafe_allow_html=True)
 
-    # 💡 SHOW EVIDENCE CITATIONS
     st.markdown("<strong style='color: #1E293B; font-size: 15px;'>📑 ข้อมูลอ้างอิงเชิงประจักษ์ (Triangulation Evidence):</strong>", unsafe_allow_html=True)
     
     if len(exec_quotes) > 0:
@@ -629,26 +619,23 @@ elif choice.startswith("Tool 5"):
         for row in exec_quotes:
             c_txt, c_btn = st.columns([8, 2])
             with c_txt:
-                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row['รหัสผู้ตอบ']}):</b> \"{row['รายละเอียด/คำให้การ'][:60]}...\"</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row.get('รหัสผู้ตอบ','')[:10]}):</b> \"{str(row['รายละเอียด/คำให้การ'])[:60]}...\"</div>", unsafe_allow_html=True)
             with c_btn:
                 with st.popover(f"🔍 ดูข้อมูลดิบ"):
-                    st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {row['รหัสผู้ตอบ']}")
-                    st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
-                    st.info(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
+                    st.write(f"**กลุ่ม:** {row.get('กลุ่มเป้าหมาย', '-')}")
+                    st.info(f"**คำให้การ:**\n\n{row['รายละเอียด/คำให้การ']}")
     
     if len(worker_quotes) > 0:
         st.markdown("<div style='color:#B91C1C; font-weight:bold; margin-top:10px;'>ฝั่งปฏิบัติการ / ผู้ได้รับผลกระทบ (Operations / Affected)</div>", unsafe_allow_html=True)
         for row in worker_quotes:
             c_txt, c_btn = st.columns([8, 2])
             with c_txt:
-                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row['รหัสผู้ตอบ']}):</b> \"{row['รายละเอียด/คำให้การ'][:60]}...\"</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='padding: 5px; font-size: 14px;'><b>(ID {row.get('รหัสผู้ตอบ','')[:10]}):</b> \"{str(row['รายละเอียด/คำให้การ'])[:60]}...\"</div>", unsafe_allow_html=True)
             with c_btn:
                 with st.popover(f"🔍 ดูข้อมูลดิบ"):
-                    st.markdown(f"### 📄 ข้อมูลอ้างอิงรหัส: {row['รหัสผู้ตอบ']}")
-                    st.write(f"**กลุ่ม / แผนก:** {row.get('กลุ่มเป้าหมาย', '-')} / {row.get('แผนก/ส่วนงาน', '-')}")
-                    st.warning(f"**คำให้การฉบับเต็ม:**\n\n{row['รายละเอียด/คำให้การ']}")
+                    st.write(f"**กลุ่ม:** {row.get('กลุ่มเป้าหมาย', '-')}")
+                    st.warning(f"**คำให้การ:**\n\n{row['รายละเอียด/คำให้การ']}")
 
-    # 💡 KNOWLEDGE BASE MATCHER 
     kb_name = "UNGPs | ILO Conventions | กฎหมายที่เกี่ยวข้อง"
     kb_clause = "-"
     kb_desc = "ไม่พบรายละเอียดที่เจาะจงในระบบ Knowledge Base"
@@ -684,8 +671,6 @@ elif choice.startswith("Tool 5"):
     </div>
     """, unsafe_allow_html=True)
     
-    st.info("💡 **AI Recommendation:** ระบบได้ปรับตั้งค่าแถบเลื่อนด้านล่างให้อัตโนมัติตามการวิเคราะห์ความเสี่ยงเบื้องต้น ท่านสามารถปรับแก้ได้ตามดุลยพินิจ")
-
     col_s1, col_s2, col_s3 = st.columns(3)
     with col_s1: scale = st.slider("Scale (ขนาดผลกระทบ: 1 เล็กน้อย - 5 Zero Tolerance)", 1, 5, ai_severity_suggest)
     with col_s2: scope = st.slider("Scope (วงกว้าง: 1 เฉพาะบุคคล - 5 ระดับประเทศ)", 1, 5, ai_severity_suggest)
@@ -748,9 +733,6 @@ elif choice.startswith("Tool 5"):
             st.markdown(f"### ⚖️ {kb_name}")
             st.write(f"**ระบุข้อ/มาตรา:** {kb_clause}")
             st.success(f"**รายละเอียดข้อบังคับ:**\n\n{kb_desc}")
-            st.markdown(f"**📄 เอกสารต้นฉบับ:** `{kb_doc}`")
-            st.markdown(f"🔗 [คลิกเพื่อเปิดลิงก์ฐานข้อมูลสากล]({kb_link})")
-            st.caption("*ดึงข้อมูลจากระบบ Knowledge Base")
 
     st.markdown("""
     <div style="background: #FAFAFA; border: 1px solid #D2E3FC; border-top: none; padding: 25px; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; margin-bottom: 30px;">
@@ -768,32 +750,60 @@ elif choice.startswith("Tool 5"):
 
     if st.button(button_label):
         if sheet:
-            db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
-            detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Evidence: {final_evidence} | Standard: {final_standard} | Plan: {final_plan}"
-            
-            scope_to_save = custom_filter_text if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
-            
-            new_row_data = [now, audit_cycle, auditor_name, "N/A", "Tool 5", "Issue-Based", scope_to_save, "N/A", "N/A", save_issue, detail, sev_max, likelihood, score, db_risk_level]
-            
-            if "saved_plans_dict" not in st.session_state:
-                st.session_state.saved_plans_dict = {}
-            if "approved_issues" not in st.session_state:
-                st.session_state.approved_issues = []
+            try:
+                import traceback # นำเข้า module สำหรับดึง Error มาโชว์เต็มๆ
                 
-            st.session_state.saved_plans_dict[save_issue] = {
-                'plan': final_plan, 
-                'sev': sev_max, 
-                'lik': likelihood,
-                'filter_context': custom_filter_text 
-            }
-            if not is_already_approved:
-                st.session_state.approved_issues.append(save_issue)
+                # 🟢 บังคับใช้ค่า Default สำหรับตัวแปรที่มีโอกาสหลุด (NameError)
+                try: val_now = now
+                except NameError: val_now = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+                
+                try: val_audit_cycle = audit_cycle
+                except NameError: val_audit_cycle = "N/A"
+                
+                try: val_auditor_name = auditor_name
+                except NameError: val_auditor_name = "N/A"
+                
+                try: val_location = location
+                except NameError: val_location = "N/A"
 
-            with st.spinner("กำลังอัปเดตลง Google Sheet..."):
-                sheet.append_row(new_row_data)
-                st.success(f"✅ **อนุมัติและบันทึกแผนยุทธศาสตร์สำเร็จ:** ประเด็น '{save_issue}' ถูกบันทึกภายใต้กลุ่ม '{scope_to_save}'")
-                st.cache_data.clear()
-                st.rerun()
+                db_risk_level = "Critical" if risk_zone == "RED" else ("Significant" if risk_zone == "YELLOW" else "Moderate/Minor")
+                detail = f"Scale:{scale}, Scope:{scope}, Remedy:{remedy} | Evidence: {final_evidence} | Standard: {final_standard} | Plan: {final_plan}"
+                scope_to_save = str(custom_filter_text) if custom_filter_text else "ภาพรวมองค์กรและห่วงโซ่อุปทาน"
+                
+                # 🟢 บังคับใส่ข้อมูลให้ครบ 16 คอลัมน์เป๊ะๆ (ป้องกัน API Reject จาก Google Sheet)
+                new_row_data = [
+                    str(val_now), str(val_audit_cycle), str(val_auditor_name), str(val_location), 
+                    "Tool 5", "Issue-Based", scope_to_save, "N/A", "N/A", 
+                    str(save_issue), str(detail), int(sev_max), int(likelihood), int(score), 
+                    str(db_risk_level), "N/A" # <-- คอลัมน์ที่ 16 (Whitelist/Other)
+                ]
+                
+                if "saved_plans_dict" not in st.session_state: st.session_state.saved_plans_dict = {}
+                if "approved_issues" not in st.session_state: st.session_state.approved_issues = []
+                    
+                st.session_state.saved_plans_dict[save_issue] = {
+                    'plan': final_plan, 'sev': int(sev_max), 'lik': int(likelihood), 'filter_context': custom_filter_text 
+                }
+                if not is_already_approved:
+                    st.session_state.approved_issues.append(save_issue)
+
+                with st.spinner("กำลังอัปเดตลง Google Sheet..."):
+                    sheet.append_row(new_row_data)
+                    st.success(f"✅ **อนุมัติและบันทึกแผนยุทธศาสตร์สำเร็จ:** ประเด็น '{save_issue}' ถูกบันทึกภายใต้กลุ่ม '{scope_to_save}'")
+                    
+                    # 🟢 โค้ดรีเฟรชหน้าจอที่รองรับ Streamlit ทุกเวอร์ชัน
+                    if hasattr(st, 'cache_data'): st.cache_data.clear()
+                    elif hasattr(st, 'legacy_caching'): st.legacy_caching.clear()
+                    
+                    if hasattr(st, 'rerun'): st.rerun()
+                    elif hasattr(st, 'experimental_rerun'): st.experimental_rerun()
+            except Exception as e:
+                # 🟢 หากเซฟไม่ได้ จะโชว์กรอบสีแดงพร้อมโค้ดให้เห็นจะๆ
+                st.error(f"❌ ระบบเกิดข้อผิดพลาดในการบันทึกข้อมูล: {type(e).__name__} - {str(e)}")
+                with st.expander("ดูรายละเอียดข้อผิดพลาด (Technical Details)"):
+                    st.code(traceback.format_exc())
+        else:
+            st.error("❌ การเชื่อมต่อกับฐานข้อมูล Google Sheet ขัดข้อง โปรดตรวจสอบการตั้งค่า")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -923,18 +933,20 @@ elif choice.startswith("Tool 7"):
         st.markdown("<h3 style='color:#005B31; margin-top:0;'>Tool 7: แดชบอร์ดและรายงาน (Real-time Data Analytics)</h3><p style='color:#666;'>สรุปผลประเมินนัยสำคัญของความเสี่ยง และการกระจายตัวตามกลุ่มเป้าหมาย</p>", unsafe_allow_html=True)
     with col_refresh:
         if st.button("🔄 ดึงข้อมูลล่าสุด"):
-            st.cache_data.clear()
-            st.rerun()
+            if hasattr(st, 'cache_data'): st.cache_data.clear()
+            if hasattr(st, 'rerun'): st.rerun()
+            elif hasattr(st, 'experimental_rerun'): st.experimental_rerun()
     st.markdown("<hr style='margin-top:0;'>", unsafe_allow_html=True)
 
     sheet_data_count = 0
     df_standard = pd.DataFrame() 
     df_ew = pd.DataFrame()       
-    actual_audit_cycle = audit_cycle 
+    actual_audit_cycle = "N/A"
     
     if not df_real.empty:
         if 'รอบการประเมิน' in df_real.columns:
-            actual_audit_cycle = df_real['รอบการประเมิน'].iloc[-1]
+            val = df_real['รอบการประเมิน'].dropna().iloc[-1] if not df_real['รอบการประเมิน'].dropna().empty else "N/A"
+            actual_audit_cycle = str(val) # ป้องกัน Numpy Float หลุดไปทำแอปแครช
             
         raw_df = df_real[df_real['เครื่องมือ'].isin(['Tool 1', 'Tool 2', 'Tool 3', 'Tool 4'])]
         sheet_data_count = len(raw_df)
@@ -947,9 +959,8 @@ elif choice.startswith("Tool 7"):
                 df_tool56['วันที่-เวลา'] = pd.to_datetime(df_tool56['วันที่-เวลา'], errors='coerce')
                 df_tool56 = df_tool56.sort_values('วันที่-เวลา')
             
-            # 🟢 แก้ไขการนับเบิ้ล: จัดการให้ 1 ประเด็น ต่อ 1 กลุ่มเป้าหมาย ถือเป็น 1 รายการ 
-            # ป้องกันการบันทึกทับแล้วนับเพิ่ม และแยกภาพรวมกับกลุ่มเจาะจงออกจากกัน
-            df_tool56['กลุ่มเป้าหมาย'] = df_tool56['กลุ่มเป้าหมาย'].fillna('ไม่ระบุ')
+            # เติมค่าว่างด้วยคำว่าภาพรวมองค์กร จะได้จัดกลุ่มได้ถูกต้อง
+            df_tool56['กลุ่มเป้าหมาย'] = df_tool56['กลุ่มเป้าหมาย'].fillna('ภาพรวมองค์กร').replace({'nan': 'ภาพรวมองค์กร', '': 'ภาพรวมองค์กร'})
             df_tool56 = df_tool56.drop_duplicates(subset=['ประเด็นหลัก', 'กลุ่มเป้าหมาย'], keep='last')
 
             is_early_warning = df_tool56['ประเด็นหลัก'].str.contains('Early Warning|สัญญาณเตือน', na=False, case=False)
@@ -1027,11 +1038,8 @@ elif choice.startswith("Tool 7"):
     with col_stake:
         st.markdown("<div style='text-align: center; font-weight: bold; color: #555; margin-bottom: 10px;'>ความรุนแรงตามกลุ่มเป้าหมาย (Stakeholder Heat Map)</div>", unsafe_allow_html=True)
         
-        # 🟢 เปลี่ยนกราฟแท่งเป็น Stakeholder Heat Map ด้วย Altair
         if not df_standard.empty and 'กลุ่มเป้าหมาย' in df_standard.columns:
             heat_df = df_standard.copy()
-            heat_df['กลุ่มเป้าหมาย'] = heat_df['กลุ่มเป้าหมาย'].replace({'nan': 'ภาพรวมองค์กร', '': 'ภาพรวมองค์กร', 'ภาพรวมองค์กรและห่วงโซ่อุปทาน': 'ภาพรวมองค์กร'})
-            
             def get_risk_level(row):
                 try:
                     s = int(pd.to_numeric(row.get('ความรุนแรง (Sev)', 0), errors='coerce'))
@@ -1103,7 +1111,6 @@ elif choice.startswith("Tool 7"):
             strategy = f"ยุทธศาสตร์การจัดการ (Strategic Mitigation):\n  {raw_plan.replace(chr(10), chr(10)+'  ')}"
             return f"{analysis}\n  {strategy}"
 
-        # 🟢 การจัดรูปแบบรายงานใหม่ (3.1 ภาพรวม และ 3.2 รายกลุ่ม)
         corp_issues_df = df_dash_standard[df_dash_standard['กลุ่มเป้าหมาย'].str.contains('ภาพรวมองค์กร', na=False, case=False)]
         stake_issues_df = df_dash_standard[~df_dash_standard['กลุ่มเป้าหมาย'].str.contains('ภาพรวมองค์กร', na=False, case=False)]
         
@@ -1111,7 +1118,6 @@ elif choice.startswith("Tool 7"):
         issue_list_3_2 = ""
         action_list_text = ""
         
-        # 3.1 Corporate Level
         if not corp_issues_df.empty:
             for _, row in corp_issues_df.iterrows():
                 iss = str(row.get('ประเด็นหลัก', 'Unknown'))
@@ -1132,7 +1138,6 @@ elif choice.startswith("Tool 7"):
         else:
             issue_list_3_1 = "- (ไม่มีข้อมูลประเด็นที่วิเคราะห์ในระดับภาพรวมองค์กร)\n"
 
-        # 3.2 Stakeholder Level
         if not stake_issues_df.empty:
             grouped = stake_issues_df.groupby('กลุ่มเป้าหมาย')
             for group_name, group_df in grouped:
@@ -1197,7 +1202,7 @@ elif choice.startswith("Tool 7"):
         report_mockup = f"""รายงานผลวิเคราะห์ความเสี่ยงด้านสิทธิมนุษยชนเชิงกลยุทธ์ (Strategic HRDD Risk Report)
 รอบการประเมิน: {actual_audit_cycle}
 ขอบเขตการวิเคราะห์ (Scope of Analysis): {selected_group}
-ผู้รับผิดชอบการประเมิน: {auditor_name}
+ผู้รับผิดชอบการประเมิน: {auditor_name if 'auditor_name' in globals() else 'N/A'}
 
 บทสรุปผู้บริหาร (Executive Summary)
 สถานะความเสี่ยงที่มีนัยสำคัญขององค์กร ถูกประมวลผลด้วยระเบียบวิธีวิจัยแบบผสานวิธีที่เสริมพลังด้วยปัญญาประดิษฐ์ (AI-Augmented Mixed Methods Research) โดยนำรายงานผลการดำเนินงานย้อนหลัง มาวิเคราะห์ร่วมกับข้อมูลภาคสนามจากผู้มีส่วนได้เสียจำนวน {sheet_data_count} ราย ผ่านนวัตกรรม "ระบบประเมินความเสี่ยงสิทธิมนุษยชนอัจฉริยะ" เพื่อสร้างระบบนิเวศแห่งความไว้วางใจ และยกระดับการบริหารความเสี่ยงให้สอดคล้องกับบริบทความยั่งยืนระดับโลก
@@ -1238,13 +1243,15 @@ elif choice.startswith("Tool 7"):
         if not df_real.empty:
             df_tool7_report = df_real[df_real['เครื่องมือ'] == 'Tool 7 - Report']
         
-        if not df_tool7_report.empty:
+        if not df_tool7_report.empty and not st.session_state.get('edit_tool7_report', False):
             latest_report = df_tool7_report.iloc[-1]
             st.success("✅ รายงานยุทธศาสตร์ฉบับนี้ได้รับการอนุมัติและบันทึกลงระบบแล้ว")
             st.info(latest_report['รายละเอียด/คำให้การ'])
             
             if st.button("📝 สร้างรายงานฉบับใหม่ / เขียนทับ"):
-                pass 
+                st.session_state.edit_tool7_report = True
+                if hasattr(st, 'rerun'): st.rerun() 
+                elif hasattr(st, 'experimental_rerun'): st.experimental_rerun()
                 
         else:
             report_text_final = st.text_area("ทบทวน ปรับแก้ และอนุมัติรายงานฉบับสมบูรณ์ (Review & Approve Report):", value=report_mockup, height=800, label_visibility="collapsed")
@@ -1252,6 +1259,38 @@ elif choice.startswith("Tool 7"):
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 อนุมัติยุทธศาสตร์และบันทึกรายงานฉบับสมบูรณ์ (Approve & Save Executive Report)"):
                 if sheet:
-                    sheet.append_row([now, actual_audit_cycle, auditor_name, location, "Tool 7 - Report", "Executive Summary", selected_group, "N/A", "N/A", "รายงานยุทธศาสตร์", report_text_final, "N/A", "N/A", "N/A", "N/A", "N/A"])
-                    st.cache_data.clear() 
-                    st.rerun()
+                    try:
+                        import traceback
+                        # 🟢 บังคับใช้ค่า Default สำหรับตัวแปรที่มีโอกาสหลุด (NameError)
+                        try: val_now = now
+                        except NameError: val_now = pd.Timestamp.now().strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        try: val_auditor_name = auditor_name
+                        except NameError: val_auditor_name = "N/A"
+                        
+                        try: val_location = location
+                        except NameError: val_location = "N/A"
+
+                        # 🟢 บังคับใส่ข้อมูลให้ครบ 16 คอลัมน์เป๊ะๆ ป้องกัน API Crash
+                        new_row_data = [
+                            str(val_now), str(actual_audit_cycle), str(val_auditor_name), str(val_location), 
+                            "Tool 7 - Report", "Executive Summary", str(selected_group), "N/A", "N/A", 
+                            "รายงานยุทธศาสตร์", str(report_text_final), "N/A", "N/A", "N/A", "N/A", "N/A" # <-- คอลัมน์ที่ 16
+                        ]
+                        
+                        with st.spinner("กำลังบันทึกรายงาน..."):
+                            sheet.append_row(new_row_data)
+                            st.session_state.edit_tool7_report = False
+                            
+                            if hasattr(st, 'cache_data'): st.cache_data.clear()
+                            elif hasattr(st, 'legacy_caching'): st.legacy_caching.clear()
+                            
+                            if hasattr(st, 'rerun'): st.rerun()
+                            elif hasattr(st, 'experimental_rerun'): st.experimental_rerun()
+                    except Exception as e:
+                        # 🟢 หากเซฟไม่ได้ จะโชว์กรอบสีแดงพร้อมโค้ดให้เห็นจะๆ
+                        st.error(f"❌ ระบบเกิดข้อผิดพลาดในการบันทึกข้อมูล: {type(e).__name__} - {str(e)}")
+                        with st.expander("ดูรายละเอียดข้อผิดพลาด (Technical Details)"):
+                            st.code(traceback.format_exc())
+                else:
+                    st.error("❌ การเชื่อมต่อกับฐานข้อมูล Google Sheet ขัดข้อง โปรดตรวจสอบการตั้งค่า")
