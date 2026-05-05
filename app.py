@@ -850,12 +850,29 @@ elif choice.startswith("Tool 6"):
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("💾 บันทึกมติการพิจารณา Tool 6"):
                 if sheet:
-                    decision_text = "Approved" if "ยืนยัน" in t6_decision else "Rejected"
-                    detail = f"Anomaly: Recruitment Fee | Decision: {decision_text} | Note: {t6_note}"
-                    sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", "Early Warning (Recruitment Fee)", detail, "", "", "", ""])
+                    # 🟢 แก้ไข: สร้างข้อความฉบับเต็มเพื่อบันทึกลง Sheet โดยตรง
+                    full_issue_name = "🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): การเรียกเก็บค่าธรรมเนียมสรรหา (Debt Bondage Indicator)"
+                    
+                    if "ยืนยัน" in t6_decision:
+                        decision_text = "Approved"
+                        if not t6_note:
+                            full_plan = "ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี การเรียกเก็บค่าธรรมเนียมสรรหา (Debt Bondage Indicator) เนื่องจาก AI ตรวจพบความขัดแย้งที่มีนัยสำคัญระหว่างนโยบายระดับองค์กรและข้อมูลจากการปฏิบัติจริง"
+                        else:
+                            full_plan = f"ยกระดับการตรวจสอบ (Escalate Investigation): {t6_note}"
+                    else:
+                        decision_text = "Rejected"
+                        full_plan = f"ปฏิเสธการแจ้งเตือน (False Alarm) หมายเหตุ: {t6_note}"
+                    
+                    # บันทึกข้อมูลข้อความเต็มเป๊ะๆ ตามที่คุณต้องการ (ใส่คะแนนเป็น 0 เพื่อป้องกัน Heat Map พัง)
+                    sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", full_issue_name, full_plan, 0, 0, 0, "Yes"])
+                    
                     st.session_state.early_warning_approved = True if "ยืนยัน" in t6_decision else False
                     st.session_state.early_warning_note = t6_note
-                    st.success("✅ บันทึกมติสำเร็จ (หมายเหตุ: หากกด 'ปฏิเสธ' สัญญาณเตือนนี้จะถูกลบออกจากรายงาน Executive Report ใน Tool 7 อัตโนมัติ)")
+                    st.success("✅ บันทึกมติสำเร็จ (ข้อมูลฉบับเต็มถูกบันทึกลงฐานข้อมูลเรียบร้อยแล้ว)")
+                    
+                    # 🟢 ล้างแคชเพื่อให้ระบบดึงข้อมูลจาก Google Sheet ทันที ไม่ต้องรีเฟรชเอง
+                    st.cache_data.clear()
+                    st.rerun()
         else:
             st.info("✅ ฐานข้อมูลปัจจุบันไม่มีสัญญาณความขัดแย้งของข้อมูลเชิงนโยบายและการปฏิบัติจริงที่เข้าข่ายต้องเฝ้าระวัง")
 
@@ -868,11 +885,23 @@ elif choice.startswith("Tool 6"):
         
         if st.button("💾 บันทึกและเสนอประเด็นเตือนภัยล่วงหน้า"):
             if sheet and m_topic:
-                detail = f"Anomaly: {m_topic} | Decision: Approved (Manual) | Note: {m_note}"
-                sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", f"Early Warning ({m_topic})", detail, "", "", "", ""])
+                # 🟢 แก้ไข: สร้างข้อความฉบับเต็มสำหรับโหมด Manual กรอกมือ
+                full_issue_name = f"🚩 สัญญาณเตือนภัยล่วงหน้า (Early Warning): {m_topic}"
+                
+                if not m_note:
+                    full_plan = f"ยกระดับการตรวจสอบ (Escalate Investigation): จัดตั้งคณะทำงานลงพื้นที่ตรวจสอบข้อเท็จจริงเชิงลึกกรณี {m_topic}"
+                else:
+                    full_plan = f"ยกระดับการตรวจสอบ (Escalate Investigation): {m_note}"
+                    
+                sheet.append_row([now, audit_cycle, auditor_name, "N/A", "Tool 6", "Issue-Based", "ภาพรวมระดับองค์กร", "N/A", "N/A", full_issue_name, full_plan, 0, 0, 0, "Yes"])
+                
                 st.session_state.early_warning_approved = True
                 st.session_state.early_warning_note = m_note
                 st.success("✅ บันทึกประเด็นเตือนภัยล่วงหน้าเข้าสู่ระบบ และส่งต่อไปยังรายงาน Tool 7 เรียบร้อยแล้ว")
+                
+                # 🟢 ล้างแคชและโหลดใหม่
+                st.cache_data.clear()
+                st.rerun()
             
     st.markdown("</div>", unsafe_allow_html=True)
 
